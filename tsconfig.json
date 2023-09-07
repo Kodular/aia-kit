@@ -1,13 +1,17 @@
 {
   "compilerOptions": {
-    "module": "ESNext",
+    "module": "NodeNext",
     "target": "ESNext",
     "moduleResolution": "NodeNext",
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "outDir": "dist",
+    "declaration": true
   },
+  "include": ["src/**/*"],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "dist"
   ]
 }
