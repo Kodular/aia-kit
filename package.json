@@ -1,6 +1,6 @@
 {
   "name": "aia-kit",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Read, Parse, Edit, Write AIA/AIX/AIS files.",
   "type": "module",
   "main": "dist/index.js",
