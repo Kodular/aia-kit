@@ -1,7 +1,14 @@
 {
   "name": "aia-kit",
   "version": "1.0.0",
-  "description": "Read, Parse, Edit, Write AIA/AIX/AIS files.",
+  "description": "Read, Parse, Edit, Write, Analyze AIA/AIX/AIS files.",
+  "keywords": ["app-inventor", "kodular", "aia", "aix", "ais", "extension"],
+  "author": "Kodular",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kodular/aia-kit.git"
+  },
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -13,9 +20,6 @@
     "test": "vitest",
     "test:run": "vitest run"
   },
-  "keywords": [],
-  "author": "Kodular",
-  "license": "ISC",
   "devDependencies": {
     "typescript": "^5.2.2",
     "vitest": "^0.34.3"
