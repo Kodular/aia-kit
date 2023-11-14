@@ -13,6 +13,8 @@ npm install aia-kit
 ## Usage
 
 ```javascript
+import { AIAReader } from 'aia-kit'
+
 const aiaFile = await fs.readFile('test/fixtures/Test.aia')
 const aiaFileBlob = new Blob([aiaFile])
 
