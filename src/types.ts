@@ -14,20 +14,75 @@ export interface ComponentJson {
     [key: string]: string | ComponentJson[] | undefined;
 }
 
-export interface ExtensionDescriptorJson {
-    categoryString: string;
+export interface ComponentDescriptorJson {
+    type: string;
+    name: string;
+    external: "true" | "false";
+    version: string;
     dateBuilt: string;
+    categoryString: string;
+    helpString: string;
+    helpUrl: string;
+    showOnPalette: "true" | "false";
     nonVisible: "true" | "false";
     iconName: string;
-    helpUrl: string;
-    type: string;
-    versionName: string;
     androidMinSdk: number;
-    versionCode: string;
-    external: "true" | "false";
-    showOnPalette: "true" | "false";
+    properties: ComponentDescriptorProperty[];
+    blockProperties: ComponentDescriptorBlockProperty[];
+    events: ComponentDescriptorEvent[];
+    methods: ComponentDescriptorMethod[];
+}
+
+interface ComponentDescriptorProperty {
     name: string;
+    editorType: string;
+    defaultValue: string;
+    propertyType: string;
+    editorArgs: any[];
+}
+
+interface ComponentDescriptorBlockProperty {
+    name: string;
+    description: string;
+    type: string;
+    rw: string;
+    deprecated: string;
+}
+
+interface ComponentDescriptorEvent {
+    name: string;
+    description: string;
+    deprecated: string;
+    params: ComponentDescriptorParam[];
+}
+
+interface ComponentDescriptorMethod {
+    name: string;
+    description: string;
+    deprecated: string;
+    params: ComponentDescriptorParam[];
+    returnType?: string;
+}
+
+interface ComponentDescriptorParam {
+    name: string;
+    type: string;
+}
+
+export interface ExtensionDescriptorJson {
+    type: string;
+    name: string;
+    external: "true" | "false";
+    dateBuilt: string;
+    categoryString: string;
     helpString: string;
+    helpUrl: string;
+    showOnPalette: "true" | "false";
+    nonVisible: "true" | "false";
+    iconName: string;
+    androidMinSdk: number;
+    versionName: string;
+    versionCode: string;
     properties: ExtensionDescriptorProperty[];
     blockProperties: unknown[];
     events: unknown[];
