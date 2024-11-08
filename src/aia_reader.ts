@@ -33,13 +33,13 @@ export class AIAReader {
      * @since 1.0.0
      * @access public
      *
-     * @param {Blob | String} content The AIA file, or a URL pointing to it.
+     * @param {Blob | String} fileOrUrl The AIA file, or a URL pointing to it.
      *
      * @return {Promise} A Promise object, when resolved, yields the parsed
      *                   AIProject object.
      */
-    static async read(content: Blob | string) {
-        const readerObj = content instanceof Blob ? new BlobReader(content) : new HttpReader(content);
+    static async parse(fileOrUrl: Blob | string) {
+        const readerObj = fileOrUrl instanceof Blob ? new BlobReader(fileOrUrl) : new HttpReader(fileOrUrl);
         const zr = new ZipReader(readerObj)
         const entries = await zr.getEntries()
 
