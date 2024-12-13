@@ -4,7 +4,7 @@
  * @since  1.0.0
  * @access public
  */
-export class AIAsset {
+export class Asset {
     /**
      * Name of this asset, as defined by the user in their project.
      * @since  1.0.0
@@ -44,7 +44,7 @@ export class AIAsset {
      * @param {String} type The asset's file type (png, jpg, etc.)
      * @param {Blob} blob   The blob representing this asset's contents.
      *
-     * @return {AIAsset} New AIAsset object.
+     * @return {Asset} New AIAsset object.
      */
     constructor(name: string, type: string, blob: Blob) {
         this.name = name;

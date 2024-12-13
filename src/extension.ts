@@ -6,7 +6,7 @@ import type { ExtensionDescriptorJson } from "./types.js";
  * @since  1.0.0
  * @access public
  */
-export class AIExtension {
+export class Extension {
     name: string;
     descriptorJSON: Record<string, any>;
 
@@ -21,7 +21,7 @@ export class AIExtension {
      * @param {String} descriptorJSON    The custom JSON used to load the properties
      *                                   of any instances of this extension.
      *
-     * @return {AIExtension} New AIExtension object.
+     * @return {Extension} New AIExtension object.
      */
     constructor(name: string, descriptorJSON: ExtensionDescriptorJson) {
 

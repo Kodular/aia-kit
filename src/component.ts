@@ -8,7 +8,7 @@ import type { ComponentJson, ExtensionDescriptorJson } from "./types.js";
  * @since  1.0.0
  * @access public
  */
-export class AIComponent {
+export class Component {
     /**
      * Name of this component. It is unique and set by the user.
      * @since  1.0.0
@@ -34,7 +34,7 @@ export class AIComponent {
      * @since  1.0.0
      * @type   {Array}
      */
-    children: AIComponent[];
+    children: Component[];
     /**
      * Origin of this component. Used in @see SummaryWriter::generateNativeShare
      * to make summary charts of component usage.
@@ -71,7 +71,7 @@ export class AIComponent {
      * @param {String} origin 'EXTENSION' if this component is the instance of an
      *                         extension, 'BUILT-IN' otherwise.
      *
-     * @return {AIComponent} New Component object.
+     * @return {Component} New Component object.
      */
     constructor(name: string, type: string, uid: string, origin: string) {
         this.name = name;
@@ -144,9 +144,9 @@ export class AIComponent {
      * @since 1.0.0
      * @access private
      *
-     * @param {AIComponent} component The child component to be added.
+     * @param {Component} component The child component to be added.
      */
-    addChild(component: AIComponent) {
+    addChild(component: Component) {
         this.children.push(component);
     }
 }

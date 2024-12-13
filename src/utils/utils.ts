@@ -2,7 +2,7 @@ import type { Entry } from "@zip.js/zip.js";
 import simpleComponentsJson from '../simple_components.json'
 import {getTextFileContent} from "./zipjs.js";
 import {getProperties} from "properties-file";
-import { AIProject } from "../ai_project.js";
+import { Project } from "../project.js";
 
 /**
  * Convert the color in &HAARRGGBB format to #RRGGBBAA format
@@ -29,7 +29,7 @@ export async function readProjectProperties(file: Entry) {
     return getProperties(content)
 }
 
-export function getDescriptor(componentType: string, project: AIProject) {
+export function getDescriptor(componentType: string, project: Project) {
     // First check built-in components
     let descriptor = simpleComponentsJson.find(x => x.type === 'com.google.appinventor.components.runtime.' + componentType);
     if (descriptor !== undefined) {

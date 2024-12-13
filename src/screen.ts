@@ -1,6 +1,6 @@
 import simpleComponentsJson from "./simple_components.json";
 
-import {AIComponent} from "./ai_component.js";
+import {Component} from "./component.js";
 import type { ComponentJson, ScmJson } from "./types.js";
 
 /**
@@ -9,12 +9,12 @@ import type { ComponentJson, ScmJson } from "./types.js";
  * @since  1.0.0
  * @access public
  */
-export class AIScreen {
+export class Screen {
     name: string;
-    form: AIComponent;
+    form: Component;
     blocks: string;
 
-    constructor(name: string, form: AIComponent, blocks: string) {
+    constructor(name: string, form: Component, blocks: string) {
         this.name = name;
         this.form = form;
         this.blocks = blocks;
@@ -39,12 +39,12 @@ export class AIScreen {
      *                            fetched from the AIA.
      * @param {String}    name    The name of this screen.
      *
-     * @return {AIScreen} New AIScreen object.
+     * @return {Screen} New AIScreen object.
      */
     static async init(name: string, scm: string, blk: string) {
         const form = await this.generateSchemeData(scm);
 
-        return new AIScreen(name, form, blk);
+        return new Screen(name, form, blk);
     }
 
     /**
@@ -57,7 +57,7 @@ export class AIScreen {
      * @param {String} scmJSON The raw scheme text fetched from the .scm file of
      *                         the AIA.
      *
-     * @return {AIComponent} The Form component of this screen.
+     * @return {Component} The Form component of this screen.
      */
     static async generateSchemeData(scmJSON: string) {
         const componentsJSON = JSON.parse(scmJSON.slice(9, -3)) as ScmJson;
@@ -74,7 +74,7 @@ export class AIScreen {
      *
      * @param {String} componentJSON The JSON object describing this component.
      *
-     * @return {AIComponent} An object representing this component's properties and
+     * @return {Component} An object representing this component's properties and
      *                     children.
      */
     static async generateComponent(componentJSON: ComponentJson) {
@@ -87,7 +87,7 @@ export class AIScreen {
         // simple_components.json file will be used instead.
         let origin = extType === undefined ? 'EXTENSION' : 'BUILT-IN';
 
-        const component = new AIComponent(
+        const component = new Component(
             componentJSON.$Name,
             componentJSON.$Type,
             componentJSON.Uuid, //Screens do not have a Uuid property.

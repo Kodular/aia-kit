@@ -14,9 +14,9 @@
  * @license
  */
 
-import {AIScreen} from "./ai_screen.js";
-import {AIExtension} from "./ai_extension.js";
-import {AIAsset} from "./ai_asset.js";
+import {Screen} from "./screen.js";
+import {Extension} from "./extension.js";
+import {Asset} from "./asset.js";
 
 /**
  * Class that describes an App Inventor project.
@@ -24,7 +24,7 @@ import {AIAsset} from "./ai_asset.js";
  * @since  1.0.0
  * @access public
  */
-export class AIProject {
+export class Project {
     /**
      * Name of the project this class represents.
      * @since  1.0.0
@@ -35,21 +35,21 @@ export class AIProject {
     /**
      * Array of Screen objects this project contains.
      * @since  1.0.0
-     * @type   {Array<AIScreen>}
+     * @type   {Array<Screen>}
      */
-    screens: AIScreen[];
+    screens: Screen[];
     /**
      * Array of extensions used by this project.
      * @since  1.0.0
      * @type   {Array}
      */
-    extensions: AIExtension[];
+    extensions: Extension[];
     /**
      * Array of AIAsset objects this project contains.
      * @since  1.0.0
      * @type   {Array}
      */
-    assets: AIAsset[];
+    assets: Asset[];
 
     /**
      * Creates a new AIProject object with the given name.
@@ -60,7 +60,7 @@ export class AIProject {
      * @class
      * @param {String} name Name of the project.
      *
-     * @return {AIProject} New AIProject object.
+     * @return {Project} New AIProject object.
      */
     constructor(name: string) {
         this.name = name;
@@ -70,8 +70,8 @@ export class AIProject {
         this.assets = [];
     }
 
-    static from(properties: typeof AIProject.prototype.properties) {
-        const project = new AIProject(properties.name ?? 'Unnamed Project');
+    static from(properties: typeof Project.prototype.properties) {
+        const project = new Project(properties.name ?? 'Unnamed Project');
         project.properties = properties;
         return project;
     }
@@ -82,9 +82,9 @@ export class AIProject {
      * @since 1.0.0
      * @access public
      *
-     * @param {AIAsset} asset Asset object.
+     * @param {Asset} asset Asset object.
      */
-    addAsset(asset: AIAsset) {
+    addAsset(asset: Asset) {
         this.assets.push(asset);
     }
 
@@ -94,9 +94,9 @@ export class AIProject {
      * @since 1.0.0
      * @access public
      *
-     * @param {AIScreen} screen Screen object.
+     * @param {Screen} screen Screen object.
      */
-    addScreen(screen: AIScreen) {
+    addScreen(screen: Screen) {
         if (screen.name === 'Screen1') {
             this.screens.unshift(screen);
         } else {
@@ -110,9 +110,9 @@ export class AIProject {
      * @since 1.0.0
      * @access public
      *
-     * @param {AIExtension} extension Extension object.
+     * @param {Extension} extension Extension object.
      */
-    addExtension(extension: AIExtension) {
+    addExtension(extension: Extension) {
         this.extensions.push(extension);
     }
 }

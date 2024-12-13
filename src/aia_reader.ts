@@ -10,10 +10,10 @@
  */
 
 import {BlobReader, type Entry, HttpReader, ZipReader} from "@zip.js/zip.js";
-import {AIProject} from './ai_project.js'
-import {AIScreen} from "./ai_screen.js";
-import {AIExtension} from "./ai_extension.js";
-import {AIAsset} from "./ai_asset.js";
+import {Project} from './project.js'
+import {Screen} from "./screen.js";
+import {Extension} from "./extension.js";
+import {Asset} from "./asset.js";
 import type { ExtensionBuildInfoJson, ExtensionDescriptorJson } from "./types.js";
 import {getFileInfo, readProjectProperties} from "./utils/utils.js";
 import {getBlobFileContent, getTextFileContent} from "./utils/zipjs.js";
@@ -50,7 +50,7 @@ export class AIAReader {
 
         const projectProperties = await readProjectProperties(projectPropertiesFile)
 
-        const project = AIProject.from(projectProperties);
+        const project = Project.from(projectProperties);
 
         // Extensions are loaded first so that instances of extensions can
         // later fetch the correct descriptor JSON files.
@@ -80,7 +80,7 @@ export class AIAReader {
      *
      * @class
      * @param {Array}     files   An array of files that have a filetype .scm or .bky.
-     * @return {Promise<AIScreen>} A Promise object, when resolved, yields the parsed
+     * @return {Promise<Screen>} A Promise object, when resolved, yields the parsed
      *
      */
     static async generateScreens(files: Entry[]) {
@@ -105,14 +105,14 @@ export class AIAReader {
             }
         }
 
-        const screens: Promise<AIScreen>[] = [];
+        const screens: Promise<Screen>[] = [];
 
         // Then, for each scheme file, we create a new AIScreen and initialise it with
         // the corresponding Blockly file.
         for (let scheme of schemes) {
             let block = blocks.find(x => x.name === scheme.name);
             if (!block) continue
-            screens.push(AIScreen.init(scheme.name, scheme.scm, block.bky));
+            screens.push(Screen.init(scheme.name, scheme.scm, block.bky));
         }
 
         return Promise.all(screens)
@@ -164,7 +164,7 @@ export class AIAReader {
             }
         }
 
-        const extensions: AIExtension[] = [];
+        const extensions: Extension[] = [];
 
         // If the build info is an array, then the extension is a pack
         // (a collection of extensions bundled into one file). In such a case, we
@@ -176,7 +176,7 @@ export class AIAReader {
             for (let [i, ext] of buildInfo.info.entries()) {
                 const desc = descriptors.find(x => x.name === buildInfo.name);
                 if (!desc) continue
-                extensions.push(new AIExtension(ext.type, desc.descriptor[i]));
+                extensions.push(new Extension(ext.type, desc.descriptor[i]));
             }
         }
 
@@ -195,12 +195,12 @@ export class AIAReader {
      * @return {Promise<Array>} An array of AIAsset objects for the project being read.
      */
     static async generateAssets(files: Entry[]) {
-        const assets: AIAsset[] = [];
+        const assets: Asset[] = [];
         for (let file of files) {
             // TODO: Lazily read the file content.
             const content = await getBlobFileContent(file);
             const [fileName, fileType] = getFileInfo(file);
-            assets.push(new AIAsset(fileName, fileType, content));
+            assets.push(new Asset(fileName, fileType, content));
         }
         return assets;
     }
