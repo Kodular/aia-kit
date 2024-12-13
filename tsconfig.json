@@ -3,13 +3,16 @@
     // Enable latest features
     "lib": ["ESNext", "DOM"],
     "target": "ESNext",
-    "module": "ESNext",
+    "module": "NodeNext",
     "moduleDetection": "force",
     "jsx": "react-jsx",
     "allowJs": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
 
     // Bundler mode
-    "moduleResolution": "bundler",
+    "moduleResolution": "nodenext",
     "verbatimModuleSyntax": true,
 
     // Best practices
@@ -25,6 +28,7 @@
     "outDir": "dist",
     "sourceMap": true,
     "declaration": true,
+    "noEmitOnError": true
   },
   "include": ["src/**/*"],
   "exclude": [

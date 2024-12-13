@@ -1,4 +1,4 @@
-import simpleComponentsJson from "./simple_components.json";
+import simpleComponentsJson from "./simple_components.json" with { type: "json" };
 import {process_properties} from "./property_processor.js";
 import type { ComponentJson, ExtensionDescriptorJson } from "./types.js";
 

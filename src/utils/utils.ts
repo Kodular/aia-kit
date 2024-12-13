@@ -1,5 +1,5 @@
 import type { Entry } from "@zip.js/zip.js";
-import simpleComponentsJson from '../simple_components.json'
+import simpleComponentsJson from '../simple_components.json' with { type: "json" };
 import {getTextFileContent} from "./zipjs.js";
 import {getProperties} from "properties-file";
 import { Project } from "../project.js";

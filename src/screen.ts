@@ -1,4 +1,4 @@
-import simpleComponentsJson from "./simple_components.json";
+import simpleComponentsJson from "./simple_components.json" with { type: "json" };
 
 import {Component} from "./component.js";
 import type { ComponentJson, ScmJson } from "./types.js";
