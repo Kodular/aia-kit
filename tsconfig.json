@@ -5,6 +5,7 @@
     "moduleResolution": "NodeNext",
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
+    "allowImportingTsExtensions": true,
     "sourceMap": true,
     "outDir": "dist",
     "declaration": true,
