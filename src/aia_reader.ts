@@ -9,12 +9,12 @@
  * @license
  */
 
-import {BlobReader, Entry, HttpReader, ZipReader} from "@zip.js/zip.js";
+import {BlobReader, type Entry, HttpReader, ZipReader} from "@zip.js/zip.js";
 import {AIProject} from './ai_project.js'
 import {AIScreen} from "./ai_screen.js";
 import {AIExtension} from "./ai_extension.js";
 import {AIAsset} from "./ai_asset.js";
-import {ExtensionBuildInfoJson, ExtensionDescriptorJson} from "./types.js";
+import type { ExtensionBuildInfoJson, ExtensionDescriptorJson } from "./types.js";
 import {getFileInfo, readProjectProperties} from "./utils/utils.js";
 import {getBlobFileContent, getTextFileContent} from "./utils/zipjs.js";
 import {AiaFileStructure} from "./file_structures.js";

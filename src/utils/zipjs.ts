@@ -1,4 +1,4 @@
-import {BlobWriter, Entry, TextWriter} from "@zip.js/zip.js";
+import {BlobWriter, type Entry, TextWriter} from "@zip.js/zip.js";
 
 export async function getTextFileContent(file: Entry): Promise<string> {
     return await file.getData!(new TextWriter())

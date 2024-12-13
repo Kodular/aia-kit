@@ -1,6 +1,6 @@
 import simpleComponentsJson from "./simple_components.json";
 import {process_properties} from "./property_processor.js";
-import {ComponentJson, ExtensionDescriptorJson} from "./types.js";
+import type { ComponentJson, ExtensionDescriptorJson } from "./types.js";
 
 /**
  * Class that describes a component with its properties and children.

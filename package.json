@@ -1,6 +1,6 @@
 {
   "name": "aia-kit",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Read, Parse, Edit, Write, Analyze AIA/AIX/AIS files.",
   "keywords": ["app-inventor", "kodular", "aia", "aix", "ais", "extension"],
   "author": "Kodular",
@@ -13,7 +13,7 @@
   "module": "dist/index.js",
   "exports": {
     ".": "./dist/index.js",
-    "./*.js": "./dist/*.js"
+    "./**/*.js": "./dist/**/*.js"
   },
   "types": "dist/index.d.ts",
   "files": [

@@ -1,7 +1,7 @@
 import simpleComponentsJson from "./simple_components.json";
 
 import {AIComponent} from "./ai_component.js";
-import {ComponentJson, ScmJson} from "./types.js";
+import type { ComponentJson, ScmJson } from "./types.js";
 
 /**
  * Class that describes a screen in an App Inventor project.

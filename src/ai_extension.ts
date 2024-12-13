@@ -1,4 +1,4 @@
-import {ExtensionDescriptorJson} from "./types.js";
+import type { ExtensionDescriptorJson } from "./types.js";
 
 /**
  * Class that describes an extension.

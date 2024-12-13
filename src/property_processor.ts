@@ -1,4 +1,4 @@
-import {ComponentJson, ExtensionDescriptorProperty} from "./types.js";
+import type { ComponentJson, ExtensionDescriptorProperty } from "./types.js";
 
 /**
  * A function that maps two JSON arrays.
