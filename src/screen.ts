@@ -41,7 +41,7 @@ export class Screen {
      *
      * @return {Screen} New AIScreen object.
      */
-    static async init(name: string, scm: string, blk: string) {
+    static async init(name: string, scm: string, blk: string): Promise<Screen> {
         const form = await this.generateSchemeData(scm);
 
         return new Screen(name, form, blk);
@@ -59,7 +59,7 @@ export class Screen {
      *
      * @return {Component} The Form component of this screen.
      */
-    static async generateSchemeData(scmJSON: string) {
+    static async generateSchemeData(scmJSON: string): Promise<Component> {
         const componentsJSON = JSON.parse(scmJSON.slice(9, -3)) as ScmJson;
         return this.generateComponent(componentsJSON.Properties);
     }
@@ -77,7 +77,7 @@ export class Screen {
      * @return {Component} An object representing this component's properties and
      *                     children.
      */
-    static async generateComponent(componentJSON: ComponentJson) {
+    static async generateComponent(componentJSON: ComponentJson): Promise<Component> {
         // Check if the component is an instance of an extension.
         const extType = simpleComponentsJson.find(x => x.name.split('.').pop() === componentJSON.$Type);
 

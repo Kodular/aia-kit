@@ -62,7 +62,7 @@ export class Asset {
      *
      * @return {String} Temporary URL pointing to this asset's blob.
      */
-    getURL() {
+    getURL(): string {
         if (this.url === '')
             this.url = URL.createObjectURL(this.blob)
         return this.url;

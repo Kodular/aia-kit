@@ -105,7 +105,7 @@ export class Component {
      * @return {Promise} A Promise object, that when resolved, yields the complete
      *                   array of properties of this component.
      */
-    async loadProperties(properties: ComponentJson, customDescriptorJSON: ExtensionDescriptorJson) {
+    async loadProperties(properties: ComponentJson, customDescriptorJSON: ExtensionDescriptorJson): Promise<void> {
         // It is not ideal to load the properties of all components in the UI thread
         // of the page, as it may cause users to see the kill page dialog when
         // loading large projects.

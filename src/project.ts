@@ -70,7 +70,7 @@ export class Project {
         this.assets = [];
     }
 
-    static from(properties: typeof Project.prototype.properties) {
+    static from(properties: typeof Project.prototype.properties): Project {
         const project = new Project(properties.name ?? 'Unnamed Project');
         project.properties = properties;
         return project;

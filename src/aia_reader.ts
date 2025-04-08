@@ -38,7 +38,7 @@ export class AIAReader {
      * @return {Promise} A Promise object, when resolved, yields the parsed
      *                   AIProject object.
      */
-    static async parse(fileOrUrl: Blob | string) {
+    static async parse(fileOrUrl: Blob | string): Promise<AiaReader> {
         const readerObj = fileOrUrl instanceof Blob ? new BlobReader(fileOrUrl) : new HttpReader(fileOrUrl);
         const zr = new ZipReader(readerObj)
         const entries = await zr.getEntries()
@@ -83,7 +83,7 @@ export class AIAReader {
      * @return {Promise<Screen>} A Promise object, when resolved, yields the parsed
      *
      */
-    static async generateScreens(files: Entry[]) {
+    static async generateScreens(files: Entry[]): Promise<Screen[]> {
         const schemes: { name: string, scm: string }[] = [];
         const blocks: { name: string, bky: string }[] = [];
 
@@ -129,7 +129,7 @@ export class AIAReader {
      *
      * @return {Promise<Array>} An array of AIExtension objects for the project being read.
      */
-    static async generateExtensions(files: Entry[]) {
+    static async generateExtensions(files: Entry[]): Promise<Extension[]> {
         const buildInfos: { name: string, info: ExtensionBuildInfoJson[] }[] = [];
         const descriptors: { name: string, descriptor: ExtensionDescriptorJson[] }[] = [];
 
@@ -194,7 +194,7 @@ export class AIAReader {
      *
      * @return {Promise<Array>} An array of AIAsset objects for the project being read.
      */
-    static async generateAssets(files: Entry[]) {
+    static async generateAssets(files: Entry[]): Promise<Asset[]> {
         const assets: Asset[] = [];
         for (let file of files) {
             // TODO: Lazily read the file content.
