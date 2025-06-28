@@ -73,6 +73,7 @@ export interface ExtensionDescriptorJson {
   type: string;
   name: string;
   external: "true" | "false";
+  version: string;
   dateBuilt: string;
   categoryString: string;
   helpString: string;
@@ -83,10 +84,10 @@ export interface ExtensionDescriptorJson {
   androidMinSdk: number;
   versionName: string;
   versionCode: string;
-  properties: ExtensionDescriptorProperty[];
-  blockProperties: unknown[];
-  events: unknown[];
-  methods: unknown[];
+  properties: ComponentDescriptorProperty[];
+  blockProperties: ComponentDescriptorBlockProperty[];
+  events: ComponentDescriptorEvent[];
+  methods: ComponentDescriptorMethod[];
 }
 
 export interface ExtensionDescriptorProperty {

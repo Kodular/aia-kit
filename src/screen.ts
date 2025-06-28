@@ -1,14 +1,11 @@
 import { Component } from "./component.js";
-import simpleComponentsJson from "./simple_components.json" with {
+import simpleComponentsJson from "./environments/kodular/simple_components.json" with {
   type: "json",
 };
 import type { ComponentJson, ScmJson } from "./types.js";
 
 /**
  * Class that describes a screen in an App Inventor project.
- *
- * @since  1.0.0
- * @access public
  */
 export class Screen {
   name: string;
@@ -30,17 +27,10 @@ export class Screen {
    * @see AIAReader::read function will not have to wait for the components of
    * this screen to load before starting with the next.
    *
-   * @since 1.0.0
-   * @access public
-   *
-   * @class
-   * @param {String}    scm     The scheme data for this screen as fetched from
-   *                            the AIA.
-   * @param {String}    blk     The stringified Blockly XML for this screen as
-   *                            fetched from the AIA.
-   * @param {String}    name    The name of this screen.
-   *
-   * @return {Screen} New AIScreen object.
+   * @param scm     The scheme data for this screen as fetched from the AIA.
+   * @param blk     The stringified Blockly XML for this screen as fetched from the AIA.
+   * @param name    The name of this screen.
+   * @return New AIScreen object.
    */
   static async init(name: string, scm: string, blk: string): Promise<Screen> {
     const form = await Screen.generateSchemeData(scm);
@@ -52,17 +42,12 @@ export class Screen {
    * Takes the raw scheme input from the AIA, parses it as a JSON array, and then
    * generates all the component and property objects for this screen.
    *
-   * @since 1.0.0
-   * @access private
-   *
-   * @param {String} scmJSON The raw scheme text fetched from the .scm file of
-   *                         the AIA.
-   *
-   * @return {Component} The Form component of this screen.
+   * @param scmJSON The raw scheme text fetched from the .scm file of the AIA.
+   * @return The Form component of this screen.
    */
   static async generateSchemeData(scmJSON: string): Promise<Component> {
     const componentsJSON = JSON.parse(scmJSON.slice(9, -3)) as ScmJson;
-    return Screen.generateComponent(componentsJSON.Properties);
+    return Screen.buildComponentTree(componentsJSON.Properties);
   }
 
   /**
@@ -70,15 +55,10 @@ export class Screen {
    * creates a new @see Component class representing it. Also recursively calls
    * itself for every child of this component.
    *
-   * @since 1.0.0
-   * @access private
-   *
-   * @param {String} componentJSON The JSON object describing this component.
-   *
-   * @return {Component} An object representing this component's properties and
-   *                     children.
+   * @param componentJSON The JSON object describing this component.
+   * @return An object representing this component's properties and children.
    */
-  static async generateComponent(
+  static async buildComponentTree(
     componentJSON: ComponentJson,
   ): Promise<Component> {
     // Check if the component is an instance of an extension.
@@ -105,7 +85,7 @@ export class Screen {
     );
 
     for (const childComponent of componentJSON.$Components || []) {
-      component.addChild(await Screen.generateComponent(childComponent));
+      component.addChild(await Screen.buildComponentTree(childComponent));
     }
     return component;
   }

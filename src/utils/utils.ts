@@ -1,17 +1,16 @@
 import type { Entry } from "@zip.js/zip.js";
 import { getProperties } from "properties-file";
-import type { Project } from "../project.js";
-import simpleComponentsJson from "../simple_components.json" with {
-  type: "json",
+import simpleComponentsJson from "../environments/kodular/simple_components.json" with {
+  type: "json"
 };
+import type { Project } from "../project.js";
 import { getTextFileContent } from "./zipjs.js";
 
 /**
  * Convert the color in &HAARRGGBB format to #RRGGBBAA format
- * @param color
  */
 export function parseAiColor(color: string) {
-  return "#" + color.substring(4, 10) + color.substring(2, 4);
+  return `#${color.substring(4, 10)}${color.substring(2, 4)}`;
 }
 
 export function parseAiBoolean(bool: string) {
@@ -35,7 +34,7 @@ export function getDescriptor(componentType: string, project: Project) {
   // First check built-in components
   const descriptor = simpleComponentsJson.find(
     (x) =>
-      x.type === "com.google.appinventor.components.runtime." + componentType,
+      x.type === `com.google.appinventor.components.runtime.${componentType}`,
   );
   if (descriptor !== undefined) {
     return descriptor;

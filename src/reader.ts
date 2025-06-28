@@ -21,6 +21,7 @@ import type {
 } from "./types.js";
 import { getFileInfo, readProjectProperties } from "./utils/utils.js";
 import { getBlobFileContent, getTextFileContent } from "./utils/zipjs.js";
+import type { Environment } from "./Environment.js";
 
 /**
  * Unzips and reads every file in an AIA and then parses it.
@@ -28,7 +29,7 @@ import { getBlobFileContent, getTextFileContent } from "./utils/zipjs.js";
  * @param fileOrUrl The AIA file, or a URL pointing to it.
  * @return A Promise object, when resolved, yields the parsed Project object.
  */
-export async function parseAia(fileOrUrl: Blob | string): Promise<Project> {
+export async function parseAia(fileOrUrl: Blob | string, environment: Environment): Promise<Project> {
   const readerObj =
     fileOrUrl instanceof Blob
       ? new BlobReader(fileOrUrl)
@@ -45,7 +46,7 @@ export async function parseAia(fileOrUrl: Blob | string): Promise<Project> {
 
   const projectProperties = await readProjectProperties(projectPropertiesFile);
 
-  const project = Project.from(projectProperties);
+  const project = Project.from(projectProperties, environment);
 
   // Extensions are loaded first so that instances of extensions can
   // later fetch the correct descriptor JSON files.

@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import { describe, expect, it } from "vitest";
+import { Environment } from "../src/Environment.js";
 import { parseAia } from "../src/index.js";
 
 describe("AIAReader", () => {
@@ -7,7 +8,9 @@ describe("AIAReader", () => {
     const aiaFile = await fs.readFile("test/fixtures/Test.aia");
     const aiaFileBlob = new Blob([aiaFile]);
 
-    const project = await parseAia(aiaFileBlob);
+    const environment = await Environment.kodularCreator();
+
+    const project = await parseAia(aiaFileBlob, environment);
 
     expect(project).toBeDefined();
 

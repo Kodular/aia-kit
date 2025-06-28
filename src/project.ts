@@ -15,63 +15,51 @@
  */
 
 import type { Asset } from "./asset.js";
+import type { Environment } from "./Environment.js";
 import type { Extension } from "./extension.js";
 import type { Screen } from "./screen.js";
 
 /**
  * Class that describes an App Inventor project.
- *
- * @since  1.0.0
- * @access public
  */
 export class Project {
   /**
    * Name of the project this class represents.
-   * @since  1.0.0
-   * @type   {String}
    */
   name: string;
   properties: { [key: string]: string };
   /**
    * Array of Screen objects this project contains.
-   * @since  1.0.0
-   * @type   {Array<Screen>}
    */
   screens: Screen[];
   /**
    * Array of extensions used by this project.
-   * @since  1.0.0
-   * @type   {Array}
    */
   extensions: Extension[];
   /**
    * Array of AIAsset objects this project contains.
-   * @since  1.0.0
-   * @type   {Array}
    */
   assets: Asset[];
+
+  environment: Environment;
 
   /**
    * Creates a new AIProject object with the given name.
    *
-   * @since 1.0.0
-   * @access public
-   *
-   * @class
-   * @param {String} name Name of the project.
-   *
-   * @return {Project} New AIProject object.
+   * @param name Name of the project.
+   * @return New AIProject object.
    */
-  constructor(name: string) {
+  constructor(name: string, environment: Environment) {
     this.name = name;
     this.properties = {};
     this.screens = [];
     this.extensions = [];
     this.assets = [];
+    this.environment = environment;
   }
 
-  static from(properties: typeof Project.prototype.properties): Project {
-    const project = new Project(properties.name ?? "Unnamed Project");
+  static from(properties: typeof Project.prototype.properties, environment: Environment): Project {
+    const project = new Project(properties.name ?? "Unnamed Project", environment);
     project.properties = properties;
     return project;
   }
@@ -79,10 +67,7 @@ export class Project {
   /**
    * Adds a single asset to this project's array of assets.
    *
-   * @since 1.0.0
-   * @access public
-   *
-   * @param {Asset} asset Asset object.
+   * @param asset Asset object.
    */
   addAsset(asset: Asset) {
     this.assets.push(asset);
@@ -91,10 +76,7 @@ export class Project {
   /**
    * Adds a single screen to this project's array of screens.
    *
-   * @since 1.0.0
-   * @access public
-   *
-   * @param {Screen} screen Screen object.
+   * @param screen Screen object.
    */
   addScreen(screen: Screen) {
     if (screen.name === "Screen1") {
@@ -107,10 +89,7 @@ export class Project {
   /**
    * Adds a single extension to this project's array of extensions.
    *
-   * @since 1.0.0
-   * @access public
-   *
-   * @param {Extension} extension Extension object.
+   * @param extension Extension object.
    */
   addExtension(extension: Extension) {
     this.extensions.push(extension);

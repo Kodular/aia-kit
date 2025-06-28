@@ -1,79 +1,59 @@
-import { process_properties } from "./property_processor.js";
-import simpleComponentsJson from "./simple_components.json" with {
+import simpleComponentsJson from "./environments/kodular/simple_components.json" with {
   type: "json",
 };
+import { process_properties } from "./property_processor.js";
 import type { ComponentJson, ExtensionDescriptorJson } from "./types.js";
 
 /**
  * Class that describes a component with its properties and children.
- *
- * @since  1.0.0
- * @access public
  */
 export class Component {
   /**
    * Name of this component. It is unique and set by the user.
-   * @since  1.0.0
-   * @type   {String}
    */
   name: string;
   /**
    * Internal class name of this component, as defined by the name of the Java
    * file it is declared in.
-   * @since  1.0.0
-   * @type   {String}
    */
   type: string;
   /**
    * Unique identifier for this component. Is internal and hidden from the user.
    * Form components have a UID of 0.
-   * @since  1.0.0
-   * @type   {String}
    */
   uid: string;
   /**
    * Array of Component objects that represents the children of this component.
-   * @since  1.0.0
-   * @type   {Array}
    */
   children: Component[];
   /**
    * Origin of this component. Used in @see SummaryWriter::generateNativeShare
    * to make summary charts of component usage.
-   * @since  1.0.0
-   * @type   {String}
    */
   private origin: string;
   visible: boolean;
   /**
    * Array of property name-value pairs of this component. Properties are loaded
    * asynchronously in AIScreen::generateComponent.
-   * @since  1.0.0
-   * @type   {Array}
    */
   properties: { name: string; value: string; editorType?: string }[];
   /**
    * Flag which indicates whether there was a problem parsing this component's
    * properties. @see Component::loadProperties
-   * @since  1.0.0
-   * @type   {Boolean}
    */
   private faulty: boolean;
 
   /**
    * Creates a new Component object.
    *
-   * @since 1.0.0
-   * @access public
-   *
    * @class
-   * @param {String} name    The user-facing name of this component.
-   * @param {String} type    The internal class name of this component.
-   * @param {String} uid     The unique ID attached to this component.
-   * @param {String} origin 'EXTENSION' if this component is the instance of an
+   * @param name    The user-facing name of this component.
+   * @param type    The internal class name of this component.
+   * @param uid     The unique ID attached to this component.
+   * @param origin 'EXTENSION' if this component is the instance of an
    *                         extension, 'BUILT-IN' otherwise.
    *
-   * @return {Component} New Component object.
+   * @return New Component object.
    */
   constructor(name: string, type: string, uid: string, origin: string) {
     this.name = name;
@@ -96,21 +76,18 @@ export class Component {
    * extensions) to the properties saved in the AIA. This lets us generate the
    * full list of properties for this component.
    *
-   * @since 1.0.0
-   * @access private
-   *
-   * @param {Array} properties           JSON array describing the properties of this
+   * @param properties           JSON array describing the properties of this
    *                                     component that have a non-default value.
-   * @param {Array} customDescriptorJSON The full list of properties and their
+   * @param customDescriptorJSON The full list of properties and their
    *                                     default values for this component.
    *
-   * @return {Promise} A Promise object, that when resolved, yields the complete
+   * @return A Promise object, that when resolved, yields the complete
    *                   array of properties of this component.
    */
   async loadProperties(
     properties: ComponentJson,
     customDescriptorJSON: ExtensionDescriptorJson,
-  ): Promise<void> {
+  ): Promise<{ name: string; value: string; editorType?: string }[]> {
     // It is not ideal to load the properties of all components in the UI thread
     // of the page, as it may cause users to see the kill page dialog when
     // loading large projects.
@@ -121,13 +98,13 @@ export class Component {
         customDescriptorJSON ||
         simpleComponentsJson.find(
           (x) =>
-            x.type === "com.google.appinventor.components.runtime." + this.type,
+            x.type === `com.google.appinventor.components.runtime.${this.type}`,
         );
 
       this.visible = descriptor.nonVisible === "false";
 
       return process_properties(properties, descriptor.properties);
-    } catch (error: any) {
+    } catch (error: unknown) {
       // If the descriptor JSON object for this component does not exist in
       // AIProject.descriptorJSON, it means either the component has been
       // removed from the service, or that the user is trying to load an AIA
@@ -136,8 +113,10 @@ export class Component {
       // can be parsed, and add a "faulty" flag to the component.
       // This flag will later be used in @see node.js::ComponentNode to show the
       // user a visual indicator stating there was an error parsing the component.
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       console.log(
-        `Error in ${this.name}(${this.uid} / ${this.type}), message: ${error.message}`,
+        `Error in ${this.name}(${this.uid} / ${this.type}), message: ${errorMessage}`,
         customDescriptorJSON,
       );
       this.faulty = true;
@@ -148,10 +127,7 @@ export class Component {
   /**
    * Adds a child component to this component.
    *
-   * @since 1.0.0
-   * @access private
-   *
-   * @param {Component} component The child component to be added.
+   * @param component The child component to be added.
    */
   addChild(component: Component) {
     this.children.push(component);
