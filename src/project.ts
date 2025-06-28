@@ -58,9 +58,9 @@ export class Project {
     this.environment = environment;
   }
 
-  static from(properties: typeof Project.prototype.properties, environment: Environment): Project {
-    const project = new Project(properties.name ?? "Unnamed Project", environment);
-    project.properties = properties;
+  static from(properties: { [key: string]: string } | undefined, environment: Environment): Project {
+    const project = new Project(properties?.name ?? "Unnamed Project", environment);
+    project.properties = properties ?? {};
     return project;
   }
 

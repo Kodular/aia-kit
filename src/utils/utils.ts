@@ -30,6 +30,12 @@ export async function readProjectProperties(file: Entry) {
   return getProperties(content);
 }
 
+export function propertiesObjectToString(properties: { [key: string]: string }): string {
+  return Object.entries(properties)
+    .map(([key, value]) => `${key}=${value}`)
+    .join("\n");
+}
+
 export function getDescriptor(componentType: string, project: Project) {
   // First check built-in components
   const descriptor = simpleComponentsJson.find(

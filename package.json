@@ -28,8 +28,8 @@
   ],
   "scripts": {
     "build": "tsc",
-    "test": "vitest",
-    "test:run": "vitest run"
+    "test": "vitest run",
+    "test:w": "vitest"
   },
   "devDependencies": {
     "@biomejs/biome": "2.0.6",

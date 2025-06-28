@@ -42,6 +42,10 @@ export class Asset {
     this.url = "";
   }
 
+  getBlob(): Blob {
+    return this.blob;
+  }
+
   /**
    * Returns a unique URL that can be used to display this asset to the user.
    *
