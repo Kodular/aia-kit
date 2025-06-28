@@ -1,37 +1,35 @@
-import { AIAReader } from './src/aia_reader';
 import fs from "node:fs/promises";
+import { AIAReader } from "./src/aia_reader";
 
 async function main() {
-    try {
-        const aiaFile = await fs.readFile('test/fixtures/Test.aia')
-        const aiaFileBlob = new Blob([aiaFile])
-        
-        // Create an instance of AIAReader and read the AIA file
-        const project = await AIAReader.parse(aiaFileBlob);
+  try {
+    const aiaFile = await fs.readFile("test/fixtures/Test.aia");
+    const aiaFileBlob = new Blob([aiaFile]);
 
-        // Pretty print the parsed information
-        console.log('Project Information:');
-        console.log('===================');
-        console.log(`Name: ${project.name}`);
+    // Create an instance of AIAReader and read the AIA file
+    const project = await AIAReader.parse(aiaFileBlob);
 
-        
-        // Print screens information
-        console.log('\nScreens:');
-        console.log('========');
-        project.screens.forEach(screen => {
-            console.log(`\nScreen: ${screen.name}`);
-        });
+    // Pretty print the parsed information
+    console.log("Project Information:");
+    console.log("===================");
+    console.log(`Name: ${project.name}`);
 
-        // Print assets information
-        console.log('\nAssets:');
-        console.log('=======');
-        project.assets.forEach(asset => {
-            console.log(`- ${asset.name}`);
-        });
+    // Print screens information
+    console.log("\nScreens:");
+    console.log("========");
+    project.screens.forEach((screen) => {
+      console.log(`\nScreen: ${screen.name}`);
+    });
 
-    } catch (error) {
-        console.error('Error parsing AIA file:', error);
-    }
+    // Print assets information
+    console.log("\nAssets:");
+    console.log("=======");
+    project.assets.forEach((asset) => {
+      console.log(`- ${asset.name}`);
+    });
+  } catch (error) {
+    console.error("Error parsing AIA file:", error);
+  }
 }
 
 main();

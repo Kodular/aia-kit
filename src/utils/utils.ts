@@ -1,47 +1,52 @@
 import type { Entry } from "@zip.js/zip.js";
-import simpleComponentsJson from '../simple_components.json' with { type: "json" };
-import {getTextFileContent} from "./zipjs.js";
-import {getProperties} from "properties-file";
-import { Project } from "../project.js";
+import { getProperties } from "properties-file";
+import type { Project } from "../project.js";
+import simpleComponentsJson from "../simple_components.json" with {
+  type: "json",
+};
+import { getTextFileContent } from "./zipjs.js";
 
 /**
  * Convert the color in &HAARRGGBB format to #RRGGBBAA format
  * @param color
  */
 export function parseAiColor(color: string) {
-    return '#' + color.substring(4, 10) + color.substring(2, 4);
+  return "#" + color.substring(4, 10) + color.substring(2, 4);
 }
 
 export function parseAiBoolean(bool: string) {
-    return bool === 'True'
+  return bool === "True";
 }
 
 export function getFileInfo(file: Entry): [string, string] {
-    // return name and type
-    const a = file.filename.lastIndexOf('/')
-    const b = file.filename.lastIndexOf('.')
-    return [file.filename.substring(a + 1, b), file.filename.substring(b + 1)]
+  // return name and type
+  const a = file.filename.lastIndexOf("/");
+  const b = file.filename.lastIndexOf(".");
+  return [file.filename.substring(a + 1, b), file.filename.substring(b + 1)];
 }
 
 export async function readProjectProperties(file: Entry) {
-    const content = await getTextFileContent(file);
+  const content = await getTextFileContent(file);
 
-    return getProperties(content)
+  return getProperties(content);
 }
 
 export function getDescriptor(componentType: string, project: Project) {
-    // First check built-in components
-    let descriptor = simpleComponentsJson.find(x => x.type === 'com.google.appinventor.components.runtime.' + componentType);
-    if (descriptor !== undefined) {
-        return descriptor;
+  // First check built-in components
+  const descriptor = simpleComponentsJson.find(
+    (x) =>
+      x.type === "com.google.appinventor.components.runtime." + componentType,
+  );
+  if (descriptor !== undefined) {
+    return descriptor;
+  }
+
+  // Then check extensions
+  for (const extension of project.extensions) {
+    if (extension.name.split(".").pop() === componentType) {
+      return extension.descriptorJSON;
     }
-    
-    // Then check extensions
-    for (let extension of project.extensions) {
-        if (extension.name.split('.').pop() === componentType) {
-            return extension.descriptorJSON;
-        }
-    }
-    
-    return null;
+  }
+
+  return null;
 }

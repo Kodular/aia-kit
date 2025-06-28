@@ -2,7 +2,14 @@
   "name": "aia-kit",
   "version": "1.1.2",
   "description": "Read, Parse, Edit, Write, Analyze AIA/AIX/AIS files.",
-  "keywords": ["app-inventor", "kodular", "aia", "aix", "ais", "extension"],
+  "keywords": [
+    "app-inventor",
+    "kodular",
+    "aia",
+    "aix",
+    "ais",
+    "extension"
+  ],
   "author": "Kodular",
   "license": "ISC",
   "repository": {

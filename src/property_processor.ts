@@ -10,21 +10,24 @@ import type { ComponentJson, ExtensionDescriptorProperty } from "./types.js";
  * @since  1.0.0
  * @license
  */
-export function process_properties(propertyJSON: ComponentJson, descriptorJSON: ExtensionDescriptorProperty[]) {
-    const properties: { name: string, value: string, editorType?: string }[] = [];
-    for (let property of descriptorJSON) {
-        if (propertyJSON.hasOwnProperty(property.name)) {
-            properties.push({
-                name: property.name,
-                value: propertyJSON[property.name] as string
-            });
-        } else {
-            properties.push({
-                name: property.name,
-                value: property.defaultValue,
-                editorType: property.editorType
-            });
-        }
+export function process_properties(
+  propertyJSON: ComponentJson,
+  descriptorJSON: ExtensionDescriptorProperty[],
+) {
+  const properties: { name: string; value: string; editorType?: string }[] = [];
+  for (const property of descriptorJSON) {
+    if (Object.hasOwn(propertyJSON, property.name)) {
+      properties.push({
+        name: property.name,
+        value: propertyJSON[property.name] as string,
+      });
+    } else {
+      properties.push({
+        name: property.name,
+        value: property.defaultValue,
+        editorType: property.editorType,
+      });
     }
-    return properties
+  }
+  return properties;
 }
