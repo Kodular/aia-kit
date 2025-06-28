@@ -1,13 +1,13 @@
 import fs from "node:fs/promises";
 import { describe, expect, it } from "vitest";
-import { AIAReader } from "../src/index.ts";
+import { parseAia } from "../src/index.js";
 
 describe("AIAReader", () => {
-  it("should read the AIA file", async (context) => {
+  it("should read the AIA file", async () => {
     const aiaFile = await fs.readFile("test/fixtures/Test.aia");
     const aiaFileBlob = new Blob([aiaFile]);
 
-    const project = await AIAReader.parse(aiaFileBlob);
+    const project = await parseAia(aiaFileBlob);
 
     expect(project).toBeDefined();
 
