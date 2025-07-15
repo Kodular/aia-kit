@@ -36,13 +36,26 @@ export class Environment {
 
   static async kodularCreator(): Promise<Environment> {
     const simpleComponentsJSON = (
-      await import("./environments/kodular/simple_components.json", {
+      await import("./environments/kodular-creator/simple_components.json", {
         with: { type: "json" },
       })
     ).default;
     // TODO: Use Zod to validate the JSON structure
     return new Environment(
       "Kodular Creator",
+      simpleComponentsJSON as ComponentDescriptorJson[],
+    );
+  }
+
+  static async mitAppInventor(): Promise<Environment> {
+    const simpleComponentsJSON = (
+      await import("./environments/mit-app-inventor/simple_components.json", {
+        with: { type: "json" },
+      })
+    ).default;
+    // TODO: Use Zod to validate the JSON structure
+    return new Environment(
+      "MIT App Inventor",
       simpleComponentsJSON as ComponentDescriptorJson[],
     );
   }

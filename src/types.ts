@@ -26,7 +26,7 @@ export interface ComponentDescriptorJson {
   showOnPalette: "true" | "false";
   nonVisible: "true" | "false";
   iconName: string;
-  androidMinSdk: number;
+  androidMinSdk: string | number;
   properties: ComponentDescriptorProperty[];
   blockProperties: ComponentDescriptorBlockProperty[];
   events: ComponentDescriptorEvent[];
