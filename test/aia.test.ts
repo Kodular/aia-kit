@@ -4,11 +4,14 @@ import { Environment } from "../src/Environment.js";
 import { parseAia } from "../src/index.js";
 
 describe("AIAReader", () => {
-  it("should read the AIA file", async () => {
+  it.each([
+    ["Kodular Creator", Environment.kodularCreator],
+    ["MIT App Inventor", Environment.mitAppInventor],
+  ])("should read the AIA file with %s environment", async (environmentName, environmentFactory) => {
     const aiaFile = await fs.readFile("test/fixtures/Test.aia");
     const aiaFileBlob = new Blob([aiaFile]);
 
-    const environment = await Environment.kodularCreator();
+    const environment = await environmentFactory();
 
     const project = await parseAia(aiaFileBlob, environment);
 
