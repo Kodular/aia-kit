@@ -1,5 +1,5 @@
 import { Component } from "./component.js";
-import simpleComponentsJson from "./environments/kodular/simple_components.json" with {
+import simpleComponentsJson from "./environments/kodular-creator/simple_components.json" with {
   type: "json",
 };
 import type { ComponentJson, ScmJson } from "./types.js";

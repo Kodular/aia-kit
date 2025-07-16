@@ -1,4 +1,4 @@
-import simpleComponentsJson from "./environments/kodular/simple_components.json" with {
+import simpleComponentsJson from "./environments/kodular-creator/simple_components.json" with {
   type: "json",
 };
 import { process_properties } from "./property_processor.js";

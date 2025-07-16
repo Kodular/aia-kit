@@ -1,6 +1,6 @@
 import type { Entry } from "@zip.js/zip.js";
 import { getProperties } from "properties-file";
-import simpleComponentsJson from "../environments/kodular/simple_components.json" with {
+import simpleComponentsJson from "../environments/kodular-creator/simple_components.json" with {
   type: "json"
 };
 import type { Project } from "../project.js";
