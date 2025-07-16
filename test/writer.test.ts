@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import { describe, expect, it } from "vitest";
-import { parseAia, writeAia } from "../src";
-import { Environment } from "../src/Environment";
+import { parseAia, writeAia } from "../src/index.js";
+import { Environment } from "../src/Environment.js";
 
 describe("AIA Writer", () => {
   it.each([
