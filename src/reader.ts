@@ -48,34 +48,21 @@ export async function parseAia(fileOrUrl: Blob | string, environment: Environmen
 
   const project = Project.from(projectProperties, environment);
 
-  // Extensions are loaded first so that instances of extensions can
-  // later fetch the correct descriptor JSON files.
-  for (const extension of await generateExtensions(
-    entries.filter((x) => getFileInfo(x)[1] === "json"),
-  )) {
-    project.addExtension(extension);
-  }
+  const assetFiles = entries.filter(f => f.filename.split("/")[0] === "assets" && f.filename.split("/")[2] === undefined);
+  const extensionFiles = entries.filter(f => getFileInfo(f)[1] === "json");
+  const screenFiles = entries.filter(f => getFileInfo(f)[1] === "scm" || getFileInfo(f)[1] === "bky");
 
-  // Screens are loaded asynchronously.
-  for (const screen of await generateScreens(
-    entries.filter(
-      (x) => getFileInfo(x)[1] === "scm" || getFileInfo(x)[1] === "bky",
-    ),
-    project,
-  )) {
-    project.addScreen(screen);
-  }
+  // First, all the assets are loaded.
+  const assets = await generateAssets(assetFiles);
+  project.addAssets(assets);
+  
+  // Extensions are loaded before screens so that the screens can use the
+  // extensions' descriptors to populate their properties.
+  const extensions = await generateExtensions(extensionFiles);
+  project.addExtensions(extensions);
 
-  // Finally, all the assets are loaded.
-  for (const asset of await generateAssets(
-    entries.filter(
-      (x) =>
-        x.filename.split("/")[0] === "assets" &&
-        x.filename.split("/")[2] === undefined,
-    ),
-  )) {
-    project.addAsset(asset);
-  }
+  const screens = await generateScreens(screenFiles, project);
+  project.addScreens(screens);
 
   return project;
 }

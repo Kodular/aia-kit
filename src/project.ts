@@ -66,34 +66,37 @@ export class Project {
   }
 
   /**
-   * Adds a single asset to this project's array of assets.
+   * Adds a list of assets to this project's array of assets.
    *
-   * @param asset Asset object.
+   * @param assets Array of Asset objects.
    */
-  addAsset(asset: Asset) {
-    this.assets.push(asset);
+  addAssets(assets: Asset[]) {
+    this.assets.push(...assets);
   }
 
   /**
-   * Adds a single screen to this project's array of screens.
+   * Adds a list of screens to this project's array of screens.
    *
-   * @param screen Screen object.
+   * @param screens Array of Screen objects.
    */
-  addScreen(screen: Screen) {
-    if (screen.name === "Screen1") {
-      this.screens.unshift(screen);
-    } else {
-      this.screens.push(screen);
+  addScreens(screens: Screen[]) {
+    for (const screen of screens) {
+      if (screen.name === "Screen1") {
+        this.screens.unshift(screen);
+      } else {
+        this.screens.push(screen);
+      }
     }
   }
 
   /**
-   * Adds a single extension to this project's array of extensions.
+   * Adds a list of extensions to this project's array of extensions.
    *
-   * @param extension Extension object.
+   * @param extensions Array of Extension objects.
    */
-  addExtension(extension: Extension) {
-    this.extensions.push(extension);
+  addExtensions(extensions: Extension[]) {
+    this.extensions.push(...extensions);
+    this.environment = this.environment.cloneWithExtensions(extensions.map(ext => ext.descriptorJSON));
   }
 
   /**
