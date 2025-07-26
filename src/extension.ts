@@ -5,7 +5,7 @@ import type { ExtensionDescriptorJson } from "./types.js";
  */
 export class Extension {
   name: string;
-  descriptorJSON: Record<string, any>;
+  descriptorJSON: ExtensionDescriptorJson;
 
   /**
    * Creates a new AIExtension object.

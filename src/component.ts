@@ -99,7 +99,7 @@ export class Component {
         throw new Error(`Component descriptor not found for type: ${this.type}`);
       }
 
-      this.visible = descriptor.nonVisible === "false";
+      this.visible = descriptor.nonVisible === false;
 
       return resolveProperties(descriptor, properties);
     } catch (_error: unknown) {

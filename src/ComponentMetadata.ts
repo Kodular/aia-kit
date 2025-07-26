@@ -184,7 +184,7 @@ class ComponentMetadata implements IComponentMetadata {
 
   isVisible(componentType: string): boolean {
     const component = this.getComponent(componentType)
-    return component?.nonVisible !== 'true'
+    return component?.nonVisible !== true
   }
 
   getVersion(componentType: string): string {
@@ -200,7 +200,7 @@ class ComponentMetadata implements IComponentMetadata {
       const category = component.categoryString || 'UNKNOWN'
       categories[category] = (categories[category] || 0) + 1
 
-      if (component.nonVisible === 'true') {
+      if (component.nonVisible === true) {
         visible.nonVisible++
       } else {
         visible.visible++
