@@ -75,7 +75,7 @@ export class Screen {
     const component = new Component(
       componentJSON.$Name,
       componentJSON.$Type,
-      componentJSON.Uuid, //Screens do not have a Uuid property.
+      componentJSON.Uuid || '', //Screens do not have a Uuid property.
       origin,
     );
 

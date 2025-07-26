@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@xmldom/xmldom':
+        specifier: ^0.9.8
+        version: 0.9.8
       '@zip.js/zip.js':
         specifier: ^2.7.63
         version: 2.7.63
@@ -444,6 +447,10 @@ packages:
 
   '@vitest/utils@3.2.4':
     resolution: {integrity: sha512-fB2V0JFrQSMsCo9HiSq3Ezpdv4iYaXRG1Sx8edX3MwxfyNn83mKiGzOcH+Fkxt4MHxr3y42fQi1oeAInqgX2QA==}
+
+  '@xmldom/xmldom@0.9.8':
+    resolution: {integrity: sha512-p96FSY54r+WJ50FIOsCOjyj/wavs8921hG5+kVMmZgKcvIKxMXHTrjNJvRgWa/zuX3B6t2lijLNFaOyuxUH+2A==}
+    engines: {node: '>=14.6'}
 
   '@zip.js/zip.js@2.7.63':
     resolution: {integrity: sha512-B02i6QDMUQ4c+5F9LmliBGA+jFsiEHIlF0eLQ6rWLaQOD3YwI6vyWwGkVCNJnVVguE2xYyr9fAwSD/3valm1/Q==}
@@ -1140,6 +1147,8 @@ snapshots:
       '@vitest/pretty-format': 3.2.4
       loupe: 3.1.4
       tinyrainbow: 2.0.0
+
+  '@xmldom/xmldom@0.9.8': {}
 
   '@zip.js/zip.js@2.7.63': {}
 

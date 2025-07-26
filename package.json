@@ -17,14 +17,14 @@
     "url": "git+https://github.com/Kodular/aia-kit.git"
   },
   "type": "module",
-  "module": "./dist/index.js",
+  "module": "./dist/src/index.js",
   "exports": {
-    ".": "./dist/index.js",
-    "./*.js": "./dist/*.js"
+    ".": "./dist/src/index.js",
+    "./*.js": "./dist/src/*.js"
   },
-  "types": "./dist/index.d.ts",
+  "types": "./dist/src/index.d.ts",
   "files": [
-    "dist"
+    "dist/src"
   ],
   "scripts": {
     "build": "tsc",
@@ -40,6 +40,7 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
+    "@xmldom/xmldom": "^0.9.8",
     "@zip.js/zip.js": "^2.7.63",
     "properties-file": "^3.5.12",
     "zod": "^4.0.5"
