@@ -33,16 +33,16 @@
     "test:coverage": "vitest run --coverage"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.1.1",
-    "@types/node": "^24.0.14",
+    "@biomejs/biome": "2.1.2",
+    "@types/node": "^24.1.0",
     "@vitest/coverage-v8": "3.2.4",
     "typescript": "^5.8.3",
     "vitest": "^3.2.4"
   },
   "dependencies": {
     "@xmldom/xmldom": "^0.9.8",
-    "@zip.js/zip.js": "^2.7.63",
-    "properties-file": "^3.5.12",
-    "zod": "^4.0.5"
+    "@zip.js/zip.js": "^2.7.69",
+    "properties-file": "^3.5.13",
+    "zod": "^4.0.10"
   }
 }
