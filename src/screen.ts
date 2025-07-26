@@ -3,8 +3,8 @@ import YailGenerator from "./generators/yail/YailGenerator.js";
 import { BkyParser } from "./parsers/BkyParser.js";
 import ScmParser from "./parsers/ScmParser.js";
 import type { Project } from "./project.js";
-import type { ComponentJson, ScmJson, } from "./types.js";
 import { resolveProperties } from "./utils/property-processor.js";
+import { ScmJsonSchema, type RawComponent } from "./validators/scm.js";
 
 /**
  * Class that describes a screen in an App Inventor project.
@@ -54,7 +54,8 @@ export class Screen {
    * @return The Form component of this screen.
    */
   static generateSchemeData(scmJSON: string, project: Project): Component {
-    const componentsJSON = JSON.parse(scmJSON.slice(9, -3)) as ScmJson;
+    const jsonString = scmJSON.slice(9, -3); // Remove the "#|\n$JSON" prefix and "|#" suffix
+    const componentsJSON = ScmJsonSchema.parse(JSON.parse(jsonString));
     return Screen.buildComponentTree(componentsJSON.Properties, project);
   }
 
@@ -68,7 +69,7 @@ export class Screen {
    * @return An object representing this component's properties and children.
    */
   static buildComponentTree(
-    componentJSON: ComponentJson,
+    componentJSON: RawComponent,
     project: Project,
   ): Component {
     const componentName = componentJSON.$Name;

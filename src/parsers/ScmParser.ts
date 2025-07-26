@@ -1,12 +1,8 @@
-import type { 
-  Component, 
-  ComponentHierarchy, 
-  ScmData, 
-  RawComponent
-} from '../types.js'
+import type { Component, ComponentHierarchy, ScmData } from '../types.js'
+import type { RawComponent, ScmJson } from '../validators/scm.js'
 
 class ScmParser {
-  private formData: any
+  private formData: ScmJson
   private yaVersion: number
   private source: string
   private properties: RawComponent
@@ -29,7 +25,7 @@ class ScmParser {
     }
   }
 
-  constructor(formData: any) {
+  constructor(formData: ScmJson) {
     this.formData = formData
     this.yaVersion = formData.YaVersion
     this.source = formData.Source

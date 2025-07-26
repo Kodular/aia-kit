@@ -1,8 +1,8 @@
 import { BlobWriter, TextReader, ZipWriter } from "@zip.js/zip.js";
+import type { Component } from "./component.js";
 import type { Project } from "./project.js";
 import { propertiesObjectToString } from "./utils/utils.js";
-import type { ComponentJson, ScmJson } from "./types.js";
-import type { Component } from "./component.js";
+import type { RawComponent, ScmJson } from "./validators/scm.js";
 
 export async function writeAia(project: Project): Promise<Blob> {
   const zw = new ZipWriter(new BlobWriter("application/zip"));
@@ -19,16 +19,12 @@ export async function writeAia(project: Project): Promise<Blob> {
   for (const screen of project.screens) {
     await zw.add(
       `src/${packageName.replaceAll(".", "/")}/${screen.name}.scm`,
-      new TextReader(
-        "#|\n$JSON\n" +
-          JSON.stringify({
-            authURL: [],
-            YaVersion: "1",
-            Source: "...",
-            Properties: jsonifyComponentTree(screen.form),
-          } as ScmJson) +
-          "\n|#",
-      ),
+      new TextReader(serializeScmJson({
+        authURL: [],
+        YaVersion: 1,
+        Source: "...",
+        Properties: jsonifyComponentTree(screen.form),
+      })),
     );
     await zw.add(
       `src/com/google/appinventor/components/runtime/${screen.name}.bky`,
@@ -52,12 +48,12 @@ export async function writeAia(project: Project): Promise<Blob> {
   return zw.close();
 }
 
-function jsonifyComponentTree(component: Component): ComponentJson {
-  const json: ComponentJson = {
+function jsonifyComponentTree(component: Component): RawComponent {
+  const json: RawComponent = {
     $Name: component.name,
     $Type: component.type,
     Uuid: component.uid,
-    $Version: "1",
+    $Version: 1,
     $Components: [],
   };
 
@@ -72,4 +68,15 @@ function jsonifyComponentTree(component: Component): ComponentJson {
   }
 
   return json;
+}
+
+function serializeScmJson(json: ScmJson): string {
+  const jsonString = JSON.stringify({
+    authURL: json.authURL,
+    YaVersion: String(json.YaVersion),
+    Source: json.Source,
+    Properties: json.Properties,
+  });
+  // Wrap the JSON in a comment block to match the expected format
+  return `#|\n$JSON\n${jsonString}\n|#`;
 }

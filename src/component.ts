@@ -1,6 +1,6 @@
 import type { Environment } from "./Environment.js";
-import type { ComponentJson } from "./types.js";
 import { resolveProperties } from "./utils/property-processor.js";
+import type { RawComponent } from "./validators/scm.js";
 
 export type ComponentProperty = {
   name: string;
@@ -89,7 +89,7 @@ export class Component {
    *                   array of properties of this component.
    */
   loadProperties(
-    properties: ComponentJson,
+    properties: RawComponent,
     environment: Environment,
   ): { name: string; value: string; editorType?: string }[] {
     try {

@@ -45,25 +45,6 @@ export interface ScmData {
   hierarchy: ComponentHierarchy | null
 }
 
-export interface RawComponent {
-  $Name: string
-  $Type: string
-  $Version?: string
-  Uuid?: string
-  $Components?: RawComponent[]
-  [key: string]: any
-}
-
-export interface ScmJson {
-  authURL: string[];
-  YaVersion: string;
-  Source: string;
-  Properties: RawComponent;
-}
-
-// Legacy compatibility
-export interface ComponentJson extends RawComponent {}
-
 // ===== YAIL Types =====
 export const YAIL_TYPES = {
   ANY: 'any',
