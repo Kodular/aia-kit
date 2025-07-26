@@ -32,7 +32,7 @@ export async function writeAia(project: Project): Promise<Blob> {
     );
     await zw.add(
       `src/com/google/appinventor/components/runtime/${screen.name}.bky`,
-      new TextReader(screen.blocks),
+      new TextReader(screen.bkyContent),
     );
   }
 

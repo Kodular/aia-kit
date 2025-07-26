@@ -1,6 +1,6 @@
-import { BkyParser } from '../../parsers/BkyParser.js'
-import componentMetadata from '../../ComponentMetadata.js'
-import ScmParser from '../../parsers/ScmParser.js'
+import type { BkyParser } from '../../parsers/BkyParser.js'
+import { ComponentMetadata } from '../../ComponentMetadata.js'
+import type ScmParser from '../../parsers/ScmParser.js'
 
 import ColorBlocks from './blocks/ColorBlocks.js'
 import ComponentBlocks from './blocks/ComponentBlocks.js'
@@ -21,9 +21,10 @@ import { YAIL_TYPES, type Block, type YailType } from '../../types.js'
 class YailGenerator {
   private scmParser: ScmParser
   private bkyParser: BkyParser
+  private componentMetadata: ComponentMetadata
   private formName: string
   private packageName: string
-  private indent: string
+
   private variableTypes: Map<string, YailType>
   private blockRegistry: Map<string, (block: Block) => SchemeExpr>
 
@@ -39,22 +40,13 @@ class YailGenerator {
   private listBlocks: ListBlocks
   private colorBlocks: ColorBlocks
 
-  static async generate(scmContent: string, bkyContent: string): Promise<string> {
-    await componentMetadata.load()
-
-    const scmParser = ScmParser.parse(scmContent)
-    const bkyParser = BkyParser.parse(bkyContent)
-
-    const generator = new YailGenerator(scmParser, bkyParser)
-    return generator.generateYail()
-  }
-
-  constructor(scmParser: ScmParser, bkyParser: BkyParser) {
+  constructor(scmParser: ScmParser, bkyParser: BkyParser, componentMetadata: ComponentMetadata, packageName: string) {
     this.scmParser = scmParser
     this.bkyParser = bkyParser
-    this.formName = scmParser.getFormName()
-    this.packageName = 'io.makeroid.companion'
-    this.indent = '    '
+    this.componentMetadata = componentMetadata
+
+    this.formName = this.scmParser.getFormName()
+    this.packageName = packageName
 
     this.variableTypes = new Map<string, YailType>()
     this.blockRegistry = new Map<string, (block: Block) => SchemeExpr>()
@@ -90,9 +82,9 @@ class YailGenerator {
     this.colorBlocks.registerBlocks()
   }
 
-  generateYail(): string {
+  generate(): string {
     const components = this.scmParser.getAllComponents()
-    const validation = componentMetadata.validateComponents(components)
+    const validation = this.componentMetadata.validateComponents(components)
 
     if (!validation.valid) {
       console.warn('Component validation warnings:', validation.errors)
@@ -325,7 +317,7 @@ class YailGenerator {
 
   getPropertyType(componentType: string, propertyName: string, value: any): YailType {
     try {
-      const propertyMetadata = componentMetadata.getProperty(componentType, propertyName)
+      const propertyMetadata = this.componentMetadata.getProperty(componentType, propertyName)
       if (propertyMetadata) {
         return propertyMetadata.type
       }
@@ -409,9 +401,9 @@ class YailGenerator {
       const methodName = this.getMethodName(block)
 
       if (componentType && methodName) {
-        const methodMetadata = componentMetadata.getMethod(componentType, methodName)
+        const methodMetadata = this.componentMetadata.getMethod(componentType, methodName)
         if (methodMetadata?.returnType) {
-          return componentMetadata.normalizePropertyType(methodMetadata.returnType)
+          return this.componentMetadata.normalizePropertyType(methodMetadata.returnType)
         }
       }
     } catch (error) {
@@ -426,9 +418,9 @@ class YailGenerator {
       const propertyName = this.getPropertyName(block)
 
       if (componentType && propertyName) {
-        const propertyMetadata = componentMetadata.getProperty(componentType, propertyName)
+        const propertyMetadata = this.componentMetadata.getProperty(componentType, propertyName)
         if (propertyMetadata?.type) {
-          return componentMetadata.normalizePropertyType(propertyMetadata.type)
+          return this.componentMetadata.normalizePropertyType(propertyMetadata.type)
         }
       }
     } catch (error) {
@@ -539,7 +531,7 @@ class YailGenerator {
 
   parseEventParamsFromMetadata(componentType: string, eventName: string): string[] {
     try {
-      const eventMetadata = componentMetadata.getEvent(componentType, eventName)
+      const eventMetadata = this.componentMetadata.getEvent(componentType, eventName)
       if (eventMetadata?.params) {
         return eventMetadata.params.map(param => param.name)
       }
@@ -557,11 +549,11 @@ class YailGenerator {
 
   getMethodParameterTypes(componentType: string, methodName: string, argCount: number, actualArgs: Block[] = []): YailType[] {
     try {
-      const methodMetadata = componentMetadata.getMethod(componentType, methodName)
+      const methodMetadata = this.componentMetadata.getMethod(componentType, methodName)
       if (methodMetadata?.params) {
         return methodMetadata.params.map((param, index) => {
           if (param.type) {
-            return componentMetadata.normalizePropertyType(param.type)
+            return this.componentMetadata.normalizePropertyType(param.type)
           }
 
           if (actualArgs[index]) {

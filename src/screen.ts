@@ -1,8 +1,10 @@
 import { Component } from "./component.js";
-import simpleComponentsJson from "./environments/kodular-creator/simple_components.json" with {
-  type: "json",
-};
-import type { ComponentJson, ScmJson } from "./types.js";
+import YailGenerator from "./generators/yail/YailGenerator.js";
+import { BkyParser } from "./parsers/BkyParser.js";
+import ScmParser from "./parsers/ScmParser.js";
+import type { Project } from "./project.js";
+import type { ComponentJson, ScmJson, } from "./types.js";
+import { resolveProperties } from "./utils/property-processor.js";
 
 /**
  * Class that describes a screen in an App Inventor project.
@@ -10,12 +12,16 @@ import type { ComponentJson, ScmJson } from "./types.js";
 export class Screen {
   name: string;
   form: Component;
-  blocks: string;
+  bkyContent: string;
+  private scmContent: string;
+  project: Project;
 
-  constructor(name: string, form: Component, blocks: string) {
+  constructor(name: string, form: Component, bkyContent: string, scmContent: string, project: Project) {
     this.name = name;
     this.form = form;
-    this.blocks = blocks;
+    this.bkyContent = bkyContent;
+    this.scmContent = scmContent;
+    this.project = project;
   }
 
   /**
@@ -27,15 +33,16 @@ export class Screen {
    * @see AIAReader::read function will not have to wait for the components of
    * this screen to load before starting with the next.
    *
+   * @param name    The name of this screen.
    * @param scm     The scheme data for this screen as fetched from the AIA.
    * @param blk     The stringified Blockly XML for this screen as fetched from the AIA.
-   * @param name    The name of this screen.
+   * @param project The project this screen belongs to.
    * @return New AIScreen object.
    */
-  static async init(name: string, scm: string, blk: string): Promise<Screen> {
-    const form = await Screen.generateSchemeData(scm);
+  static init(scm: { name: string; scm: string }, blk: { name: string; bky: string }, project: Project): Screen {
+    const form = Screen.generateSchemeData(scm.scm, project);
 
-    return new Screen(name, form, blk);
+    return new Screen(scm.name, form, blk.bky, scm.scm, project);
   }
 
   /**
@@ -43,11 +50,12 @@ export class Screen {
    * generates all the component and property objects for this screen.
    *
    * @param scmJSON The raw scheme text fetched from the .scm file of the AIA.
+   * @param project The project this screen belongs to.
    * @return The Form component of this screen.
    */
-  static async generateSchemeData(scmJSON: string): Promise<Component> {
+  static generateSchemeData(scmJSON: string, project: Project): Component {
     const componentsJSON = JSON.parse(scmJSON.slice(9, -3)) as ScmJson;
-    return Screen.buildComponentTree(componentsJSON.Properties);
+    return Screen.buildComponentTree(componentsJSON.Properties, project);
   }
 
   /**
@@ -56,37 +64,57 @@ export class Screen {
    * itself for every child of this component.
    *
    * @param componentJSON The JSON object describing this component.
+   * @param project The project this component belongs to.
    * @return An object representing this component's properties and children.
    */
-  static async buildComponentTree(
+  static buildComponentTree(
     componentJSON: ComponentJson,
-  ): Promise<Component> {
-    // Check if the component is an instance of an extension.
-    const extType = simpleComponentsJson.find(
-      (x) => x.name.split(".").pop() === componentJSON.$Type,
-    );
+    project: Project,
+  ): Component {
+    const componentName = componentJSON.$Name;
+    const componentType = componentJSON.$Type;
+    const componentId = componentJSON.Uuid || ''; // Screens do not have a Uuid property.
 
-    // If it is an extension, give it a custom descriptor JSON object that will
-    // be used to generate its properties.
-    // If it's not an extension, no JSON will be provided and the service's
-    // simple_components.json file will be used instead.
-    const origin = extType === undefined ? "EXTENSION" : "BUILT-IN";
+    const componentDescriptor = project.environment.getComponentDescriptor(componentType);
+
+    if (!componentDescriptor) {
+      throw new Error(`Component descriptor for type "${componentType}" not found.`);
+    }
 
     const component = new Component(
-      componentJSON.$Name,
-      componentJSON.$Type,
-      componentJSON.Uuid || '', //Screens do not have a Uuid property.
-      origin,
+      componentName,
+      componentType,
+      componentId,
+      "BUILT-IN", // TODO: Figure out how to detect extension components
     );
 
-    component.properties = await component.loadProperties(
-      componentJSON,
-      extType as any,
+    component.properties = resolveProperties(
+      componentDescriptor,
+      componentJSON
     );
 
     for (const childComponent of componentJSON.$Components || []) {
-      component.addChild(await Screen.buildComponentTree(childComponent));
+      component.addChild(Screen.buildComponentTree(childComponent, project));
     }
     return component;
+  }
+
+  /**
+   * Generates YAIL code for this screen.
+   * 
+   * @returns The generated YAIL code as a string.
+   */
+  async generateYail(): Promise<string> {
+    const scmParser = ScmParser.parse(this.scmContent);
+    const bkyParser = BkyParser.parse(this.bkyContent);
+    const componentMetadata = this.project.getComponentMetadata();
+
+    const packageName = this.project.properties.main;
+    if (!packageName) {
+      throw new Error('Package name not found in project properties. Cannot generate YAIL without a valid package name.');
+    }
+
+    const yailGenerator = new YailGenerator(scmParser, bkyParser, componentMetadata, packageName);
+    return yailGenerator.generate();
   }
 }

@@ -16,10 +16,10 @@ export class Environment {
   }
 
   getComponentDescriptor(
-    componentName: string,
+    componentType: string,
   ): ComponentDescriptorJson | null {
     return (
-      this.componentDescriptors.find((comp) => comp.name === componentName) ||
+      this.componentDescriptors.find((comp) => comp.type === componentType) ||
       null
     );
   }

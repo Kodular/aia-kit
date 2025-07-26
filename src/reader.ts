@@ -11,6 +11,7 @@
 
 import { BlobReader, type Entry, HttpReader, ZipReader } from "@zip.js/zip.js";
 import { Asset } from "./asset.js";
+import type { Environment } from "./Environment.js";
 import { Extension } from "./extension.js";
 import { AiaFileStructure } from "./file_structures.js";
 import { Project } from "./project.js";
@@ -21,7 +22,6 @@ import type {
 } from "./types.js";
 import { getFileInfo, readProjectProperties } from "./utils/utils.js";
 import { getBlobFileContent, getTextFileContent } from "./utils/zipjs.js";
-import type { Environment } from "./Environment.js";
 
 /**
  * Unzips and reads every file in an AIA and then parses it.
@@ -61,6 +61,7 @@ export async function parseAia(fileOrUrl: Blob | string, environment: Environmen
     entries.filter(
       (x) => getFileInfo(x)[1] === "scm" || getFileInfo(x)[1] === "bky",
     ),
+    project,
   )) {
     project.addScreen(screen);
   }
@@ -83,9 +84,10 @@ export async function parseAia(fileOrUrl: Blob | string, environment: Environmen
  * Asynchronously reads every screen in the project.
  *
  * @param files   An array of files that have a filetype .scm or .bky.
- * @return A Promise object, when resolved, yields the parsed
+ * @param project The project these screens belong to.
+ * @return A Promise object, when resolved, yields the parsed screens.
  */
-async function generateScreens(files: Entry[]): Promise<Screen[]> {
+async function generateScreens(files: Entry[], project: Project): Promise<Screen[]> {
   const schemes: { name: string; scm: string }[] = [];
   const blocks: { name: string; bky: string }[] = [];
 
@@ -107,17 +109,17 @@ async function generateScreens(files: Entry[]): Promise<Screen[]> {
     }
   }
 
-  const screens: Promise<Screen>[] = [];
+  const screens: Screen[] = [];
 
   // Then, for each scheme file, we create a new AIScreen and initialise it with
   // the corresponding Blockly file.
   for (const scheme of schemes) {
     const block = blocks.find((x) => x.name === scheme.name);
     if (!block) continue;
-    screens.push(Screen.init(scheme.name, scheme.scm, block.bky));
+    screens.push(Screen.init(scheme, block, project));
   }
 
-  return Promise.all(screens);
+  return screens;
 }
 
 /**
