@@ -1,39 +1,5 @@
-import { promises as fs } from 'fs'
-import path from 'path'
-import { fileURLToPath } from 'url'
-import { YAIL_TYPES, type YailType, type Component, type EventMetadata, type ComponentMetadata as IComponentMetadata, type MethodMetadata, type PropertyMetadata } from '../../types.js'
-
-interface RawComponent {
-  type: string
-  categoryString?: string
-  nonVisible?: string
-  version?: string
-  blockProperties?: Array<{
-    name: string
-    type: string
-    description?: string
-    rw?: string
-    deprecated?: string
-  }>
-  properties?: Array<{
-    name: string
-    defaultValue?: any
-    editorType?: string
-  }>
-  methods?: Array<{
-    name: string
-    description?: string
-    params?: any[]
-    returnType?: string
-    deprecated?: string
-  }>
-  events?: Array<{
-    name: string
-    description?: string
-    params?: any[]
-    deprecated?: string
-  }>
-}
+import { YAIL_TYPES, type YailType, type Component, type EventMetadata, type ComponentMetadata as IComponentMetadata, type MethodMetadata, type PropertyMetadata, type ComponentDescriptorJson } from './types.js'
+import type { Environment } from './Environment.js'
 
 interface ValidationResult {
   valid: boolean
@@ -57,37 +23,17 @@ interface ComponentStatistics {
 }
 
 class ComponentMetadata implements IComponentMetadata {
-  private componentsData: RawComponent[] | null = null
-  private supportedComponents: Set<string> | null = null
-  private loaded = false
+  private componentsData: ComponentDescriptorJson[]
+  private supportedComponents: Set<string>
 
-  async load(): Promise<void> {
-    if (this.loaded) return
-
-    const __filename = fileURLToPath(import.meta.url)
-    const __dirname = path.dirname(__filename)
-
-    const basePath = '../../../appinventor/build/components'
-    const jsonPath = path.resolve(__dirname, basePath, 'simple_components.json')
-    const txtPath = path.resolve(__dirname, basePath, 'simple_components.txt')
-
-    try {
-      const [jsonContent, txtContent] = await Promise.all([
-        fs.readFile(jsonPath, 'utf8'),
-        fs.readFile(txtPath, 'utf8')
-      ])
-
-      this.componentsData = JSON.parse(jsonContent)
-      this.supportedComponents = new Set(
-        txtContent.split('\n')
-          .map(line => line.trim())
-          .filter(line => line.length > 0)
-      )
-
-      this.loaded = true
-    } catch (error) {
-      throw new Error(`Failed to load component metadata: ${error instanceof Error ? error.message : String(error)}`)
-    }
+  constructor(private environment: Environment) {
+    // Use the environment's component descriptors directly
+    this.componentsData = this.environment.componentDescriptors
+    
+    // Create supported components set from the environment data
+    this.supportedComponents = new Set(
+      this.componentsData.map(comp => comp.type)
+    )
   }
 
   validateComponents(components: Component[]): ValidationResult {
@@ -115,28 +61,20 @@ class ComponentMetadata implements IComponentMetadata {
     return results
   }
 
-  private getComponent(componentType: string): RawComponent | null {
-    if (!this.loaded) {
-      throw new Error('Component metadata not loaded. Call load() first.')
-    }
-
+  private getComponent(componentType: string): ComponentDescriptorJson | null {
     const fullType = componentType.includes('.')
       ? componentType
       : `com.google.appinventor.components.runtime.${componentType}`
 
-    return this.componentsData?.find(comp => comp.type === fullType) || null
+    return this.componentsData.find(comp => comp.type === fullType) || null
   }
 
   private isSupported(componentType: string): boolean {
-    if (!this.loaded) {
-      throw new Error('Component metadata not loaded. Call load() first.')
-    }
-
     const fullType = componentType.includes('.')
       ? componentType
       : `com.google.appinventor.components.runtime.${componentType}`
 
-    return this.supportedComponents?.has(fullType) || false
+    return this.supportedComponents.has(fullType)
   }
 
   getProperty(componentType: string, propertyName: string): PropertyMetadata | null {
@@ -171,7 +109,11 @@ class ComponentMetadata implements IComponentMetadata {
 
     return {
       returnType: this.normalizePropertyType(method.returnType || 'void'),
-      params: method.params || [],
+      params: method.params.map(param => ({
+        name: param.name,
+        type: this.normalizePropertyType(param.type),
+        description: undefined
+      })),
       description: method.description
     }
   }
@@ -184,7 +126,11 @@ class ComponentMetadata implements IComponentMetadata {
     if (!event) return null
 
     return {
-      params: event.params || [],
+      params: event.params.map(param => ({
+        name: param.name,
+        type: this.normalizePropertyType(param.type),
+        description: undefined
+      })),
       description: event.description
     }
   }
@@ -227,11 +173,7 @@ class ComponentMetadata implements IComponentMetadata {
   }
 
   getSupportedComponentTypes(): string[] {
-    if (!this.loaded) {
-      throw new Error('Component metadata not loaded. Call load() first.')
-    }
-
-    return Array.from(this.supportedComponents!)
+    return Array.from(this.supportedComponents)
   }
 
   getCategory(componentType: string): string {
@@ -250,14 +192,10 @@ class ComponentMetadata implements IComponentMetadata {
   }
 
   getStatistics(): ComponentStatistics {
-    if (!this.loaded) {
-      throw new Error('Component metadata not loaded. Call load() first.')
-    }
-
     const categories: { [category: string]: number } = {}
     const visible = { visible: 0, nonVisible: 0 }
 
-    this.componentsData!.forEach(component => {
+    this.componentsData.forEach(component => {
       const category = component.categoryString || 'UNKNOWN'
       categories[category] = (categories[category] || 0) + 1
 
@@ -269,13 +207,12 @@ class ComponentMetadata implements IComponentMetadata {
     })
 
     return {
-      totalComponents: this.componentsData!.length,
+      totalComponents: this.componentsData.length,
       categories: categories,
       visibility: visible,
-      supportedCount: this.supportedComponents!.size
+      supportedCount: this.supportedComponents.size
     }
   }
 }
 
-const componentMetadata = new ComponentMetadata()
-export default componentMetadata
+export { ComponentMetadata }

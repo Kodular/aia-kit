@@ -18,6 +18,7 @@ import type { Asset } from "./asset.js";
 import type { Environment } from "./Environment.js";
 import type { Extension } from "./extension.js";
 import type { Screen } from "./screen.js";
+import { ComponentMetadata } from "./ComponentMetadata.js";
 
 /**
  * Class that describes an App Inventor project.
@@ -93,5 +94,14 @@ export class Project {
    */
   addExtension(extension: Extension) {
     this.extensions.push(extension);
+  }
+
+  /**
+   * Gets the ComponentMetadata for this project.
+   * 
+   * @returns ComponentMetadata instance for this project.
+   */
+  getComponentMetadata(): ComponentMetadata {
+    return new ComponentMetadata(this.environment);
   }
 }

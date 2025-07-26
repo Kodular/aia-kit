@@ -111,7 +111,6 @@ export interface ComponentDescriptorJson {
 
 // ===== Component Metadata Types =====
 export interface ComponentMetadata {
-  load(): Promise<void>
   validateComponents(components: Component[]): { valid: boolean; errors: string[] }
   getProperty(componentType: string, propertyName: string): PropertyMetadata | null
   getMethod(componentType: string, methodName: string): MethodMetadata | null
