@@ -1,8 +1,9 @@
 import type { ComponentProperty } from "../component.js";
-import type { ComponentDescriptorJson, ComponentJson } from "../types.js";
+import type { ComponentJson } from "../types.js";
+import type { ComponentDescriptor } from "../validators/component-descriptor.js";
 
 export function resolveProperties(
-  componentDescriptor: ComponentDescriptorJson,
+  componentDescriptor: ComponentDescriptor,
   propertyJSON: ComponentJson,
 ): ComponentProperty[] {
   return componentDescriptor.properties.map(property => {

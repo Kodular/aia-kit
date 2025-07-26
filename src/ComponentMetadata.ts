@@ -1,5 +1,6 @@
-import { YAIL_TYPES, type YailType, type Component, type EventMetadata, type ComponentMetadata as IComponentMetadata, type MethodMetadata, type PropertyMetadata, type ComponentDescriptorJson } from './types.js'
 import type { Environment } from './Environment.js'
+import { YAIL_TYPES, type Component, type EventMetadata, type ComponentMetadata as IComponentMetadata, type MethodMetadata, type PropertyMetadata, type YailType } from './types.js'
+import type { ComponentDescriptor } from './validators/component-descriptor.js'
 
 interface ValidationResult {
   valid: boolean
@@ -23,13 +24,13 @@ interface ComponentStatistics {
 }
 
 class ComponentMetadata implements IComponentMetadata {
-  private componentsData: ComponentDescriptorJson[]
+  private componentsData: ComponentDescriptor[]
   private supportedComponents: Set<string>
 
   constructor(private environment: Environment) {
     // Use the environment's component descriptors directly
     this.componentsData = this.environment.componentDescriptors
-    
+
     // Create supported components set from the environment data
     this.supportedComponents = new Set(
       this.componentsData.map(comp => comp.type)
@@ -61,7 +62,7 @@ class ComponentMetadata implements IComponentMetadata {
     return results
   }
 
-  private getComponent(componentType: string): ComponentDescriptorJson | null {
+  private getComponent(componentType: string): ComponentDescriptor | null {
     const fullType = componentType.includes('.')
       ? componentType
       : `com.google.appinventor.components.runtime.${componentType}`

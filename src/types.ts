@@ -90,25 +90,6 @@ export interface BkyStatistics {
   eventHandlers: number
 }
 
-export interface ComponentDescriptorJson {
-  type: string;
-  name: string;
-  external: "true" | "false";
-  version: string;
-  dateBuilt: string;
-  categoryString: string;
-  helpString: string;
-  helpUrl: string;
-  showOnPalette: "true" | "false";
-  nonVisible: "true" | "false";
-  iconName: string;
-  androidMinSdk: string | number;
-  properties: ComponentDescriptorProperty[];
-  blockProperties: ComponentDescriptorBlockProperty[];
-  events: ComponentDescriptorEvent[];
-  methods: ComponentDescriptorMethod[];
-}
-
 // ===== Component Metadata Types =====
 export interface ComponentMetadata {
   validateComponents(components: Component[]): { valid: boolean; errors: string[] }
@@ -154,7 +135,7 @@ export interface ComponentDescriptorProperty {
   name: string;
   editorType: string;
   defaultValue: string;
-  propertyType: string;
+  propertyType?: string;
   editorArgs: any[];
 }
 
@@ -163,20 +144,20 @@ export interface ComponentDescriptorBlockProperty {
   description: string;
   type: string;
   rw: string;
-  deprecated: string;
+  deprecated: boolean;
 }
 
 export interface ComponentDescriptorEvent {
   name: string;
   description: string;
-  deprecated: string;
+  deprecated: boolean;
   params: ComponentDescriptorParam[];
 }
 
 export interface ComponentDescriptorMethod {
   name: string;
   description: string;
-  deprecated: string;
+  deprecated: boolean;
   params: ComponentDescriptorParam[];
   returnType?: string;
 }
@@ -189,14 +170,14 @@ export interface ComponentDescriptorParam {
 export interface ExtensionDescriptorJson {
   type: string;
   name: string;
-  external: "true" | "false";
+  external: boolean;
   version: string;
   dateBuilt: string;
   categoryString: string;
   helpString: string;
   helpUrl: string;
-  showOnPalette: "true" | "false";
-  nonVisible: "true" | "false";
+  showOnPalette: boolean;
+  nonVisible: boolean;
   iconName: string;
   androidMinSdk: number;
   versionName: string;
