@@ -15,8 +15,16 @@ export class Environment {
 
   getComponentDescriptor(componentType: string): ComponentDescriptor | null {
     return (
-      this.componentDescriptors.find((comp) => comp.type === componentType) ??
-      null
+      this.componentDescriptors.find((descriptor) => {
+        // Check if the component type is a fully qualified name or a simple name
+        // If it contains a dot, it's likely a fully qualified name.
+        // Otherwise, it is assumed to be a simple name in the
+        // `com.google.appinventor.components.runtime` package.
+        if (componentType.includes(".")) {
+          return descriptor.type === componentType;
+        }
+        return `com.google.appinventor.components.runtime.${componentType}` === descriptor.type;
+      }) ?? null
     );
   }
 
