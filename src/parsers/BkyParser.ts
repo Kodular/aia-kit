@@ -6,11 +6,6 @@ export class BkyParser {
   private rootElement: XMLElement
 
   static parse(bkyContent: string): BkyParser {
-    // Check for basic malformed XML
-    if (!bkyContent.includes('<xml>') && !bkyContent.includes('<XML>')) {
-      throw new Error('Failed to parse BKY file')
-    }
-
     const parser = new DOMParser()
     const xmlDoc = parser.parseFromString(bkyContent, 'text/xml')
 

@@ -4,6 +4,7 @@ import { BkyParser } from "./parsers/BkyParser.js";
 import ScmParser from "./parsers/ScmParser.js";
 import type { Project } from "./project.js";
 import { resolveProperties } from "./utils/property-processor.js";
+import { getPackageName } from "./utils/utils.js";
 import { ScmJsonSchema, type RawComponent } from "./validators/scm.js";
 
 export type ScreenFile = {
@@ -118,7 +119,7 @@ export class Screen {
     const bkyParser = BkyParser.parse(this.bkyContent);
     const componentMetadata = this.project.getComponentMetadata();
 
-    const packageName = this.project.properties.main;
+    const packageName = getPackageName(this.project.properties.main);
     if (!packageName) {
       throw new Error('Package name not found in project properties. Cannot generate YAIL without a valid package name.');
     }

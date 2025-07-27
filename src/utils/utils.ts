@@ -55,3 +55,11 @@ export function getDescriptor(componentType: string, project: Project) {
 
   return null;
 }
+
+export function getPackageName(classFqcn: string): string | null {
+  const dotIndex = classFqcn.lastIndexOf(".");
+  if (dotIndex === -1) {
+    return null; // No package name
+  }
+  return classFqcn.substring(0, dotIndex);
+}

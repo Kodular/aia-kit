@@ -31,7 +31,7 @@ export const RawComponentSchema: z.ZodType<RawComponent> = z.lazy(() =>
  * Zod schema for ScmJson
  */
 export const ScmJsonSchema = z.object({
-  authURL: z.array(z.string()),
+  authURL: z.array(z.string()).optional(),
   YaVersion: z.coerce.number(),
   Source: z.string(),
   Properties: RawComponentSchema,

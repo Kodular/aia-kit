@@ -20,7 +20,7 @@ export const ComponentDescriptorPropertySchema = z.object({
    * Typically has values like "common", "advanced", etc.
    */
   propertyType: z.string().optional(),
-  editorArgs: z.array(z.any()),
+  editorArgs: z.array(z.any()).optional(),
 });
 
 /**

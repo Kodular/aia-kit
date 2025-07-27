@@ -1,7 +1,7 @@
 import { BlobWriter, TextReader, ZipWriter } from "@zip.js/zip.js";
 import type { Component } from "./component.js";
 import type { Project } from "./project.js";
-import { propertiesObjectToString } from "./utils/utils.js";
+import { getPackageName, propertiesObjectToString } from "./utils/utils.js";
 import type { RawComponent, ScmJson } from "./validators/scm.js";
 
 export async function writeAia(project: Project): Promise<Blob> {
@@ -13,7 +13,10 @@ export async function writeAia(project: Project): Promise<Blob> {
     new TextReader(propertiesObjectToString(project.properties)),
   );
 
-  const packageName = project.properties.main;
+  const packageName = getPackageName(project.properties.main);
+  if (!packageName) {
+    throw new Error('Package name not found in project properties. Cannot generate YAIL without a valid package name.');
+  }
 
   // Add screens
   for (const screen of project.screens) {
