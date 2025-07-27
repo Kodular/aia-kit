@@ -105,7 +105,7 @@ export class Screen {
    * 
    * @returns The generated YAIL code as a string.
    */
-  async generateYail(): Promise<string> {
+  generateYail(): string {
     const scmParser = ScmParser.parse(this.scmContent);
     const bkyParser = BkyParser.parse(this.bkyContent);
     const componentMetadata = this.project.getComponentMetadata();
