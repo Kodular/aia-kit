@@ -15,7 +15,7 @@ import type { Environment } from "./Environment.js";
 import { Extension } from "./extension.js";
 import { AiaFileStructure } from "./file_structures.js";
 import { Project } from "./project.js";
-import { Screen } from "./screen.js";
+import { Screen, type ScreenFile } from "./screen.js";
 import type { ExtensionBuildInfoJson } from "./types.js";
 import { getFileInfo, readProjectProperties } from "./utils/utils.js";
 import { getBlobFileContent, getTextFileContent } from "./utils/zipjs.js";
@@ -73,35 +73,37 @@ export async function parseAia(fileOrUrl: Blob | string, environment: Environmen
  * @return A Promise object, when resolved, yields the parsed screens.
  */
 async function generateScreens(files: Entry[], project: Project): Promise<Screen[]> {
-  const schemes: { name: string; scm: string }[] = [];
-  const blocks: { name: string; bky: string }[] = [];
+  const screenFiles: ScreenFile[] = [];
 
   // First, we load all the scheme files into the schemes array and the Blockly
   // files into the blocks array.
   for (const file of files) {
-    const content = await getTextFileContent(file);
     const [fileName, fileType] = getFileInfo(file);
-    if (fileType === "scm") {
-      schemes.push({
+    if (fileType === "scm" || fileType === "bky" || fileType === "yail") {
+      const content = await getTextFileContent(file);
+      screenFiles.push({
         name: fileName,
-        scm: content,
-      });
-    } else if (fileType === "bky") {
-      blocks.push({
-        name: fileName,
-        bky: content,
+        type: fileType,
+        content,
       });
     }
   }
 
+  const screenFilesByName = Object.groupBy(screenFiles, (file) => file.name);
+
   const screens: Screen[] = [];
 
-  // Then, for each scheme file, we create a new AIScreen and initialise it with
-  // the corresponding Blockly file.
-  for (const scheme of schemes) {
-    const block = blocks.find((x) => x.name === scheme.name);
-    if (!block) continue;
-    screens.push(Screen.init(scheme, block, project));
+  for (const [screenName, screenGroup] of Object.entries(screenFilesByName)) {
+    if (!screenGroup || screenGroup.length === 0) {
+      throw new Error(`Screen files for "${screenName}" are missing.`);
+    }
+    const scheme = screenGroup.find((x) => x.type === "scm");
+    const block = screenGroup.find((x) => x.type === "bky");
+    const yail = screenGroup.find((x) => x.type === "yail");
+    if (!scheme || !block) {
+      throw new Error(`Screen files for "${screenGroup[0].name}" are incomplete.`);
+    }
+    screens.push(Screen.init(project, scheme, block, yail));
   }
 
   return screens;

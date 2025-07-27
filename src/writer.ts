@@ -17,18 +17,23 @@ export async function writeAia(project: Project): Promise<Blob> {
 
   // Add screens
   for (const screen of project.screens) {
+    const screenDir = `src/${packageName.replaceAll(".", "/")}`;
     await zw.add(
-      `src/${packageName.replaceAll(".", "/")}/${screen.name}.scm`,
+      `${screenDir}/${screen.name}.scm`,
       new TextReader(serializeScmJson({
-        authURL: [],
+        authURL: ["aia-kit"],
         YaVersion: 1,
-        Source: "...",
+        Source: "Form",
         Properties: jsonifyComponentTree(screen.form),
       })),
     );
     await zw.add(
-      `src/com/google/appinventor/components/runtime/${screen.name}.bky`,
+      `${screenDir}/${screen.name}.bky`,
       new TextReader(screen.bkyContent),
+    );
+    await zw.add(
+      `${screenDir}/${screen.name}.yail`,
+      new TextReader(screen.getOrGenerateYail()),
     );
   }
 

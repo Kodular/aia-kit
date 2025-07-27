@@ -6,6 +6,12 @@ import type { Project } from "./project.js";
 import { resolveProperties } from "./utils/property-processor.js";
 import { ScmJsonSchema, type RawComponent } from "./validators/scm.js";
 
+export type ScreenFile = {
+  type: "scm" | "bky" | "yail";
+  name: string;
+  content: string;
+}
+
 /**
  * Class that describes a screen in an App Inventor project.
  */
@@ -14,13 +20,15 @@ export class Screen {
   form: Component;
   bkyContent: string;
   private scmContent: string;
+  private yailContent: string | null;
   project: Project;
 
-  constructor(name: string, form: Component, bkyContent: string, scmContent: string, project: Project) {
+  constructor(project: Project, name: string, form: Component, bkyContent: string, scmContent: string, yailContent: string | null) {
     this.name = name;
     this.form = form;
     this.bkyContent = bkyContent;
     this.scmContent = scmContent;
+    this.yailContent = yailContent;
     this.project = project;
   }
 
@@ -39,10 +47,10 @@ export class Screen {
    * @param project The project this screen belongs to.
    * @return New AIScreen object.
    */
-  static init(scm: { name: string; scm: string }, blk: { name: string; bky: string }, project: Project): Screen {
-    const form = Screen.generateSchemeData(scm.scm, project);
+  static init(project: Project, scm: ScreenFile, blk: ScreenFile, yail?: ScreenFile): Screen {
+    const form = Screen.generateSchemeData(scm.content, project);
 
-    return new Screen(scm.name, form, blk.bky, scm.scm, project);
+    return new Screen(project, scm.name, form, blk.content, scm.content, yail?.content ?? null);
   }
 
   /**
@@ -117,5 +125,12 @@ export class Screen {
 
     const yailGenerator = new YailGenerator(scmParser, bkyParser, componentMetadata, packageName);
     return yailGenerator.generate();
+  }
+
+  getOrGenerateYail(): string {
+    if (this.yailContent) {
+      return this.yailContent;
+    }
+    return this.generateYail();
   }
 }
