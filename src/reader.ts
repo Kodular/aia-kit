@@ -9,19 +9,17 @@
  * @license
  */
 
-import { BlobReader, type Entry, HttpReader, ZipReader } from "@zip.js/zip.js";
+import { BlobReader, HttpReader, ZipReader, type Entry } from "@zip.js/zip.js";
 import { Asset } from "./asset.js";
 import type { Environment } from "./Environment.js";
 import { Extension } from "./extension.js";
 import { AiaFileStructure } from "./file_structures.js";
 import { Project } from "./project.js";
 import { Screen } from "./screen.js";
-import type {
-  ExtensionBuildInfoJson,
-  ExtensionDescriptorJson,
-} from "./types.js";
+import type { ExtensionBuildInfoJson } from "./types.js";
 import { getFileInfo, readProjectProperties } from "./utils/utils.js";
 import { getBlobFileContent, getTextFileContent } from "./utils/zipjs.js";
+import { ComponentDescriptorSchema, ComponentDescriptorsSchema, type ComponentDescriptor } from "./validators/component-descriptor.js";
 
 /**
  * Unzips and reads every file in an AIA and then parses it.
@@ -55,7 +53,7 @@ export async function parseAia(fileOrUrl: Blob | string, environment: Environmen
   // First, all the assets are loaded.
   const assets = await generateAssets(assetFiles);
   project.addAssets(assets);
-  
+
   // Extensions are loaded before screens so that the screens can use the
   // extensions' descriptors to populate their properties.
   const extensions = await generateExtensions(extensionFiles);
@@ -119,7 +117,7 @@ async function generateExtensions(files: Entry[]): Promise<Extension[]> {
   const buildInfos: { name: string; info: ExtensionBuildInfoJson[] }[] = [];
   const descriptors: {
     name: string;
-    descriptor: ExtensionDescriptorJson[];
+    descriptor: ComponentDescriptor[];
   }[] = [];
 
   // The component_build_info and component descriptor files are being read.
@@ -143,12 +141,12 @@ async function generateExtensions(files: Entry[]): Promise<Extension[]> {
     } else if (fileName === "components") {
       descriptors.push({
         name: extName,
-        descriptor: JSON.parse(content) as ExtensionDescriptorJson[],
+        descriptor: ComponentDescriptorsSchema.parse(JSON.parse(content)),
       });
     } else if (fileName === "component") {
       descriptors.push({
         name: extName,
-        descriptor: [JSON.parse(content)] as ExtensionDescriptorJson[],
+        descriptor: [ComponentDescriptorSchema.parse(JSON.parse(content))],
       });
     }
   }

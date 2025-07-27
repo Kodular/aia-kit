@@ -1,5 +1,5 @@
-import { DOMParser, Document as XMLDocument, Element as XMLElement } from '@xmldom/xmldom'
-import type { Block, ParsedBlock, BkyStatistics } from '../types.js'
+import { DOMParser, type Document as XMLDocument, type Element as XMLElement } from '@xmldom/xmldom'
+import type { BkyStatistics, Block } from '../types.js'
 
 export class BkyParser {
   private xmlDoc: XMLDocument
@@ -58,8 +58,8 @@ export class BkyParser {
     let currentParent = parent
     while (currentParent && currentParent !== this.rootElement) {
       if (currentParent.nodeName === 'value' ||
-          currentParent.nodeName === 'statement' ||
-          currentParent.nodeName === 'next') {
+        currentParent.nodeName === 'statement' ||
+        currentParent.nodeName === 'next') {
         return false
       }
       currentParent = currentParent.parentNode
@@ -118,12 +118,13 @@ export class BkyParser {
           }
           break
 
-        case 'next':
+        case 'next': {
           const nextChildBlock = this.getFirstChildBlock(element)
           if (nextChildBlock) {
             block.next = this.parseBlock(nextChildBlock)
           }
           break
+        }
 
         case 'mutation':
           block.mutation = this.parseMutation(element)

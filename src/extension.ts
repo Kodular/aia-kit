@@ -1,11 +1,18 @@
-import type { ExtensionDescriptorJson } from "./types.js";
+import type { ComponentDescriptor } from "./validators/component-descriptor.js";
 
 /**
  * Class that describes an extension.
  */
 export class Extension {
+  /**
+   * Package name of this extension (eg: com.google.SearchBoxExtension).
+   */
   name: string;
-  descriptorJSON: ExtensionDescriptorJson;
+  /**
+   * Custom descriptor JSON used by components to populate their list of
+   * properties
+   */
+  descriptorJSON: ComponentDescriptor;
 
   /**
    * Creates a new AIExtension object.
@@ -17,16 +24,8 @@ export class Extension {
    *
    * @return New Extension object.
    */
-  constructor(name: string, descriptorJSON: ExtensionDescriptorJson) {
-    /**
-     * Package name of this extension (eg: com.google.SearchBoxExtension).
-     */
+  constructor(name: string, descriptorJSON: ComponentDescriptor) {
     this.name = name;
-
-    /**
-     * Custom descriptor JSON used by components to populate their list of
-     * properties
-     */
     this.descriptorJSON = descriptorJSON;
   }
 }

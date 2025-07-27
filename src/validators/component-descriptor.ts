@@ -70,7 +70,7 @@ export const ComponentDescriptorSchema = z.object({
   showOnPalette: z.stringbool(),
   nonVisible: z.stringbool(),
   iconName: z.string(),
-  androidMinSdk: z.union([z.string(), z.number()]),
+  androidMinSdk: z.coerce.number(),
   properties: z.array(ComponentDescriptorPropertySchema),
   blockProperties: z.array(ComponentDescriptorBlockPropertySchema),
   events: z.array(ComponentDescriptorEventSchema),

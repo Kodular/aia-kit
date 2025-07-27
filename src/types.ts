@@ -14,9 +14,6 @@ export interface Block {
   next?: Block
 }
 
-// Alias for backward compatibility with BkyParser
-export type ParsedBlock = Block
-
 // ===== Component Types =====
 export interface Component {
   name: string
@@ -110,69 +107,6 @@ export interface ParameterMetadata {
 export interface BlockHandler {
   new (generator: any): any
   registerBlocks(): void
-}
-
-export interface ComponentDescriptorProperty {
-  name: string;
-  editorType: string;
-  defaultValue: string;
-  propertyType?: string;
-  editorArgs: any[];
-}
-
-export interface ComponentDescriptorBlockProperty {
-  name: string;
-  description: string;
-  type: string;
-  rw: string;
-  deprecated: boolean;
-}
-
-export interface ComponentDescriptorEvent {
-  name: string;
-  description: string;
-  deprecated: boolean;
-  params: ComponentDescriptorParam[];
-}
-
-export interface ComponentDescriptorMethod {
-  name: string;
-  description: string;
-  deprecated: boolean;
-  params: ComponentDescriptorParam[];
-  returnType?: string;
-}
-
-export interface ComponentDescriptorParam {
-  name: string;
-  type: string;
-}
-
-export interface ExtensionDescriptorJson {
-  type: string;
-  name: string;
-  external: boolean;
-  version: string;
-  dateBuilt: string;
-  categoryString: string;
-  helpString: string;
-  helpUrl: string;
-  showOnPalette: boolean;
-  nonVisible: boolean;
-  iconName: string;
-  androidMinSdk: number;
-  versionName: string;
-  versionCode: string;
-  properties: ComponentDescriptorProperty[];
-  blockProperties: ComponentDescriptorBlockProperty[];
-  events: ComponentDescriptorEvent[];
-  methods: ComponentDescriptorMethod[];
-}
-
-export interface ExtensionDescriptorProperty {
-  name: string;
-  editorType: string;
-  defaultValue: string;
 }
 
 export interface ExtensionBuildInfoJson {

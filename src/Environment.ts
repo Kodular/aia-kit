@@ -1,4 +1,3 @@
-import type { ExtensionDescriptorJson } from "./types.js";
 import { type ComponentDescriptor, type ComponentDescriptors, ComponentDescriptorsSchema } from "./validators/component-descriptor.js";
 
 export class Environment {
@@ -28,7 +27,7 @@ export class Environment {
     );
   }
 
-  cloneWithExtensions(extensions: ExtensionDescriptorJson[]): Environment {
+  cloneWithExtensions(extensions: ComponentDescriptors): Environment {
     const extendedComponents = [...this.componentDescriptors];
 
     for (const extension of extensions) {

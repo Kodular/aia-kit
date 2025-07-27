@@ -1,5 +1,5 @@
+import type { ComponentMetadata } from '../../ComponentMetadata.js'
 import type { BkyParser } from '../../parsers/BkyParser.js'
-import { ComponentMetadata } from '../../ComponentMetadata.js'
 import type ScmParser from '../../parsers/ScmParser.js'
 
 import ColorBlocks from './blocks/ColorBlocks.js'
@@ -14,9 +14,9 @@ import ProcedureBlocks from './blocks/ProcedureBlocks.js'
 import TextBlocks from './blocks/TextBlocks.js'
 import VariableBlocks from './blocks/VariableBlocks.js'
 
+import { YAIL_TYPES, type Block, type YailType } from '../../types.js'
 import { Scheme, type SchemeExpr } from './ast/SchemeAST.js'
 import * as YailConstructs from './ast/YailConstructs.js'
-import { YAIL_TYPES, type Block, type YailType } from '../../types.js'
 
 class YailGenerator {
   private scmParser: ScmParser
