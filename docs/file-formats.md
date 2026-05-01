@@ -54,6 +54,8 @@ A standard Java `.properties` file (UTF-8, `key=value` lines).
 
 The package name is derived from `main` by dropping the last segment (e.g. `io.kodular.username.Test`). This package name also determines the path under `src/`.
 
+This table covers the keys aia-kit reads and writes. Real AIA files may contain additional keys (`source`, `authURL`, `defaultfilescope`, theme-related keys) which are preserved on round-trip but not interpreted.
+
 ---
 
 ### SCM Files (`*.scm`)
@@ -149,7 +151,7 @@ An empty screen has an empty `<xml/>` tag — valid and common.
 | `component_get_property` | Property getter | `<field name="COMPONENT_SELECTOR">`, `<field name="PROPERTY_NAME">` |
 | `component_set_property` | Property setter | Same as getter plus `<value name="VALUE">` |
 | `component_set_get` | Combined set/get | — |
-| `component_block` | Component reference | — |
+| `component_component_block` | Component reference | — |
 | `global_declaration` | Global variable | `<field name="NAME">` |
 | `lexical_variable_get` / `_set` | Local variable | — |
 | `procedures_defnoreturn` / `defreturn` | Procedure definition | — |
@@ -253,7 +255,7 @@ Defines all properties, events, and methods the extension exposes to the block e
     {
       "name": "MyProp",
       "description": "...",
-      "type": "text",                 ("text" | "number" | "boolean" | "list" | "component" | "any")
+      "type": "text",                 ("text" | "number" | "boolean" | "list" | "component" | "any" | "color" | "asset")
       "rw": "read-write",             ("read-only" | "write-only" | "read-write" | "invisible")
       "deprecated": "false"           (string boolean, not JSON boolean)
     }
