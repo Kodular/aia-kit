@@ -1,7 +1,6 @@
 import { DOMParser } from '@xmldom/xmldom'
+import type { Element as XMLElement } from '@xmldom/xmldom'
 import type { BlockAst, BlockNode } from './ast.js'
-
-type XMLElement = Element
 
 export class BkyParser {
   static parse(bky: string): BlockAst {

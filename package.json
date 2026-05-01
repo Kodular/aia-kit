@@ -24,11 +24,12 @@
   },
   "types": "./dist/src/index.d.ts",
   "files": [
-    "dist/src"
+    "dist/src",
+    "dist/environments"
   ],
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "build": "tsc",
+    "build": "tsc && cp -r environments dist/",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"

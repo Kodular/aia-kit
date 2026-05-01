@@ -23,6 +23,19 @@ describe('Environment', () => {
     })
   })
 
+  describe('mitAppInventor', () => {
+    it('loads without throwing', async () => {
+      const env = await Environment.mitAppInventor()
+      expect(env).toBeDefined()
+    })
+
+    it('looks up a known built-in component type', async () => {
+      const env = await Environment.mitAppInventor()
+      const desc = env.lookup('com.google.appinventor.components.runtime.Button')
+      expect(desc).not.toBeNull()
+    })
+  })
+
   describe('withExtension', () => {
     it('returns a new Environment with the extension components accessible', async () => {
       const env = await Environment.kodularCreator()
