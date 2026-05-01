@@ -6,12 +6,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is `aia-kit`, a TypeScript library for reading, parsing, editing, and writing AIA/AIX/AIS files (App Inventor project files). The library is designed to work with App Inventor-based platforms, particularly Kodular Creator.
 
+**Status:** Currently on the `v2-rewrite` branch, undergoing a complete architectural redesign. See [v2 Design Spec](docs/superpowers/specs/2026-05-01-aia-kit-v2-design.md) and [Milestone 1 Plan](docs/superpowers/plans/2026-05-02-aia-kit-v2-m1-core-pipeline.md) for details.
+
 ## Common Commands
 
 ### Build and Development
-- `npm run build` - Compiles TypeScript to JavaScript in the `dist/` directory
-- `npm run test` - Runs the test suite using Vitest
-- `npm run test:w` - Runs tests in watch mode for development
+- `pnpm build` - Compiles TypeScript to JavaScript in the `dist/` directory
+- `pnpm test` - Runs the test suite using Vitest
+- `pnpm typecheck` - Type-checks the TypeScript code without emitting files
 
 ### Testing
 - Tests are located in `test/` directory
@@ -21,55 +23,90 @@ This is `aia-kit`, a TypeScript library for reading, parsing, editing, and writi
 
 ## Architecture
 
-### Core Components
+### Design Philosophy
 
-The library is structured around several key concepts:
+v2 is built on three core principles:
 
-1. **Environment** (`src/Environment.ts`): Represents the target App Inventor platform (e.g., Kodular Creator) and contains component descriptors that define what components are available.
+1. **Plain immutable data types + pure functions** — No behaviour buried in classes. Structural operations use raw types; platform-aware operations take an explicit `Environment`.
+2. **Two-layer type system** — Raw layer (`Aia*` / `Aix*`) faithful to file format, model layer (`Model*`) enriched with descriptors and diagnostics.
+3. **First-class diagnostics** — All data-level problems surface as `Diagnostic[]`; throws reserved for hard IO failures. Every mutation returns `MutationResult`.
 
-2. **Project** (`src/project.ts`): The main container representing an AIA project with screens, assets, and extensions.
+### Core Modules
 
-3. **Reader** (`src/reader.ts`): Contains the `parseAia()` function that extracts and parses AIA files using the ZIP format.
+**Raw Data Layer** (`src/core/types.ts`):
+- `AiaProject`, `AiaScreen`, `AiaAsset` — faithful file-format representation
+- `AiaComponent` — raw SCM component tree, properties unvalidated
+- `AiaExtension` — extension metadata + lazy asset/binary loading
 
-4. **Writer** (`src/writer.ts`): Contains the `writeAia()` function that packages project data back into AIA format.
+**Model Layer** (`src/core/model.ts`):
+- `ModelProject`, `ModelScreen`, `ModelComponent` — environment-enriched object model
+- `ComponentDescriptor` — metadata from environment (properties, events, methods)
+- `ComponentProperty` — typed property with validation state
 
-5. **Core Data Types**:
-   - **Screen** (`src/screen.ts`): Represents a single screen with its components and blocks
-   - **Component** (`src/component.ts`): Represents UI components and their properties
-   - **Asset** (`src/asset.ts`): Represents media files and other assets
-   - **Extension** (`src/extension.ts`): Represents external extensions/components
+**Core Infrastructure**:
+- **Environment** (`src/core/environment.ts`): Represents target platform (Kodular, MIT AI2), holds component descriptors
+- **Diagnostics** (`src/core/diagnostics.ts`): `Diagnostic` type, severity levels, diagnostic codes, `mergeReports` utility
+- **Errors** (`src/core/errors.ts`): Error hierarchy — `AiaKitError`, `AiaParseError`, `AiaZipError`, `AiaStructureError`, `AiaWriteError`
+
+**Specialised Parsers** (internal, not exported):
+- **BkyParser** (`src/blocks/bky-parser.ts`): XML ↔ BlockAst conversion
+- **ScmParser** (`src/components/scm-parser.ts`): SCM JSON → component tree
+
+**Public Lens APIs**:
+- **Block Lens** (`src/blocks/lens.ts`): `queryBlocks`, `updateBlocks`, `updateAllScreenBlocks`, `parseBlocks`, `serializeBlocks`
+- **Component Tree** (`src/components/tree.ts`): `getParent`, `findComponent`, `getComponentsByType`, `getComponentPath`
 
 ### Key Files
 
-- `src/index.ts` - Main entry point with public API exports
-- `src/types.ts` - TypeScript type definitions
-- `src/types.zod.ts` - Zod validation schemas
-- `src/file_structures.ts` - Defines AIA file structure constants
-- `src/property_processor.ts` - Handles component property processing
-- `src/utils/` - Utility functions for ZIP handling and general operations
-- `src/environments/kodular/simple_components.json` - Kodular component definitions
+**Entry point:**
+- `src/index.ts` — Public v2 API exports
 
-### Environment System
+**Core pipeline:**
+- `src/parse.ts` — `parseAia()`, `parseAix()`, `parseAndResolve()`
+- `src/resolve.ts` — Pure `resolve()` function (raw → model)
+- `src/write.ts` — `writeAia()`
 
-The library uses an Environment system to handle different App Inventor platforms:
+**Component definitions:**
+- `environments/kodular-creator/simple_components.json` — Kodular components
+- `environments/mit-app-inventor/simple_components.json` — MIT AI2 components
+
+### Pipeline Flow
+
+1. **Parse** (`parseAia`): Extract ZIP, deserialise raw `AiaProject` — no environment needed
+2. **Resolve** (`resolve`): Transform raw → model using `Environment`; emit diagnostics
+3. **Query/Mutate**: Use block lens and component tree utilities on model layer
+4. **Write** (`writeAia`): Serialise model back to AIA ZIP
+
+Or use `parseAndResolve` for single-step parse + resolve.
+
+### Example Usage
 
 ```typescript
 const environment = await Environment.kodularCreator();
-const project = await parseAia(aiaFileBlob, environment);
+const aiaBlob = /* ... */;
+const { project, diagnostics } = await parseAndResolve(aiaBlob, environment);
+
+// Query blocks
+const blocks = queryBlocks(project.screens[0].form);
+
+// Update and write back
+const updated = { ...project, screens: [...project.screens] };
+const aiaOut = await writeAia(updated);
 ```
-
-This allows accurate parsing of components based on the target platform's capabilities.
-
-### File Processing Flow
-
-1. **Reading**: AIA files are ZIP archives containing project metadata, screens, assets, and extensions
-2. **Parsing**: The reader extracts files and creates structured objects using the Environment for component validation
-3. **Writing**: The writer packages the structured data back into the AIA ZIP format
 
 ## Development Notes
 
-- Uses ES modules (`"type": "module"` in package.json)
-- TypeScript compiled output goes to `dist/`
-- Uses Biome for linting and formatting
-- Dependencies: `@zip.js/zip.js` for ZIP handling, `properties-file` for Java properties, `zod` for validation
-- The library works with Blob objects for file handling, supporting both local files and URLs
+- ES modules (`"type": "module"` in package.json)
+- TypeScript compiled to `dist/`
+- Biome for linting and formatting
+- **Core dependencies:**
+  - `@zip.js/zip.js` — ZIP archive I/O
+  - `@xmldom/xmldom` — BKY XML parsing
+  - `properties-file` — project.properties parsing
+- Works with Blob objects; supports local files and URLs
+
+## Testing
+
+- Test fixtures in `test/fixtures/` (real AIA files)
+- Unit tests in `test/v2/` organized by module
+- Use `pnpm test:w` during development for watch mode
