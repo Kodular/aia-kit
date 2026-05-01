@@ -29,7 +29,7 @@ export async function writeAia(project: AiaProject | ModelProject): Promise<Blob
 
     for (const asset of raw.assets) {
       const data = await asset.data()
-      await zw.add(`assets/${asset.name}`, new BlobReader(new Blob([data])))
+      await zw.add(`assets/${asset.name}`, new BlobReader(new Blob([data instanceof Uint8Array ? data.buffer as ArrayBuffer : data])))
     }
 
     for (const ext of raw.extensions) {

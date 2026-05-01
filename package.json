@@ -19,8 +19,10 @@
   "type": "module",
   "module": "./dist/src/index.js",
   "exports": {
-    ".": "./dist/src/index.js",
-    "./*.js": "./dist/src/*.js"
+    ".":           "./dist/src/index.js",
+    "./parse":     "./dist/src/parse.js",
+    "./resolve":   "./dist/src/resolve.js",
+    "./write":     "./dist/src/write.js"
   },
   "types": "./dist/src/index.d.ts",
   "files": [

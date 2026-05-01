@@ -1,4 +1,4 @@
-import { BlobReader, BlobWriter, ZipReader, ZipWriter, TextWriter, type Entry } from '@zip.js/zip.js'
+import { BlobReader, BlobWriter, ZipReader, ZipWriter, TextWriter, type Entry, type FileEntry } from '@zip.js/zip.js'
 import { getProperties } from 'properties-file'
 import type { AiaProject, AiaScreen, AiaAsset, AiaExtension, AixManifest, AixAsset } from './core/types.js'
 import type { ComponentDescriptor } from './core/descriptors.js'
@@ -193,13 +193,13 @@ export async function parseAndResolve(
 function toBlob(input: Uint8Array | ArrayBuffer | Blob): Blob {
   if (input instanceof Blob) return input
   if (input instanceof ArrayBuffer) return new Blob([input])
-  return new Blob([input])
+  return new Blob([input.buffer as ArrayBuffer])
 }
 
 async function readText(entry: Entry): Promise<string> {
-  return entry.getData!(new TextWriter())
+  return (entry as FileEntry).getData(new TextWriter())
 }
 
 async function readBlob(entry: Entry): Promise<Blob> {
-  return entry.getData!(new BlobWriter())
+  return (entry as FileEntry).getData(new BlobWriter())
 }
