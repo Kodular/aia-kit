@@ -61,19 +61,17 @@ interface AiaAsset {
   data(): Promise<Uint8Array>   // lazy, no caching
 }
 
+// AiaExtension merges what was previously split into AiaExtension + AixProject.
+// Metadata and descriptors are eager (needed for resolve()).
+// Binaries and assets are lazy (large, rarely needed by library consumers).
 interface AiaExtension {
   packageName: string
   version: number
-  aix: AixProject    // parsed eagerly during parseAia() — small metadata, needed for resolve()
-}
-
-interface AixProject {
-  packageName: string
-  version: number
   minSdk: number
-  components: ComponentDescriptor[]
-  assets: AixAsset[]
-  manifest: AixManifest
+  components: ComponentDescriptor[]    // eager — fed into Environment during resolve()
+  manifest: AixManifest               // eager — small, needed for inferPermissions()
+  loadClasses(): Promise<Uint8Array>  // lazy — classes.jar
+  loadAssets(): Promise<AixAsset[]>   // lazy — icons and other bundled assets
 }
 
 // Parsed SCM component — raw layer, no descriptors attached
@@ -186,7 +184,7 @@ All mutations return `AiaProject` — caller re-resolves once at the end of a ch
 ```ts
 // Throws AiaZipError | AiaStructureError on hard failure
 parseAia(input: Uint8Array | Blob): Promise<AiaProject>
-parseAix(input: Uint8Array | Blob): Promise<AixProject>
+parseAix(input: Uint8Array | Blob): Promise<AiaExtension>   // standalone AIX → same type as bundled
 
 // Convenience — parse + resolve in one step
 parseAndResolve(input: Uint8Array | Blob, env: Environment): Promise<ModelProject>
@@ -229,8 +227,8 @@ class Environment {
   static mitAppInventor(): Promise<Environment>
 
   lookup(typeName: string): ComponentDescriptor | null
-  withExtension(aix: AixProject): Environment
-  withExtensions(axies: AixProject[]): Environment
+  withExtension(ext: AiaExtension): Environment
+  withExtensions(exts: AiaExtension[]): Environment
 }
 ```
 
@@ -246,21 +244,28 @@ Blocks are accessed and mutated via a functional lens — the BKY XML string is 
 // Read-only query — works on raw or model screens
 queryBlocks<T>(
   screen: AiaScreen | ModelScreen,
-  query: (ast: BlockAST) => T
+  query: (ast: BlockAst) => T
 ): T
 
-// Single-screen mutation
+// Single-screen mutation — accepts a pre-built BlockAst (no internal parse) or an updater fn
 updateBlocks(
   project: AiaProject,
   screenName: string,
-  updater: (ast: BlockAST) => BlockAST
+  astOrUpdater: BlockAst | ((ast: BlockAst) => BlockAst)
 ): MutationResult
 
 // All-screens mutation — updater receives screen name for context
 updateAllScreenBlocks(
   project: AiaProject,
-  updater: (ast: BlockAST, screenName: string) => BlockAST
+  updater: (ast: BlockAst, screenName: string) => BlockAst
 ): MutationResult
+
+// Escape hatch — direct parse/serialize for multi-pass analysis
+parseBlocks(bky: string): BlockAst
+serializeBlocks(ast: BlockAst): string
+
+// Low-level fold-back — for manual BKY string surgery
+updateScreenBky(project: AiaProject, screenName: string, bky: string): MutationResult
 ```
 
 The block lens requires no `Environment` — blocks are environment-agnostic at the access layer.
@@ -426,12 +431,12 @@ auditAccessibility(model: ModelProject): Diagnostic[]
 checkNamingConventions(model: ModelProject, rules: NamingRules): Diagnostic[]
 ```
 
-### Block dimension (requires `BlockAST` via lens)
+### Block dimension (requires `BlockAst` via lens)
 
 ```ts
 // Used inside queryBlocks()
-analyzeVariables(ast: BlockAST): VariableReport
-exportBlockSummary(ast: BlockAST): BlockSummary
+analyzeVariables(ast: BlockAst): VariableReport
+exportBlockSummary(ast: BlockAst): BlockSummary
 ```
 
 ### Cross-cutting (requires `ModelProject` — uses both dimensions internally)
@@ -503,7 +508,7 @@ aia-kit/
 │   ├── mutations/
 │   ├── analysis/
 │   ├── migration/
-│   ├── blocks/           — block lens, BlockAST, BkyParser (internal)
+│   ├── blocks/           — block lens, BlockAst, BkyParser (internal)
 │   ├── components/       — ScmParser (internal), component tree utilities
 │   └── core/             — shared types, Environment, Diagnostic
 └── package.json
@@ -532,13 +537,13 @@ Types live with the code they describe. No dedicated `types/` folder. Shared con
 
 ### Milestone 1 — Core Pipeline
 
-- `AiaProject`, `AixProject`, `ModelProject`, `ModelScreen`, `ModelComponent` types
+- `AiaProject`, `AiaExtension`, `ModelProject`, `ModelScreen`, `ModelComponent` types
 - `parseAia`, `parseAix`, `parseAndResolve`, `resolve`, `writeAia`
 - `Diagnostic[]` system + `DiagnosticCode` union
 - Error hierarchy (`AiaParseError`, `AiaZipError`, `AiaStructureError`, `AiaWriteError`)
 - `Environment` class with lazy-loaded JSON, `withExtension`
 - `BkyParser`, `ScmParser` (internal)
-- Block lens: `queryBlocks`, `updateBlocks`, `updateAllScreenBlocks`
+- Block lens: `queryBlocks`, `updateBlocks`, `updateAllScreenBlocks`, `parseBlocks`, `serializeBlocks`, `updateScreenBky`
 - Component tree utilities: `getParent`, `getComponentPath`, `getComponentsByType`, `findComponent`
 - Round-trip correctness tests
 

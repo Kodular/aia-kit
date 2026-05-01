@@ -40,10 +40,10 @@ A single screen's raw data: the SCM string, BKY string, and optional YAIL string
 A media file or resource bundled in the AIA. Name, type, size, and lazily-loadable binary data.
 
 **AiaExtension**
-A reference to an extension bundled in the AIA. Carries the package name, version, and the parsed `AixProject` (available eagerly since the AIX is already decompressed during `parseAia`).
+Represents an extension — both as bundled inside an AIA and as a standalone AIX file (`parseAix` returns this same type). Metadata and component descriptors are eagerly available (needed for `resolve()`). Binary files (`classes.jar`, assets) are lazy-loaded on demand. Merges what might have been called `AixProject` — there is no separate type for the AIX file representation.
 
-**AixProject**
-The structured representation of an AIX file's contents. Contains component descriptors, manifest entries, and extension assets.
+**AixProject** *(removed — merged into `AiaExtension`)*
+Previously a separate type for AIX file contents. Merged into `AiaExtension` in v2 — see below.
 
 ---
 
@@ -79,11 +79,11 @@ A resolved property on a `ModelComponent` — a name, value, and associated `Com
 
 ## Blocks
 
-**BlockAST**
-The parsed in-memory representation of a BKY file. A typed tree of block nodes. Produced internally by parsing the `bky` string — callers access it via the block lens.
+**BlockAst**
+The parsed in-memory representation of a BKY file. A typed tree of block nodes. Accessed via the block lens (`queryBlocks`) or directly via `parseBlocks(bky)` for multi-pass use.
 
 **Block Lens**
-The functional API for reading and mutating blocks. Callers provide a query or updater function that receives a `BlockAST`; the library handles parsing and serialisation internally. Functions: `queryBlocks`, `updateBlocks`, `updateAllScreenBlocks`.
+The functional API for reading and mutating blocks. Callers provide a query or updater function that receives a `BlockAst`; the library handles parsing and serialisation internally. Functions: `queryBlocks`, `updateBlocks`, `updateAllScreenBlocks`. For multi-pass scenarios, use `parseBlocks`/`serializeBlocks` directly and fold back via `updateBlocks(project, screenName, ast)` (value overload) or `updateScreenBky`.
 
 **Orphaned Block**
 A block that references a component that no longer exists — typically left behind after `removeExtension` or `removeComponent`. Orphaned blocks are surfaced as `Diagnostic` entries with code `ORPHANED_BLOCK`. Callers decide whether to strip them.
