@@ -1,3 +1,7 @@
 {
-  "typescript.tsdk": "node_modules\\typescript\\lib"
+  "js/ts.tsdk.path": "node_modules/typescript/lib",
+  "bun.runtime": "/Users/pavi2410/.local/share/mise/shims/bun",
+  "debug.javascript.defaultRuntimeExecutable": {
+    "pwa-node": "/Users/pavi2410/.local/share/mise/shims/node"
+  }
 }
