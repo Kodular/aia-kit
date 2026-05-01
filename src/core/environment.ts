@@ -1,25 +1,36 @@
 import type { ComponentDescriptor } from './descriptors.js'
 import type { AiaExtension } from './types.js'
 
-// Stub — replaced by full implementation in Task 9
 export class Environment {
-  lookup(_typeName: string): ComponentDescriptor | null {
-    return null
+  private readonly descriptors: ReadonlyArray<ComponentDescriptor>
+
+  private constructor(descriptors: ComponentDescriptor[]) {
+    this.descriptors = descriptors
   }
 
-  withExtension(_ext: AiaExtension): Environment {
-    return this
+  lookup(typeName: string): ComponentDescriptor | null {
+    return this.descriptors.find(d => d.type === typeName) ?? null
   }
 
-  withExtensions(_exts: AiaExtension[]): Environment {
-    return this
+  withExtension(ext: AiaExtension): Environment {
+    return new Environment([...this.descriptors, ...ext.components])
+  }
+
+  withExtensions(exts: AiaExtension[]): Environment {
+    return new Environment([...this.descriptors, ...exts.flatMap(e => e.components)])
   }
 
   static async kodularCreator(): Promise<Environment> {
-    return new Environment()
+    const json = (await import('../environments/kodular-creator/simple_components.json', {
+      with: { type: 'json' }
+    })).default
+    return new Environment(json as ComponentDescriptor[])
   }
 
   static async mitAppInventor(): Promise<Environment> {
-    return new Environment()
+    const json = (await import('../environments/mit-app-inventor/simple_components.json', {
+      with: { type: 'json' }
+    })).default
+    return new Environment(json as ComponentDescriptor[])
   }
 }
