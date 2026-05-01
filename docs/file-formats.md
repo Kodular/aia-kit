@@ -27,23 +27,15 @@ assets/
 ├── image.png                    (flat — no subdirectories)
 ├── audio.mp3
 └── external_comps/
-    └── com.example.MyExtension/
-        ├── component.json        (single-component extension)
-        ├── component_build_info.json
-        │   — or —
-        ├── components.json       (extension pack)
-        ├── component_build_infos.json
-        ├── classes.jar
-        ├── AndroidRuntime.jar
-        ├── AndroidManifest.xml
-        └── <other assets>
+    └── com.example.MyExtension/ (→ see AIX format)
+        └── ...
 ```
 
 **Key structural rules:**
 - `youngandroidproject/project.properties` is the canonical metadata location.
 - Screen files live under `src/` with the package name as a directory path (dots → slashes).
 - Assets are always flat under `assets/` — no subdirectories except `external_comps/`.
-- Extension contents are unpacked (not ZIP-in-ZIP) into `assets/external_comps/<package-name>/`.
+- Extension contents are unpacked (not ZIP-in-ZIP) into `assets/external_comps/<package-name>/`. The contents of each subdirectory follow the [AIX format](#aix--app-inventor-extension).
 
 ---
 
@@ -198,38 +190,42 @@ YAIL is treated as optional during parsing — if absent, it is regenerated from
 
 ---
 
+### Assets
+
+Binary files stored flat under `assets/`. Only first-level files are treated as assets — `external_comps/` is excluded. Any file format is valid (images, audio, video, etc.).
+
+---
+
 ## AIX — App Inventor Extension
 
-An AIX file is a standard ZIP archive containing a compiled Android extension for App Inventor platforms.
+An AIX file is a standard ZIP archive containing a compiled Android extension.
 
-**Important:** AIX files are not stored as ZIP-in-ZIP inside AIA files. When an extension is imported into a project, its contents are unpacked into `assets/external_comps/<package-name>/` within the AIA.
+**Relationship to AIA:** AIX files are not stored as ZIP-in-ZIP inside AIA files. When an extension is bundled in a project, its contents are unpacked into `assets/external_comps/<package-name>/` within the AIA ZIP. The directory contents are identical to the AIX ZIP structure described here.
+
+`parseAix(blob)` parses a standalone AIX file. `parseAia(blob)` reads the same structure from each `external_comps/<pkg>/` subdirectory. Both return `AiaExtension`.
 
 ### ZIP Directory Structure
 
 ```
 com.example.MyExtension/        (top-level directory = package name)
-├── component.json               (single-component) — or —
-├── components.json              (extension pack, array)
-├── component_build_info.json    (single-component) — or —
-├── component_build_infos.json   (extension pack, array)
+├── component.json               (single component — see Component Descriptor)
+├── component_build_info.json    (single build info)
 ├── classes.jar
-├── AndroidRuntime.jar           (not always present in newer AIX)
+├── AndroidRuntime.jar
 ├── AndroidManifest.xml
-└── assets/                      (optional — extension's own assets, icons, etc.)
+└── assets/                      (optional — icons and other extension assets)
     └── images/
         └── icon.png
 ```
 
+For extension packs (multiple components in one AIX), the structure differs — see [Extension Packs](#extension-packs).
+
 ---
 
-### Component Descriptor (`component.json` / `components.json`)
+### Component Descriptor (`component.json`)
 
-The component descriptor defines all properties, events, and methods the extension exposes to the block editor and runtime.
+Defines all properties, events, and methods the extension exposes to the block editor and runtime. For extension packs the equivalent file is `components.json` — a JSON array of these objects.
 
-**Single component:** `component.json` — a JSON object.
-**Extension pack:** `components.json` — a JSON array of objects.
-
-**Full descriptor shape:**
 ```json
 {
   "type": "com.example.MyExtension",
@@ -285,16 +281,16 @@ The component descriptor defines all properties, events, and methods the extensi
 ```
 
 **Quirks:**
-- `external` is always the string `"true"` for extension components — not a JSON boolean.
-- `deprecated` fields throughout are string booleans (`"true"` / `"false"`).
+- `external` is always the string `"true"` — not a JSON boolean.
+- `deprecated` fields are string booleans (`"true"` / `"false"`) throughout.
 - `propertyType` is Kodular Creator-specific and absent in MIT App Inventor descriptors.
 - Built-in platform components (from `simple_components.json`) use the same schema with `"external": "false"`.
 
 ---
 
-### Build Info (`component_build_info.json` / `component_build_infos.json`)
+### Build Info (`component_build_info.json`)
 
-Used internally by the App Inventor build server. Not required for descriptor resolution.
+Used by the App Inventor build server. Not required for descriptor resolution or analysis.
 
 ```json
 {
@@ -303,11 +299,7 @@ Used internally by the App Inventor build server. Not required for descriptor re
 }
 ```
 
-- Single component: `component_build_info.json` — JSON object.
-- Extension pack: `component_build_infos.json` — JSON array.
-- Array index in `component_build_infos.json` corresponds to array index in `components.json`.
-
-The `metadata` field shape is unspecified and treated as opaque.
+The `metadata` field is opaque — its shape is not specified and not consumed by aia-kit.
 
 ---
 
@@ -316,23 +308,39 @@ The `metadata` field shape is unspecified and treated as opaque.
 | File | Role |
 |---|---|
 | `classes.jar` | Compiled Dalvik/ART bytecode — merged into APK DEX during build |
-| `AndroidRuntime.jar` | App Inventor runtime API stubs used at compile time — not bundled into APK; not always present in newer AIX |
-| `AndroidManifest.xml` | Android permissions, activities, services, receivers declared by the extension — merged into the host app manifest during APK build |
+| `AndroidRuntime.jar` | App Inventor runtime API stubs — compile-time only, not bundled into APK |
+| `AndroidManifest.xml` | Android permissions, activities, services, receivers — merged into host app manifest during build |
 
-These files are not read by aia-kit for descriptor resolution. They are preserved during AIA round-trip via lazy loading.
+Not read by aia-kit for descriptor resolution. Accessed via `AiaExtension.loadClasses()` and `AiaExtension.loadAssets()` when needed.
 
 ---
 
-### Extension Packs
+## Extension Packs
 
-An extension pack bundles multiple components into a single AIX. Detection is by filename — there is no versioning header:
+An extension pack bundles multiple components into a single AIX. Same ZIP structure as a standard AIX, but with different descriptor filenames and array-shaped content.
 
-| Filename | Meaning |
-|---|---|
-| `component.json` | Single component |
-| `components.json` | Multiple components (pack) |
-| `component_build_info.json` | Single build info |
-| `component_build_infos.json` | Multiple build infos (pack) |
+### ZIP Directory Structure
+
+```
+com.example.MyPack/
+├── components.json              (array of component descriptors)
+├── component_build_infos.json   (array of build infos)
+├── classes.jar
+├── AndroidRuntime.jar
+├── AndroidManifest.xml
+└── assets/
+```
+
+### Detection
+
+Packs are detected by filename — there is no version header or explicit flag:
+
+| Filename | Shape | Meaning |
+|---|---|---|
+| `component.json` | JSON object | Single component |
+| `components.json` | JSON array | Extension pack |
+| `component_build_info.json` | JSON object | Single build info |
+| `component_build_infos.json` | JSON array | Pack build info |
 
 Array entries in `components.json` and `component_build_infos.json` are correlated by index position — they must stay in the same order.
 
@@ -340,17 +348,4 @@ Array entries in `components.json` and `component_build_infos.json` are correlat
 
 ## Known Gaps in v1 Writer
 
-The v1 writer only writes the component descriptor JSON back into the AIA. Binary files (`classes.jar`, `AndroidRuntime.jar`, `AndroidManifest.xml`) and extension assets are not re-written — they must be present in the original AIA to survive a read/write round-trip. v2 addresses this via lazy-loaded `loadClasses()` and `loadAssets()` on `AiaExtension`.
-
----
-
-## Uncertainty Flags
-
-The following are inferred from the codebase but not exhaustively verified against official specs:
-
-- The full set of valid `project.properties` keys beyond the six documented above — additional keys (`icon`, `useslocation`, etc.) may exist.
-- The `authURL` field in SCM files — stored and round-tripped as-is; exact semantics not documented.
-- Whether YAIL is present in AIA files exported from current MIT App Inventor — treated as optional.
-- Whether `AndroidRuntime.jar` is always present in AIX files or only in older formats.
-- The exact `AndroidManifest.xml` element structure inside AIX files.
-- The exact shape of `component_build_info.json`'s `metadata` array.
+The v1 writer only writes the component descriptor JSON back into the AIA. Binary files (`classes.jar`, `AndroidRuntime.jar`, `AndroidManifest.xml`) and extension assets are not re-written — they must be present in the original AIA to survive a read/write round-trip. v2 addresses this via `AiaExtension.loadClasses()` and `AiaExtension.loadAssets()`.
