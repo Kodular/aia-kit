@@ -4,8 +4,8 @@ import {
   getComponentsByType,
   getParent,
   getComponentPath,
-} from '../../../src/components/tree.js'
-import type { ModelComponent } from '../../../src/core/model.js'
+} from '#/components/tree.js'
+import type { ModelComponent } from '#/core/model.js'
 
 function makeModel(name: string, type: string, uid: string, children: ModelComponent[] = []): ModelComponent {
   return { name, type, uid, descriptor: {} as any, properties: [], children }

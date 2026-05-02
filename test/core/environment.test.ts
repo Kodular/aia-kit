@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { Environment } from '../../../src/core/environment.js'
-import type { AiaExtension } from '../../../src/core/types.js'
-import type { ComponentDescriptor } from '../../../src/core/descriptors.js'
+import { Environment } from '#/core/environment.js'
+import type { AiaExtension } from '#/core/types.js'
+import type { ComponentDescriptor } from '#/core/descriptors.js'
 
 describe('Environment', () => {
   describe('kodularCreator', () => {

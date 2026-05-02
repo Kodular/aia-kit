@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { parseAia } from '../../src/parse.js'
-import { resolve } from '../../src/resolve.js'
-import { Environment } from '../../src/core/environment.js'
+import { parseAia } from '#/parse.js'
+import { resolve } from '#/resolve.js'
+import { Environment } from '#/core/environment.js'
 
-const FIXTURES = join(import.meta.dirname, '../fixtures')
+const FIXTURES = join(import.meta.dirname, 'fixtures')
 
 describe('resolve', () => {
   it('returns a ModelProject with _tag', async () => {

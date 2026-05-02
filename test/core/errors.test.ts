@@ -5,7 +5,7 @@ import {
   AiaZipError,
   AiaStructureError,
   AiaWriteError
-} from '../../../src/core/errors.js'
+} from '#/core/errors.js'
 
 describe('error hierarchy', () => {
   it('AiaZipError is instanceof AiaParseError and AiaKitError', () => {

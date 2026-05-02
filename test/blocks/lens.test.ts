@@ -6,8 +6,8 @@ import {
   updateBlocks,
   updateAllScreenBlocks,
   updateScreenBky,
-} from '../../../src/blocks/lens.js'
-import type { AiaProject, AiaScreen } from '../../../src/core/types.js'
+} from '#/blocks/lens.js'
+import type { AiaProject, AiaScreen } from '#/core/types.js'
 
 const SCREEN_BKY = `<xml xmlns="https://developers.google.com/blockly/xml">
   <block type="event_handler" id="e1" x="0" y="0">

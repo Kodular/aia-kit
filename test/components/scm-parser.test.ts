@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { ScmParser } from '../../../src/components/scm-parser.js'
+import { ScmParser } from '#/components/scm-parser.js'
 
 const SCM = `#|
 $JSON

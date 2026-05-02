@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { parseAia } from '../../src/parse.js'
+import { parseAia } from '#/parse.js'
 
-const FIXTURES = join(import.meta.dirname, '../fixtures')
+const FIXTURES = join(import.meta.dirname, 'fixtures')
 
 describe('parseAia', () => {
   it('parses HelloPurr.aia without throwing', async () => {
@@ -39,12 +39,12 @@ describe('parseAia', () => {
   })
 
   it('throws AiaZipError for invalid ZIP bytes', async () => {
-    const { AiaZipError } = await import('../../src/core/errors.js')
+    const { AiaZipError } = await import('#/core/errors.js')
     await expect(parseAia(new Uint8Array([0, 1, 2, 3]))).rejects.toBeInstanceOf(AiaZipError)
   })
 
   it('throws AiaStructureError for valid ZIP missing project.properties', async () => {
-    const { AiaStructureError } = await import('../../src/core/errors.js')
+    const { AiaStructureError } = await import('#/core/errors.js')
     const { BlobWriter, ZipWriter } = await import('@zip.js/zip.js')
     const bw = new BlobWriter()
     const writer = new ZipWriter(bw)

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { mergeReports } from '../../../src/core/diagnostics.js'
-import type { Diagnostic } from '../../../src/core/diagnostics.js'
+import { mergeReports } from '#/core/diagnostics.js'
+import type { Diagnostic } from '#/core/diagnostics.js'
 
 describe('mergeReports', () => {
   it('merges empty arrays', () => {
