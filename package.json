@@ -24,6 +24,9 @@
     "./resolve":   "./dist/src/resolve.js",
     "./write":     "./dist/src/write.js"
   },
+  "imports": {
+    "#/*": "./src/*"
+  },
   "types": "./dist/src/index.d.ts",
   "files": [
     "dist/src",
