@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest'
 import { mergeProjects } from '#/mutations/projects.js'
 import { parseScm } from '#/components/scm-parser.js'
 import type { AiaProject, AiaScreen, AiaAsset, AiaExtension } from '#/core/types.js'
+import { makeProjectProperties } from '../helpers.js'
 
 const EMPTY_BKY = `<xml xmlns="https://developers.google.com/blockly/xml"></xml>`
 
@@ -29,7 +30,7 @@ function makeExtension(packageName: string): AiaExtension {
 
 function makeProject(screens: string[], assets: string[] = [], extensions: string[] = []): AiaProject {
   return {
-    _tag: 'AiaProject', name: 'Test', properties: {},
+    _tag: 'AiaProject', name: 'Test', properties: makeProjectProperties(),
     screens: screens.map(makeScreen),
     assets: assets.map(makeAsset),
     extensions: extensions.map(makeExtension),

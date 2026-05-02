@@ -5,6 +5,7 @@ import { Environment } from "#/core/environment.js";
 import type { AiaProject, AiaScreen } from "#/core/types.js";
 import { resolve } from "#/resolve.js";
 import { emitComponentSection } from "#/yail/component-emit.js";
+import { makeProjectProperties } from "../helpers.js";
 
 const EMPTY_BKY = `<xml xmlns="https://developers.google.com/blockly/xml"></xml>`;
 
@@ -39,7 +40,7 @@ function modelFromScm(scm: string): AiaProject {
   return {
     _tag: "AiaProject",
     name: "Test",
-    properties: {},
+    properties: makeProjectProperties(),
     screens: [screen],
     assets: [],
     extensions: [],

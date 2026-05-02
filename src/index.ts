@@ -2,6 +2,7 @@
 export type {
   AiaProject, AiaScreen, AiaAsset, AiaExtension,
   AixManifest, AixAsset, AiaComponent, MutationResult,
+  ProjectProperties,
 } from '#/core/types.js'
 
 // Descriptor types
@@ -25,9 +26,9 @@ export { AiaKitError, AiaParseError, AiaZipError, AiaStructureError, AiaWriteErr
 export { Environment } from '#/core/environment.js'
 
 // Pipeline
-export { parseAia, parseAix, parseAndResolve } from '#/parse.js'
+export { parseAia, parseAix, parseAndResolve, parseProjectProperties } from '#/parse.js'
 export { resolve } from '#/resolve.js'
-export { writeAia } from '#/write.js'
+export { writeAia, serializeProperties } from '#/write.js'
 
 // YAIL generation
 export { createYailGenerator } from '#/yail/index.js'

@@ -7,6 +7,7 @@ import {
 import type { AiaProject, AiaScreen } from '#/core/types.js'
 import { Environment } from '#/core/environment.js'
 import { resolve } from '#/resolve.js'
+import { makeProjectProperties } from '../helpers.js'
 
 /** Valid MIT-style SCM block (`|#` required by `#/components/scm-parser.js`). */
 function scmForScreen(name: string): string {
@@ -36,7 +37,7 @@ function makeProject(screens: AiaScreen[]): AiaProject {
   return {
     _tag: 'AiaProject',
     name: 'Test',
-    properties: {},
+    properties: makeProjectProperties(),
     screens,
     assets: [],
     extensions: [],

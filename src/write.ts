@@ -1,5 +1,5 @@
 import { BlobWriter, ZipWriter, TextReader, BlobReader } from '@zip.js/zip.js'
-import type { AiaProject } from '#/core/types.js'
+import type { AiaProject, ProjectProperties } from '#/core/types.js'
 import type { ModelProject } from '#/core/model.js'
 import { AiaWriteError } from '#/core/errors.js'
 import { createYailGenerator } from '#/yail/index.js'
@@ -58,13 +58,28 @@ export async function writeAia(project: AiaProject | ModelProject): Promise<Blob
   }
 }
 
-function serializeProperties(props: Record<string, string>): string {
-  return Object.entries(props).map(([k, v]) => `${k}=${v}`).join('\n') + '\n'
+export function serializeProperties(props: ProjectProperties): string {
+  const entries: [string, string][] = [
+    ['main', props.main],
+    ['name', props.name],
+    ['versioncode', String(props.versionCode)],
+    ['versionname', props.versionName],
+  ]
+  if (props.appName !== undefined) entries.push(['aname', props.appName])
+  if (props.sizing !== undefined) entries.push(['sizing', props.sizing])
+  if (props.theme !== undefined) entries.push(['theme', props.theme])
+  if (props.colorPrimary !== undefined) entries.push(['color.primary', props.colorPrimary])
+  if (props.colorPrimaryDark !== undefined) entries.push(['color.primary.dark', props.colorPrimaryDark])
+  if (props.colorAccent !== undefined) entries.push(['color.accent', props.colorAccent])
+  if (props.showListsAsJsonArray !== undefined)
+    entries.push(['showlistsasjsonarray', String(props.showListsAsJsonArray)])
+  if (props.actionBar !== undefined) entries.push(['actionbar', String(props.actionBar)])
+  for (const [k, v] of Object.entries(props.unknown)) entries.push([k, v])
+  return entries.map(([k, v]) => `${k}=${v}`).join('\n') + '\n'
 }
 
-function getPackagePath(properties: Record<string, string>): string {
-  const main = properties['main'] ?? ''
-  const parts = main.split('.')
+function getPackagePath(properties: ProjectProperties): string {
+  const parts = properties.main.split('.')
   // main = "appinventor.ai_user.ProjectName.ScreenName"
   // we want "appinventor/ai_user/ProjectName" (everything except last part)
   if (parts.length > 1) {

@@ -4,6 +4,7 @@ import { join } from 'node:path'
 import { parseAia } from '#/parse.js'
 import { resolve } from '#/resolve.js'
 import { Environment } from '#/core/environment.js'
+import { makeProjectProperties } from './helpers.js'
 
 const FIXTURES = join(import.meta.dirname, 'fixtures')
 
@@ -38,7 +39,7 @@ describe('resolve', () => {
     const raw = {
       _tag: 'AiaProject' as const,
       name: 'Empty',
-      properties: {},
+      properties: makeProjectProperties(),
       screens: [{
         name: 'Screen1',
         scm: `#|\n$JSON\n{"YaVersion":"1","Source":"Form","Properties":{"$Name":"Screen1","$Type":"Form","Uuid":"-1","$Components":[]}}\n|#`,
@@ -56,7 +57,7 @@ describe('resolve', () => {
     const raw = {
       _tag: 'AiaProject' as const,
       name: 'Test',
-      properties: {},
+      properties: makeProjectProperties(),
       screens: [{
         name: 'Screen1',
         scm: `#|\n$JSON\n{"YaVersion":"1","Source":"Form","Properties":{"$Name":"Screen1","$Type":"Form","Uuid":"-1","$Components":[{"$Name":"Widget1","$Type":"GhostWidget","Uuid":"abc","$Components":[]}]}}\n|#`,

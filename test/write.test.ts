@@ -3,10 +3,11 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { Diagnostic } from '#/core/diagnostics.js'
 import { Environment } from '#/core/environment.js'
-import type { AiaProject, AiaScreen } from '#/core/types.js'
+import type { AiaProject, AiaScreen, ProjectProperties } from '#/core/types.js'
 import { parseAia } from '#/parse.js'
 import { resolve } from '#/resolve.js'
 import { writeAia } from '#/write.js'
+import { makeProjectProperties } from './helpers.js'
 
 const FIXTURES = join(import.meta.dirname, 'fixtures')
 
@@ -21,7 +22,7 @@ $JSON
 
 function minimalProjectWithNullYail(
   screens: { name: string; scm: string }[],
-  properties: Record<string, string> = {},
+  properties: ProjectProperties = makeProjectProperties(),
 ): AiaProject {
   const aiaScreens: AiaScreen[] = screens.map(({ name, scm }) => ({
     name,

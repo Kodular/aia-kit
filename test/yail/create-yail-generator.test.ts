@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { Diagnostic } from "#/core/diagnostics.js";
 import { Environment } from "#/core/environment.js";
-import type { AiaProject, AiaScreen } from "#/core/types.js";
+import type { AiaProject, AiaScreen, ProjectProperties } from "#/core/types.js";
 import { resolve } from "#/resolve.js";
 import { createYailGenerator } from "#/yail/index.js";
+import { makeProjectProperties } from "../helpers.js";
 
 const EMPTY_BKY = `<xml xmlns="https://developers.google.com/blockly/xml"></xml>`;
 
@@ -16,7 +17,7 @@ $JSON
 
 function minimalProject(
   screens: { name: string; scm: string }[],
-  properties: Record<string, string> = {},
+  properties: ProjectProperties = makeProjectProperties(),
 ): AiaProject {
   const aiaScreens: AiaScreen[] = screens.map(({ name, scm }) => ({
     name,
@@ -61,7 +62,7 @@ describe("createYailGenerator", () => {
           { name: "Screen1", scm: scmForScreen("Screen1") },
           { name: "Screen2", scm: scmForScreen("Screen2") },
         ],
-        { main: "com.example.myapp.Screen1" },
+        makeProjectProperties({ main: "com.example.myapp.Screen1" }),
       ),
       env,
     );

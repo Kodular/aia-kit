@@ -1,9 +1,27 @@
 import type { ComponentDescriptor } from '#/core/descriptors.js'
 
+export interface ProjectProperties {
+  /** Fully-qualified main screen class, e.g. "appinventor.ai_user.MyApp.Screen1" */
+  main: string
+  name: string
+  versionCode: number
+  versionName: string
+  appName?: string
+  sizing?: 'Fixed' | 'Responsive'
+  theme?: string
+  colorPrimary?: string
+  colorPrimaryDark?: string
+  colorAccent?: string
+  showListsAsJsonArray?: boolean
+  actionBar?: boolean
+  /** All other key-value pairs not explicitly modelled above */
+  unknown: Record<string, string>
+}
+
 export interface AiaProject {
   readonly _tag: 'AiaProject'
   name: string
-  properties: Record<string, string>
+  properties: ProjectProperties
   screens: AiaScreen[]
   assets: AiaAsset[]
   extensions: AiaExtension[]

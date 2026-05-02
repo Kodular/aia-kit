@@ -1,12 +1,12 @@
 import { queryBlocks } from "#/blocks/lens.js";
 import type { ModelProject, ModelScreen } from "#/core/model.js";
+import type { ProjectProperties } from "#/core/types.js";
 import { emitBlockSection } from "#/yail/block-emit.js";
 import { emitComponentSection } from "#/yail/component-emit.js";
 
 /** Dotted package prefix, mirroring `getPackagePath` in `write.ts` (slashes → dots). */
-function getDotPackagePrefix(properties: Record<string, string>): string {
-  const main = properties["main"] ?? "";
-  const parts = main.split(".");
+function getDotPackagePrefix(properties: ProjectProperties): string {
+  const parts = properties.main.split(".");
   if (parts.length > 1) {
     return parts.slice(0, -1).join(".");
   }

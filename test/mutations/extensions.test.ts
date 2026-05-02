@@ -2,9 +2,10 @@
 import { describe, it, expect } from 'vitest'
 import { addExtension, removeExtension } from '#/mutations/extensions.js'
 import type { AiaProject, AiaExtension } from '#/core/types.js'
+import { makeProjectProperties } from '../helpers.js'
 
 function makeProject(): AiaProject {
-  return { _tag: 'AiaProject', name: 'Test', properties: {}, screens: [], assets: [], extensions: [] }
+  return { _tag: 'AiaProject', name: 'Test', properties: makeProjectProperties(), screens: [], assets: [], extensions: [] }
 }
 
 function makeExtension(packageName: string, version = 1): AiaExtension {

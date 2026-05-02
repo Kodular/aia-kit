@@ -4,6 +4,7 @@ import type { ComponentDescriptor } from '#/core/descriptors.js'
 import { Environment } from '#/core/environment.js'
 import { resolve } from '#/resolve.js'
 import { findUnusedExtensions, findUnusedAssets, findAssetReferences } from '#/analysis/unused.js'
+import { makeProjectProperties } from '../helpers.js'
 
 const EMPTY_SCM = `#|
 $JSON
@@ -60,7 +61,7 @@ function makeProject(overrides: Partial<AiaProject> = {}): AiaProject {
   return {
     _tag: 'AiaProject',
     name: 'Test',
-    properties: {},
+    properties: makeProjectProperties(),
     screens: [makeScreen('Screen1')],
     assets: [],
     extensions: [],

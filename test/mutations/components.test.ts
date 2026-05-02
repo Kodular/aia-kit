@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest'
 import { addComponent, removeComponent, updatePropertyWhere } from '#/mutations/components.js'
 import { parseScm } from '#/components/scm-parser.js'
 import type { AiaProject, AiaScreen, AiaComponent } from '#/core/types.js'
+import { makeProjectProperties } from '../helpers.js'
 
 const EMPTY_BKY = `<xml xmlns="https://developers.google.com/blockly/xml"></xml>`
 
@@ -20,7 +21,7 @@ $JSON
 
 function makeProject(scm: string): AiaProject {
   const screen: AiaScreen = { name: 'Screen1', scm, bky: EMPTY_BKY, yail: null }
-  return { _tag: 'AiaProject', name: 'Test', properties: {}, screens: [screen], assets: [], extensions: [] }
+  return { _tag: 'AiaProject', name: 'Test', properties: makeProjectProperties(), screens: [screen], assets: [], extensions: [] }
 }
 
 const NEW_LABEL: AiaComponent = {
@@ -133,7 +134,7 @@ describe('updatePropertyWhere', () => {
       yail: null,
     }
     const project: AiaProject = {
-      _tag: 'AiaProject', name: 'Test', properties: {},
+      _tag: 'AiaProject', name: 'Test', properties: makeProjectProperties(),
       screens: [
         { name: 'Screen1', scm: SCM_WITH_BUTTON, bky: EMPTY_BKY, yail: null },
         screen2,

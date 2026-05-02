@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { diagnose } from '#/analysis/diagnose.js'
 import type { AiaProject, AiaScreen } from '#/core/types.js'
 import { Environment } from '#/core/environment.js'
+import { makeProjectProperties } from '../helpers.js'
 
 const EMPTY_SCM = `#|
 $JSON
@@ -18,7 +19,7 @@ function makeProject(overrides: Partial<AiaProject> = {}): AiaProject {
   return {
     _tag: 'AiaProject',
     name: 'Test',
-    properties: {},
+    properties: makeProjectProperties(),
     screens: [makeScreen('Screen1')],
     assets: [],
     extensions: [],

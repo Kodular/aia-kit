@@ -8,6 +8,7 @@ import {
   updateScreenBky,
 } from '#/blocks/lens.js'
 import type { AiaProject, AiaScreen } from '#/core/types.js'
+import { makeProjectProperties } from '../helpers.js'
 
 const SCREEN_BKY = `<xml xmlns="https://developers.google.com/blockly/xml">
   <block type="event_handler" id="e1" x="0" y="0">
@@ -18,7 +19,7 @@ const SCREEN_BKY = `<xml xmlns="https://developers.google.com/blockly/xml">
 
 function makeProject(bky: string): AiaProject {
   const screen: AiaScreen = { name: 'Screen1', scm: '', bky, yail: null }
-  return { _tag: 'AiaProject', name: 'Test', properties: {}, screens: [screen], assets: [], extensions: [] }
+  return { _tag: 'AiaProject', name: 'Test', properties: makeProjectProperties(), screens: [screen], assets: [], extensions: [] }
 }
 
 describe('parseBlocks / serializeBlocks', () => {
@@ -75,7 +76,7 @@ describe('updateAllScreenBlocks', () => {
   it('applies updater to all screens', () => {
     const screen2: AiaScreen = { name: 'Screen2', scm: '', bky: SCREEN_BKY, yail: null }
     const project: AiaProject = {
-      _tag: 'AiaProject', name: 'Test', properties: {},
+      _tag: 'AiaProject', name: 'Test', properties: makeProjectProperties(),
       screens: [
         { name: 'Screen1', scm: '', bky: SCREEN_BKY, yail: null },
         screen2,

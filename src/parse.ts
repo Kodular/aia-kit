@@ -1,10 +1,41 @@
 import { BlobReader, BlobWriter, ZipReader, ZipWriter, TextWriter, type Entry, type FileEntry } from '@zip.js/zip.js'
 import { getProperties } from 'properties-file'
-import type { AiaProject, AiaScreen, AiaAsset, AiaExtension, AixManifest, AixAsset } from '#/core/types.js'
+import type { AiaProject, AiaScreen, AiaAsset, AiaExtension, AixManifest, AixAsset, ProjectProperties } from '#/core/types.js'
 import type { ComponentDescriptor } from '#/core/descriptors.js'
 import { AiaZipError, AiaStructureError } from '#/core/errors.js'
 import type { Environment } from '#/core/environment.js'
 import type { ModelProject } from '#/core/model.js'
+
+export function parseProjectProperties(raw: Record<string, string>): ProjectProperties {
+  const known = new Set([
+    'main', 'name', 'versioncode', 'versionname', 'aname', 'sizing', 'theme',
+    'color.primary', 'color.primary.dark', 'color.accent',
+    'showlistsasjsonarray', 'actionbar',
+  ])
+  const unknown: Record<string, string> = {}
+  for (const [k, v] of Object.entries(raw)) {
+    if (!known.has(k.toLowerCase())) unknown[k] = v
+  }
+  return {
+    main: raw['main'] ?? '',
+    name: raw['name'] ?? raw['aname'] ?? '',
+    versionCode: parseInt(raw['versioncode'] ?? '1', 10) || 1,
+    versionName: raw['versionname'] ?? '1.0',
+    appName: raw['aname'],
+    sizing: raw['sizing'] === 'Fixed' || raw['sizing'] === 'Responsive'
+      ? raw['sizing'] as 'Fixed' | 'Responsive'
+      : undefined,
+    theme: raw['theme'],
+    colorPrimary: raw['color.primary'],
+    colorPrimaryDark: raw['color.primary.dark'],
+    colorAccent: raw['color.accent'],
+    showListsAsJsonArray: raw['showlistsasjsonarray'] === 'true' ? true
+      : raw['showlistsasjsonarray'] === 'false' ? false : undefined,
+    actionBar: raw['actionbar'] === 'true' ? true
+      : raw['actionbar'] === 'false' ? false : undefined,
+    unknown,
+  }
+}
 
 export async function parseAia(input: Uint8Array | ArrayBuffer | Blob): Promise<AiaProject> {
   const blob = toBlob(input)
@@ -23,8 +54,8 @@ export async function parseAia(input: Uint8Array | ArrayBuffer | Blob): Promise<
   }
 
   const propsText = await readText(propsEntry)
-  const properties = getProperties(propsText) as Record<string, string>
-  const name = (properties['main'] ?? '').split('.').pop() ?? 'Unknown'
+  const properties = parseProjectProperties(getProperties(propsText) as Record<string, string>)
+  const name = properties.main.split('.').pop() ?? 'Unknown'
 
   const screenMap = new Map<string, { scm?: string; bky?: string; yail?: string }>()
   const assetEntries: Entry[] = []

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { diffProjects } from '#/analysis/project-diff.js'
 import type { AiaProject, AiaScreen } from '#/core/types.js'
+import { makeProjectProperties } from '../helpers.js'
 
 function screen(n: string, scm = '', bky = ''): AiaScreen {
   return { name: n, scm, bky, yail: null }
@@ -10,7 +11,7 @@ function proj(screens: AiaScreen[], assets: { name: string; type: string; sizeBy
   return {
     _tag: 'AiaProject',
     name: 'P',
-    properties: {},
+    properties: makeProjectProperties(),
     screens,
     assets: assets.map(a => ({
       ...a,

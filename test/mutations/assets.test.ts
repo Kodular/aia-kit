@@ -2,9 +2,10 @@
 import { describe, it, expect } from 'vitest'
 import { addAsset, removeAsset } from '#/mutations/assets.js'
 import type { AiaProject, AiaAsset } from '#/core/types.js'
+import { makeProjectProperties } from '../helpers.js'
 
 function makeProject(): AiaProject {
-  return { _tag: 'AiaProject', name: 'Test', properties: {}, screens: [], assets: [], extensions: [] }
+  return { _tag: 'AiaProject', name: 'Test', properties: makeProjectProperties(), screens: [], assets: [], extensions: [] }
 }
 
 function makeAsset(name: string, content = new Uint8Array([1, 2, 3])): AiaAsset {

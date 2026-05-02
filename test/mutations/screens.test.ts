@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest'
 import { addScreen, removeScreen, cloneScreen } from '#/mutations/screens.js'
 import type { AiaProject, AiaScreen } from '#/core/types.js'
 import { parseScm } from '#/components/scm-parser.js'
+import { makeProjectProperties } from '../helpers.js'
 
 const EMPTY_BKY = `<xml xmlns="https://developers.google.com/blockly/xml"></xml>`
 
@@ -13,7 +14,7 @@ function makeScreen(name: string, bky = EMPTY_BKY): AiaScreen {
 
 function makeProject(...screenNames: string[]): AiaProject {
   const screens = screenNames.map(n => makeScreen(n))
-  return { _tag: 'AiaProject', name: 'Test', properties: {}, screens, assets: [], extensions: [] }
+  return { _tag: 'AiaProject', name: 'Test', properties: makeProjectProperties(), screens, assets: [], extensions: [] }
 }
 
 describe('addScreen', () => {
