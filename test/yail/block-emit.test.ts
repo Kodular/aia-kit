@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { parseBky } from "#/blocks/bky-parser.js";
 import type { BlockAst } from "#/blocks/ast.js";
+import { defaultBlockRegistry } from "#/core/registries.js";
 import {
   emitBlockSection,
   forEachBlock,
@@ -23,9 +24,11 @@ const COMPONENT_EVENT_AND_PRINT = `<xml xmlns="https://developers.google.com/blo
 </xml>`;
 
 describe("emitBlockSection", () => {
+  const blockRegistry = defaultBlockRegistry();
+
   it("emits define-event for component_event with mutation names", () => {
     const ast = parseBky(COMPONENT_EVENT_AND_PRINT);
-    const y = emitBlockSection(ast);
+    const y = emitBlockSection(ast, blockRegistry);
 
     expect(y).toContain("(define-event Button1 Click ()");
     expect(y).toMatch(/\)\s*$/);
@@ -33,7 +36,7 @@ describe("emitBlockSection", () => {
 
   it("emits unsupported comments for non-MVP blocks and does not throw", () => {
     const ast = parseBky(COMPONENT_EVENT_AND_PRINT);
-    const y = emitBlockSection(ast);
+    const y = emitBlockSection(ast, blockRegistry);
 
     expect(y).toContain(";;; aia-kit: unsupported block text_print id=print-1");
     expect(y).toContain('"Hi"');
@@ -55,7 +58,7 @@ describe("emitBlockSection", () => {
   <block type="some_weird_top" id="u1"></block>
 </xml>`;
     const ast = parseBky(bky);
-    const y = emitBlockSection(ast);
+    const y = emitBlockSection(ast, blockRegistry);
 
     const idxEvent = y.indexOf("(define-event L1 Click");
     const idxProc = y.indexOf("(define (MyProc)");
@@ -73,12 +76,12 @@ describe("emitBlockSection", () => {
 
   it("handles empty workspace", () => {
     const ast = parseBky(`<xml xmlns="https://developers.google.com/blockly/xml"></xml>`);
-    expect(emitBlockSection(ast)).toBe("");
+    expect(emitBlockSection(ast, blockRegistry)).toBe("");
   });
 
   it("never throws for arbitrary nested block trees", () => {
     const ast = parseBky(COMPONENT_EVENT_AND_PRINT);
-    expect(() => emitBlockSection(ast)).not.toThrow();
+    expect(() => emitBlockSection(ast, blockRegistry)).not.toThrow();
     let visits = 0;
     for (const root of ast.blocks) {
       forEachBlock(root, () => {

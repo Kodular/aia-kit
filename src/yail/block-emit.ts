@@ -1,4 +1,5 @@
 import type { BlockAst, BlockNode } from "#/blocks/ast.js";
+import type { BlockRegistry } from "#/core/registries.js";
 import { emitLiteral, lines } from "./emit.js";
 
 /**
@@ -154,7 +155,7 @@ function emitEventHat(block: BlockNode): string {
  * (each group keeps source order). Intended to follow the component section
  * when concatenating full-screen YAIL.
  */
-export function emitBlockSection(ast: BlockAst): string {
+export function emitBlockSection(ast: BlockAst, blockRegistry: BlockRegistry): string {
   const events: string[] = [];
   const procedures: string[] = [];
   const globals: string[] = [];
@@ -163,15 +164,17 @@ export function emitBlockSection(ast: BlockAst): string {
   for (const b of ast.blocks) {
     if (isEventHat(b)) {
       events.push(emitEventHat(b));
-    } else if (
-      b.type === "procedures_defnoreturn" ||
-      b.type === "procedures_defreturn"
-    ) {
+    } else if (blockRegistry.lookup(b.type)?.category === 'procedures') {
       procedures.push(emitProcedure(b));
     } else if (b.type === "global_declaration") {
       globals.push(emitGlobalDeclaration(b));
     } else {
-      unsupportedTop.push(unsupportedBlockLine(b));
+      const known = blockRegistry.lookup(b.type);
+      unsupportedTop.push(
+        known
+          ? `;;; aia-kit: builtin block ${b.type} (${known.category}) not yet emitted`
+          : unsupportedBlockLine(b)
+      );
     }
   }
 

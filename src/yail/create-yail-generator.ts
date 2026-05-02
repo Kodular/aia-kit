@@ -27,7 +27,9 @@ export function createYailGenerator(
     const resolved =
       model.screens.find((s) => s.name === screen.name) ?? screen;
     const qualifiedClass = `${packagePrefix}.${resolved.name}`;
-    const blockSection = queryBlocks(resolved, (ast) => emitBlockSection(ast));
+    const blockSection = queryBlocks(resolved, (ast) =>
+      emitBlockSection(ast, model.environment.blockRegistry)
+    );
 
     const chunks = [
       "#|\n$Source $Yail\n|#",
