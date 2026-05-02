@@ -13,6 +13,7 @@ export function serializeScm(root: AiaComponent, originalScm: string): string {
 }
 
 function componentToJson(comp: AiaComponent): Record<string, unknown> {
+  // Properties spread first so structural keys always override any identically-named entries.
   return {
     ...comp.properties,
     $Name: comp.name,
