@@ -4,14 +4,10 @@ import { addScreen, removeScreen, cloneScreen } from '#/mutations/screens.js'
 import type { AiaProject, AiaScreen } from '#/core/types.js'
 import { parseScm } from '#/components/scm-parser.js'
 
-const EMPTY_SCM = `#|
-$JSON
-{"authURL":["aia-kit"],"YaVersion":"1","Source":"Form","Properties":{"$Name":"Screen1","$Type":"Form","Uuid":"-1","Title":"Screen1","$Components":[]}}
-|#`
-
 const EMPTY_BKY = `<xml xmlns="https://developers.google.com/blockly/xml"></xml>`
 
-function makeScreen(name: string, scm = EMPTY_SCM, bky = EMPTY_BKY): AiaScreen {
+function makeScreen(name: string, bky = EMPTY_BKY): AiaScreen {
+  const scm = `#|\n$JSON\n{"authURL":["aia-kit"],"YaVersion":"1","Source":"Form","Properties":{"$Name":"${name}","$Type":"Form","Uuid":"-1","Title":"${name}","$Components":[]}}\n|#`
   return { name, scm, bky, yail: null }
 }
 

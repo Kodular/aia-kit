@@ -64,7 +64,7 @@ export function cloneScreen(project: AiaProject, screenName: string, newName: st
   const root = parseScm(screen.scm)
   const renamedRoot = { ...root, name: newName }
   const newScm = serializeScm(renamedRoot, screen.scm)
-  const cloned: AiaScreen = { name: newName, scm: newScm, bky: screen.bky, yail: null }
+  const cloned: AiaScreen = { name: newName, scm: newScm, bky: screen.bky, yail: null } // YAIL is not cloned — regenerated in M2c
   return {
     project: { ...project, screens: [...project.screens, cloned] },
     diagnostics: [],
