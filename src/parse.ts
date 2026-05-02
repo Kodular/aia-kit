@@ -62,7 +62,7 @@ export async function parseAia(input: Uint8Array | ArrayBuffer | Blob): Promise<
 
   const screens: AiaScreen[] = []
   for (const [screenName, files] of screenMap) {
-    if (!files.scm || !files.bky) continue
+    if (files.scm === undefined || files.bky === undefined) continue
     screens.push({ name: screenName, scm: files.scm, bky: files.bky, yail: files.yail ?? null })
   }
 
