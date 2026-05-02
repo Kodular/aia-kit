@@ -16,6 +16,11 @@
     "moduleResolution": "nodenext",
     "verbatimModuleSyntax": true,
 
+    // Subpath import aliases
+    "paths": {
+      "#/*": ["./src/*"]
+    },
+
     // Best practices
     "strict": true,
     "skipLibCheck": true,
