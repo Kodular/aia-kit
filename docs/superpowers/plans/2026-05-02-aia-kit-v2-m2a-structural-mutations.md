@@ -4,9 +4,9 @@
 
 **Goal:** Implement all structural mutations on `AiaProject` — screen, component, asset, extension, and project-merge operations — each returning `MutationResult`.
 
-**Architecture:** All mutations are pure functions: `(AiaProject, ...args) → MutationResult`. No environment needed. Component mutations require a new `serializeScm` function (mirroring the existing `ScmParser.parse`) to round-trip SCM strings. Files are split by mutation domain: `mutations/screens.ts`, `mutations/components.ts`, `mutations/assets.ts`, `mutations/extensions.ts`, `mutations/projects.ts`, with `mutations/index.ts` re-exporting everything.
+**Architecture:** All mutations are pure functions: `(AiaProject, ...args) → MutationResult`. No environment needed. Component mutations require a new `serializeScm` function (mirroring the existing `parseScm`) to round-trip SCM strings. Files are split by mutation domain: `mutations/screens.ts`, `mutations/components.ts`, `mutations/assets.ts`, `mutations/extensions.ts`, `mutations/projects.ts`, with `mutations/index.ts` re-exporting everything.
 
-**Tech Stack:** TypeScript, Vitest. No new dependencies. Uses existing `ScmParser` (`src/components/scm-parser.ts`) and the new `serializeScm` (`src/components/scm-serializer.ts`).
+**Tech Stack:** TypeScript, Vitest. No new dependencies. Uses existing `parseScm` (`src/components/scm-parser.ts`) and the new `serializeScm` (`src/components/scm-serializer.ts`).
 
 ---
 
@@ -80,14 +80,14 @@ function makeProject(...screenNames: string[]): AiaProject {
 - Create: `src/components/scm-serializer.ts`
 - Create: `test/components/scm-serializer.test.ts`
 
-`serializeScm` is the inverse of `ScmParser.parse`. It takes a root `AiaComponent` and the original SCM string (to preserve top-level metadata like `authURL`, `YaVersion`, `Source`), then produces a new SCM string with the updated component tree.
+`serializeScm` is the inverse of `parseScm`. It takes a root `AiaComponent` and the original SCM string (to preserve top-level metadata like `authURL`, `YaVersion`, `Source`), then produces a new SCM string with the updated component tree.
 
 - [ ] **Step 0.1: Write failing test**
 
 ```typescript
 // test/components/scm-serializer.test.ts
 import { describe, it, expect } from 'vitest'
-import { ScmParser } from '#/components/scm-parser.js'
+import { parseScm } from '#/components/scm-parser.js'
 import { serializeScm } from '#/components/scm-serializer.js'
 
 const SCM_WITH_BUTTON = `#|
@@ -102,9 +102,9 @@ $JSON
 
 describe('serializeScm', () => {
   it('round-trips parse → serialize → parse identity', () => {
-    const root = ScmParser.parse(SCM_WITH_BUTTON)
+    const root = parseScm(SCM_WITH_BUTTON)
     const serialized = serializeScm(root, SCM_WITH_BUTTON)
-    const reparsed = ScmParser.parse(serialized)
+    const reparsed = parseScm(serialized)
     expect(reparsed.name).toBe(root.name)
     expect(reparsed.type).toBe(root.type)
     expect(reparsed.uid).toBe(root.uid)
@@ -114,7 +114,7 @@ describe('serializeScm', () => {
   })
 
   it('preserves top-level SCM metadata (authURL, YaVersion, Source)', () => {
-    const root = ScmParser.parse(SCM_WITH_BUTTON)
+    const root = parseScm(SCM_WITH_BUTTON)
     const serialized = serializeScm(root, SCM_WITH_BUTTON)
     expect(serialized).toMatch(/"authURL"/)
     expect(serialized).toMatch(/"YaVersion":"1"/)
@@ -122,22 +122,22 @@ describe('serializeScm', () => {
   })
 
   it('serializes a renamed root', () => {
-    const root = ScmParser.parse(EMPTY_SCM)
+    const root = parseScm(EMPTY_SCM)
     const renamed = { ...root, name: 'NewScreen' }
     const serialized = serializeScm(renamed, EMPTY_SCM)
-    const reparsed = ScmParser.parse(serialized)
+    const reparsed = parseScm(serialized)
     expect(reparsed.name).toBe('NewScreen')
   })
 
   it('serializes nested children correctly', () => {
-    const root = ScmParser.parse(SCM_WITH_BUTTON)
+    const root = parseScm(SCM_WITH_BUTTON)
     const serialized = serializeScm(root, SCM_WITH_BUTTON)
     expect(serialized).toMatch(/"Button1"/)
     expect(serialized).toMatch(/"\$Type":"Button"/)
   })
 
   it('throws on invalid original SCM', () => {
-    const root = ScmParser.parse(EMPTY_SCM)
+    const root = parseScm(EMPTY_SCM)
     expect(() => serializeScm(root, 'not valid scm')).toThrow()
   })
 })
@@ -156,7 +156,7 @@ Expected: FAIL — `Cannot find module '#/components/scm-serializer.js'`
 ```typescript
 import type { AiaComponent } from '#/core/types.js'
 
-// Note: property types are not preserved — ScmParser already stringifies all values,
+// Note: property types are not preserved — parseScm already stringifies all values,
 // so this serializer only guarantees AiaComponent model round-trips, not raw JSON fidelity.
 export function serializeScm(root: AiaComponent, originalScm: string): string {
   const match = originalScm.match(/#\|\s*\$JSON\s*([\s\S]*?)\s*\|#/)
@@ -213,7 +213,7 @@ git commit -m "feat(v2): add serializeScm — AiaComponent tree → SCM string"
 import { describe, it, expect } from 'vitest'
 import { addScreen, removeScreen, cloneScreen } from '#/mutations/screens.js'
 import type { AiaProject, AiaScreen } from '#/core/types.js'
-import { ScmParser } from '#/components/scm-parser.js'
+import { parseScm } from '#/components/scm-parser.js'
 
 const EMPTY_SCM = `#|
 $JSON
@@ -285,7 +285,7 @@ describe('cloneScreen', () => {
     const project = makeProject('Screen1')
     const result = cloneScreen(project, 'Screen1', 'Screen2')
     const cloned = result.project.screens[1]
-    const root = ScmParser.parse(cloned.scm)
+    const root = parseScm(cloned.scm)
     expect(root.name).toBe('Screen2')
   })
 
@@ -320,7 +320,7 @@ Expected: FAIL — `Cannot find module '#/mutations/screens.js'`
 - [ ] **Step 1.3: Write `src/mutations/screens.ts`**
 
 ```typescript
-import { ScmParser } from '#/components/scm-parser.js'
+import { parseScm } from '#/components/scm-parser.js'
 import { serializeScm } from '#/components/scm-serializer.js'
 import type { AiaProject, AiaScreen, MutationResult } from '#/core/types.js'
 
@@ -383,7 +383,7 @@ export function cloneScreen(project: AiaProject, screenName: string, newName: st
       }],
     }
   }
-  const root = ScmParser.parse(screen.scm)
+  const root = parseScm(screen.scm)
   const renamedRoot = { ...root, name: newName }
   const newScm = serializeScm(renamedRoot, screen.scm)
   const cloned: AiaScreen = { name: newName, scm: newScm, bky: screen.bky, yail: null }
@@ -429,7 +429,7 @@ All three parse the SCM string, mutate the `AiaComponent` tree immutably, then s
 // test/mutations/components.test.ts
 import { describe, it, expect } from 'vitest'
 import { addComponent, removeComponent, updatePropertyWhere } from '#/mutations/components.js'
-import { ScmParser } from '#/components/scm-parser.js'
+import { parseScm } from '#/components/scm-parser.js'
 import type { AiaProject, AiaScreen, AiaComponent } from '#/core/types.js'
 
 const EMPTY_BKY = `<xml xmlns="https://developers.google.com/blockly/xml"></xml>`
@@ -461,7 +461,7 @@ describe('addComponent', () => {
     const project = makeProject(EMPTY_SCM)
     const result = addComponent(project, 'Screen1', NEW_LABEL, 'root-uid')
     expect(result.diagnostics).toEqual([])
-    const root = ScmParser.parse(result.project.screens[0].scm)
+    const root = parseScm(result.project.screens[0].scm)
     expect(root.children).toHaveLength(1)
     expect(root.children[0].name).toBe('Label1')
   })
@@ -471,7 +471,7 @@ describe('addComponent', () => {
     const nested: AiaComponent = { name: 'Label1', type: 'Label', uid: 'lbl-uid', properties: {}, children: [] }
     const result = addComponent(project, 'Screen1', nested, 'btn-uid')
     expect(result.diagnostics).toEqual([])
-    const root = ScmParser.parse(result.project.screens[0].scm)
+    const root = parseScm(result.project.screens[0].scm)
     const button = root.children[0]
     expect(button.children).toHaveLength(1)
     expect(button.children[0].name).toBe('Label1')
@@ -481,7 +481,7 @@ describe('addComponent', () => {
     const project = makeProject(SCM_WITH_BUTTON)
     const newComp: AiaComponent = { name: 'Label1', type: 'Label', uid: 'lbl-uid', properties: {}, children: [] }
     const result = addComponent(project, 'Screen1', newComp, 'root-uid')
-    const root = ScmParser.parse(result.project.screens[0].scm)
+    const root = parseScm(result.project.screens[0].scm)
     expect(root.children).toHaveLength(2)
   })
 
@@ -503,7 +503,7 @@ describe('removeComponent', () => {
     const project = makeProject(SCM_WITH_BUTTON)
     const result = removeComponent(project, 'Screen1', 'btn-uid')
     expect(result.diagnostics).toEqual([])
-    const root = ScmParser.parse(result.project.screens[0].scm)
+    const root = parseScm(result.project.screens[0].scm)
     expect(root.children).toHaveLength(0)
   })
 
@@ -537,7 +537,7 @@ describe('updatePropertyWhere', () => {
       'Updated'
     )
     expect(result.diagnostics).toEqual([])
-    const root = ScmParser.parse(result.project.screens[0].scm)
+    const root = parseScm(result.project.screens[0].scm)
     expect(root.children[0].properties['Text']).toBe('Updated')
   })
 
@@ -549,7 +549,7 @@ describe('updatePropertyWhere', () => {
       'Text',
       'Changed'
     )
-    const root = ScmParser.parse(result.project.screens[0].scm)
+    const root = parseScm(result.project.screens[0].scm)
     expect(root.children[0].properties['Text']).toBe('Click')
   })
 
@@ -571,7 +571,7 @@ describe('updatePropertyWhere', () => {
     const result = updatePropertyWhere(project, c => c.type === 'Button', 'Text', 'X')
     expect(result.diagnostics).toEqual([])
     for (const screen of result.project.screens) {
-      const root = ScmParser.parse(screen.scm)
+      const root = parseScm(screen.scm)
       expect(root.children[0].properties['Text']).toBe('X')
     }
   })
@@ -589,7 +589,7 @@ Expected: FAIL — `Cannot find module '#/mutations/components.js'`
 - [ ] **Step 2.3: Write `src/mutations/components.ts`**
 
 ```typescript
-import { ScmParser } from '#/components/scm-parser.js'
+import { parseScm } from '#/components/scm-parser.js'
 import { serializeScm } from '#/components/scm-serializer.js'
 import type { AiaProject, AiaScreen, AiaComponent, MutationResult } from '#/core/types.js'
 import type { Diagnostic } from '#/core/diagnostics.js'
@@ -605,7 +605,7 @@ export function addComponent(
     return { project, diagnostics: [missingScreen(screenName)] }
   }
   const screen = project.screens[idx]
-  const root = ScmParser.parse(screen.scm)
+  const root = parseScm(screen.scm)
   const updated = addToParent(root, parentUid, component)
   if (!updated) {
     return { project, diagnostics: [unresolvedComponent(parentUid, screenName)] }
@@ -623,7 +623,7 @@ export function removeComponent(
     return { project, diagnostics: [missingScreen(screenName)] }
   }
   const screen = project.screens[idx]
-  const root = ScmParser.parse(screen.scm)
+  const root = parseScm(screen.scm)
   if (root.uid === uid) {
     return {
       project,
@@ -649,7 +649,7 @@ export function updatePropertyWhere(
   value: string,
 ): MutationResult {
   const screens = project.screens.map(screen => {
-    const root = ScmParser.parse(screen.scm)
+    const root = parseScm(screen.scm)
     const updated = applyPropertyUpdate(root, predicate, property, value)
     return { ...screen, scm: serializeScm(updated, screen.scm) }
   })
@@ -1054,7 +1054,7 @@ git commit -m "feat(v2): add addExtension, removeExtension mutations"
 // test/mutations/projects.test.ts
 import { describe, it, expect } from 'vitest'
 import { mergeProjects } from '#/mutations/projects.js'
-import { ScmParser } from '#/components/scm-parser.js'
+import { parseScm } from '#/components/scm-parser.js'
 import type { AiaProject, AiaScreen, AiaAsset, AiaExtension } from '#/core/types.js'
 
 const EMPTY_BKY = `<xml xmlns="https://developers.google.com/blockly/xml"></xml>`
@@ -1121,7 +1121,7 @@ describe('mergeProjects — screens', () => {
     const result = mergeProjects(target, source, { screenConflict: 'rename', assetConflict: 'skip', includeExtensions: false })
     expect(result.project.screens).toHaveLength(2)
     expect(result.project.screens[1].name).toBe('Screen1_2')
-    const root = ScmParser.parse(result.project.screens[1].scm)
+    const root = parseScm(result.project.screens[1].scm)
     expect(root.name).toBe('Screen1_2')
   })
 
@@ -1196,7 +1196,7 @@ Expected: FAIL — `Cannot find module '#/mutations/projects.js'`
 - [ ] **Step 5.3: Write `src/mutations/projects.ts`**
 
 ```typescript
-import { ScmParser } from '#/components/scm-parser.js'
+import { parseScm } from '#/components/scm-parser.js'
 import { serializeScm } from '#/components/scm-serializer.js'
 import type { AiaProject, AiaScreen, AiaExtension, MutationResult } from '#/core/types.js'
 
@@ -1222,7 +1222,7 @@ export function mergeProjects(
         screens[existingIdx] = screen
       } else if (options.screenConflict === 'rename') {
         const uniqueName = findUniqueName(screen.name, screens.map(s => s.name))
-        const root = ScmParser.parse(screen.scm)
+        const root = parseScm(screen.scm)
         const newScm = serializeScm({ ...root, name: uniqueName }, screen.scm)
         screens.push({ ...screen, name: uniqueName, scm: newScm })
       }

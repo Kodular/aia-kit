@@ -14,20 +14,18 @@ interface ScmJson {
   Properties: RawComponentJson
 }
 
-export class ScmParser {
-  static parse(scm: string): AiaComponent {
-    const match = scm.match(/#\|\s*\$JSON\s*([\s\S]*?)\s*\|#/)
-    if (!match || !match[1]) {
-      throw new Error('Invalid SCM format: no $JSON block found')
-    }
-    let data: ScmJson
-    try {
-      data = JSON.parse(match[1].trim())
-    } catch (e) {
-      throw new Error(`Invalid SCM format: JSON parse failed — ${e}`)
-    }
-    return parseComponent(data.Properties)
+export function parseScm(scm: string): AiaComponent {
+  const match = scm.match(/#\|\s*\$JSON\s*([\s\S]*?)\s*\|#/)
+  if (!match || !match[1]) {
+    throw new Error('Invalid SCM format: no $JSON block found')
   }
+  let data: ScmJson
+  try {
+    data = JSON.parse(match[1].trim())
+  } catch (e) {
+    throw new Error(`Invalid SCM format: JSON parse failed — ${e}`)
+  }
+  return parseComponent(data.Properties)
 }
 
 function parseComponent(raw: RawComponentJson): AiaComponent {

@@ -1,4 +1,4 @@
-import { ScmParser } from '#/components/scm-parser.js'
+import { parseScm } from '#/components/scm-parser.js'
 import type { AiaProject, AiaComponent } from '#/core/types.js'
 import type { ModelProject, ModelScreen, ModelComponent, ComponentProperty } from '#/core/model.js'
 import type { ComponentDescriptor, ComponentPropertyDescriptor } from '#/core/descriptors.js'
@@ -12,7 +12,7 @@ export function resolve(project: AiaProject, env: Environment): ModelProject {
   for (const screen of project.screens) {
     let root: AiaComponent
     try {
-      root = ScmParser.parse(screen.scm)
+      root = parseScm(screen.scm)
     } catch (e) {
       diagnostics.push({
         code: 'MALFORMED_SCM',
