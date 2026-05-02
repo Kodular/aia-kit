@@ -16,10 +16,10 @@ The extension package format. A ZIP file containing component descriptors, compi
 A single-screen export format. Subset of AIA containing one screen's SCM and BKY files.
 
 **SCM**
-The component definition file for a screen. A JSON document describing the component tree — types, names, UIDs, and property values. One SCM file per screen (e.g., `Screen1.scm`).
+The component definition file for a screen. A JSON document describing the component tree — types, names, UIDs, and property values — embedded in a `#| $JSON … |#` wrapper. One SCM file per screen (e.g., `Screen1.scm`). See [SCM](scm.md).
 
 **BKY**
-The block definition file for a screen. An XML document (Blockly format) describing all event handlers, procedures, and logic blocks. One BKY file per screen (e.g., `Screen1.bky`).
+The block definition file for a screen. An XML document (Blockly format) describing all event handlers, procedures, and logic blocks. One BKY file per screen (e.g., `Screen1.bky`). See [BKY](bky.md).
 
 **YAIL**
 The intermediate textual format (Scheme-like, typically interpreted by **Kawa** in the Companion) generated from a screen's SCM + BKY. MIT sources expand the acronym as **Young Android Intermediate Language**; **Yet Another Intermediate Language** appears in older/community writing — both names refer to the same layer. See [YAIL](yail.md).

@@ -60,7 +60,7 @@ This table covers the keys aia-kit reads and writes. Real AIA files may contain 
 
 ### SCM Files (`*.scm`)
 
-One SCM file per screen. Contains the component tree as JSON wrapped in a Scheme-style block comment.
+One SCM file per screen. Contains the component tree as JSON wrapped in a Scheme-style block comment. For designer vs blocks split, wrapper history, and **aia-kit** APIs, see **[SCM deep dive](scm.md)**.
 
 **File structure:**
 ```
@@ -118,7 +118,7 @@ The JSON is extracted via the regex `/#\|\s*\$JSON\s*(.*?)\s*\|#/s`.
 
 ### BKY Files (`*.bky`)
 
-One BKY file per screen. Standard Blockly XML format with App Inventor-specific block types.
+One BKY file per screen. Standard Blockly XML format with App Inventor-specific block types. For XML shape, App Inventor mutations, and **aia-kit** block APIs, see **[BKY deep dive](bky.md)**.
 
 **File structure:**
 ```xml
