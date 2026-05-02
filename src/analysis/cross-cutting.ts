@@ -1,5 +1,5 @@
 import { parseBky } from '#/blocks/bky-parser.js'
-import type { BlockNode } from '#/blocks/ast.js'
+import type { BlockAst, BlockNode } from '#/blocks/ast.js'
 import type {
   ComplexityReport,
   DeadBlock,
@@ -86,10 +86,19 @@ function markReachableFrom(node: BlockNode | null, reachable: Set<string>): void
   markReachableFrom(node.next, reachable)
 }
 
+/** When BKY is invalid XML, behave like an empty workspace (no throw). */
+function safeParseBky(bky: string): BlockAst {
+  try {
+    return parseBky(bky)
+  } catch {
+    return { blocks: [] }
+  }
+}
+
 function parseScreenAst(model: ModelProject) {
   return model.screens.map(s => ({
     name: s.name,
-    ast: parseBky(s.source.bky),
+    ast: safeParseBky(s.source.bky),
   }))
 }
 
@@ -155,7 +164,7 @@ export function buildNavGraph(model: ModelProject): NavGraph {
   const edges: Array<{ from: string; to: string }> = []
 
   for (const screen of model.screens) {
-    const ast = parseBky(screen.source.bky)
+    const ast = safeParseBky(screen.source.bky)
     for (const root of ast.blocks) {
       forEachBlock(root, node => {
         if (!node.type.toLowerCase().includes('openanotherscreen')) return

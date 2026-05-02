@@ -65,6 +65,27 @@ describe('analyzeComplexity', () => {
     expect(r.screens[0].totalBlocks).toBe(2)
     expect(r.screens[0].maxDepth).toBe(2)
   })
+
+  it('does not throw on malformed BKY — treats as empty workspace', async () => {
+    const env = await Environment.mitAppInventor()
+    const model = resolve(
+      makeProject([
+        makeScreen('Bad', scmForScreen('Bad'), '<<<'),
+        makeScreen('Good', scmForScreen('Good'), SIMPLE_BKY),
+      ]),
+      env,
+    )
+    expect(() => analyzeComplexity(model)).not.toThrow()
+    const r = analyzeComplexity(model)
+    expect(r.screens[0]).toMatchObject({
+      screenName: 'Bad',
+      topLevelBlocks: 0,
+      totalBlocks: 0,
+      maxDepth: 0,
+    })
+    expect(r.screens[1].topLevelBlocks).toBe(1)
+    expect(r.screens[1].totalBlocks).toBe(2)
+  })
 })
 
 const HAT_AND_ORPHAN_BKY = `<xml xmlns="https://developers.google.com/blockly/xml">
@@ -91,6 +112,13 @@ describe('findDeadBlocks', () => {
     expect(ids.has('dead_text')).toBe(true)
     expect(ids.has('hat1')).toBe(false)
   })
+
+  it('does not throw on malformed BKY', async () => {
+    const env = await Environment.mitAppInventor()
+    const model = resolve(makeProject([makeScreen('X', scmForScreen('X'), 'not xml')]), env)
+    expect(() => findDeadBlocks(model)).not.toThrow()
+    expect(findDeadBlocks(model)).toEqual([])
+  })
 })
 
 const OPEN_SCREEN_BKY = `<xml xmlns="https://developers.google.com/blockly/xml">
@@ -112,5 +140,12 @@ describe('buildNavGraph', () => {
     const g = buildNavGraph(model)
     expect(g.nodes).toEqual(['Screen1', 'Screen2'])
     expect(g.edges).toContainEqual({ from: 'Screen1', to: 'Screen2' })
+  })
+
+  it('does not throw on malformed BKY', async () => {
+    const env = await Environment.mitAppInventor()
+    const model = resolve(makeProject([makeScreen('S1', scmForScreen('S1'), '<<<')]), env)
+    expect(() => buildNavGraph(model)).not.toThrow()
+    expect(buildNavGraph(model)).toEqual({ nodes: ['S1'], edges: [] })
   })
 })
