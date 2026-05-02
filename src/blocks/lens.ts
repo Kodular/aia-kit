@@ -59,25 +59,3 @@ export function updateAllScreenBlocks(
   })
   return { project: { ...project, screens: newScreens }, diagnostics: [] }
 }
-
-export function updateScreenBky(
-  project: AiaProject,
-  screenName: string,
-  bky: string
-): { project: AiaProject; diagnostics: Diagnostic[] } {
-  const screenIndex = project.screens.findIndex(s => s.name === screenName)
-  if (screenIndex === -1) {
-    return {
-      project,
-      diagnostics: [{
-        code: 'MISSING_SCREEN_FILE',
-        severity: 'error',
-        path: ['screens', screenName],
-        message: `Screen "${screenName}" not found`
-      }]
-    }
-  }
-  const newScreens = [...project.screens]
-  newScreens[screenIndex] = { ...newScreens[screenIndex], bky }
-  return { project: { ...project, screens: newScreens }, diagnostics: [] }
-}

@@ -22,6 +22,14 @@ export { mergeReports } from '#/core/diagnostics.js'
 // Errors
 export { AiaKitError, AiaParseError, AiaZipError, AiaStructureError, AiaWriteError } from '#/core/errors.js'
 
+// Registries
+export type {
+  ComponentRegistry,
+  BlockRegistry,
+  BuiltinBlockDescriptor,
+  BuiltinBlockCategory,
+} from '#/core/registries.js'
+
 // Environment
 export { Environment } from '#/core/environment.js'
 
@@ -36,7 +44,7 @@ export { createYailGenerator } from '#/yail/index.js'
 // Block lens (public API only — parseBky/serializeBky are internal)
 export {
   parseBlocks, serializeBlocks,
-  queryBlocks, updateBlocks, updateAllScreenBlocks, updateScreenBky,
+  queryBlocks, updateBlocks, updateAllScreenBlocks,
 } from '#/blocks/lens.js'
 export type { BlockAst, BlockNode } from '#/blocks/ast.js'
 

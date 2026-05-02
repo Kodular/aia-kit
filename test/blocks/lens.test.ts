@@ -5,7 +5,6 @@ import {
   queryBlocks,
   updateBlocks,
   updateAllScreenBlocks,
-  updateScreenBky,
 } from '#/blocks/lens.js'
 import type { AiaProject, AiaScreen } from '#/core/types.js'
 import { makeProjectProperties } from '../helpers.js'
@@ -90,15 +89,5 @@ describe('updateAllScreenBlocks', () => {
     const ast2 = parseBlocks(result.project.screens[1].bky)
     expect(ast1.blocks[0].type).toBe('Screen1_block')
     expect(ast2.blocks[0].type).toBe('Screen2_block')
-  })
-})
-
-describe('updateScreenBky', () => {
-  it('replaces bky string directly', () => {
-    const project = makeProject(SCREEN_BKY)
-    const newBky = `<xml xmlns="https://developers.google.com/blockly/xml"></xml>`
-    const result = updateScreenBky(project, 'Screen1', newBky)
-    expect(result.project.screens[0].bky).toBe(newBky)
-    expect(result.diagnostics).toEqual([])
   })
 })
