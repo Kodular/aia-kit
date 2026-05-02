@@ -75,13 +75,13 @@ function addToParent(
   if (node.uid === parentUid) {
     return { ...node, children: [...node.children, child] }
   }
-  let changed = false
-  const newChildren = node.children.map(c => {
+  for (const c of node.children) {
     const r = addToParent(c, parentUid, child)
-    if (r) { changed = true; return r }
-    return c
-  })
-  return changed ? { ...node, children: newChildren } : null
+    if (r) {
+      return { ...node, children: node.children.map(ch => ch === c ? r : ch) }
+    }
+  }
+  return null
 }
 
 function removeFromTree(
@@ -120,6 +120,7 @@ function replaceScreenScm(
   screen: AiaScreen,
   newRoot: AiaComponent,
 ): MutationResult {
+  // originalScm provides the top-level metadata wrapper (authURL, YaVersion, Source).
   const newScm = serializeScm(newRoot, screen.scm)
   const screens = [...project.screens]
   screens[idx] = { ...screen, scm: newScm }
