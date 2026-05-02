@@ -556,7 +556,9 @@ Types live with the code they describe. No dedicated `types/` folder. Shared con
 - `createYailGenerator`
 - `mergeReports`
 
-### Milestone 3 — Migration and Export
+### Milestone 3 — Migration and Export [RETIRED]
+
+**Status: Out of scope.** Platform migration, extension versioning, and advanced export features are not pursued in this library. Content preserved for historical reference.
 
 - `migrateToEnvironment`
 - `planExtensionMigration`, `migrateExtension`, `diffAixVersions`, `upgradeExtension`
