@@ -156,6 +156,8 @@ Expected: FAIL — `Cannot find module '#/components/scm-serializer.js'`
 ```typescript
 import type { AiaComponent } from '#/core/types.js'
 
+// Note: property types are not preserved — ScmParser already stringifies all values,
+// so this serializer only guarantees AiaComponent model round-trips, not raw JSON fidelity.
 export function serializeScm(root: AiaComponent, originalScm: string): string {
   const match = originalScm.match(/#\|\s*\$JSON\s*([\s\S]*?)\s*\|#/)
   if (!match || !match[1]) {
@@ -398,7 +400,7 @@ export function cloneScreen(project: AiaProject, screenName: string, newName: st
 pnpm exec vitest run test/mutations/screens.test.ts
 ```
 
-Expected: PASS (9 tests)
+Expected: PASS (10 tests)
 
 - [ ] **Step 1.5: Commit**
 
@@ -516,6 +518,13 @@ describe('removeComponent', () => {
     const result = removeComponent(project, 'Screen1', 'nonexistent-uid')
     expect(result.diagnostics[0].code).toBe('UNRESOLVABLE_COMPONENT')
   })
+
+  it('emits UNRESOLVABLE_COMPONENT when attempting to remove the root form', () => {
+    const project = makeProject(EMPTY_SCM)
+    const result = removeComponent(project, 'Screen1', 'root-uid')
+    expect(result.diagnostics[0].code).toBe('UNRESOLVABLE_COMPONENT')
+    expect(result.diagnostics[0].message).toMatch(/root form/)
+  })
 })
 
 describe('updatePropertyWhere', () => {
@@ -615,6 +624,17 @@ export function removeComponent(
   }
   const screen = project.screens[idx]
   const root = ScmParser.parse(screen.scm)
+  if (root.uid === uid) {
+    return {
+      project,
+      diagnostics: [{
+        code: 'UNRESOLVABLE_COMPONENT',
+        severity: 'error',
+        path: ['screens', screenName],
+        message: `Cannot remove the root form component (uid "${uid}") from screen "${screenName}"`,
+      }],
+    }
+  }
   const { result, removed } = removeFromTree(root, uid)
   if (!removed || !result) {
     return { project, diagnostics: [unresolvedComponent(uid, screenName)] }
@@ -722,7 +742,7 @@ function unresolvedComponent(uid: string, screenName: string): Diagnostic {
 pnpm exec vitest run test/mutations/components.test.ts
 ```
 
-Expected: PASS (10 tests)
+Expected: PASS (12 tests)
 
 - [ ] **Step 2.5: Commit**
 
@@ -772,10 +792,10 @@ describe('addAsset', () => {
     expect(result.project.assets[0].name).toBe('icon.png')
   })
 
-  it('emits MISSING_ASSET_REF when asset name already exists', () => {
+  it('emits DUPLICATE_COMPONENT_NAME when asset name already exists', () => {
     const project = { ...makeProject(), assets: [makeAsset('icon.png')] }
     const result = addAsset(project, makeAsset('icon.png'))
-    expect(result.diagnostics[0].code).toBe('MISSING_ASSET_REF')
+    expect(result.diagnostics[0].code).toBe('DUPLICATE_COMPONENT_NAME')
     expect(result.project.assets).toHaveLength(1)
   })
 
@@ -822,7 +842,7 @@ export function addAsset(project: AiaProject, asset: AiaAsset): MutationResult {
     return {
       project,
       diagnostics: [{
-        code: 'MISSING_ASSET_REF',
+        code: 'DUPLICATE_COMPONENT_NAME',
         severity: 'error',
         path: ['assets', asset.name],
         message: `Asset "${asset.name}" already exists`,
@@ -1285,6 +1305,20 @@ export { mergeProjects } from '#/mutations/projects.js'
 export type { MergeOptions } from '#/mutations/projects.js'
 ```
 
+- [ ] **Step 6.1b: Add `./mutations` subpath to `package.json` exports**
+
+In `package.json`, add `"./mutations": "./dist/src/mutations/index.js"` to the `"exports"` map:
+
+```json
+"exports": {
+  ".":            "./dist/src/index.js",
+  "./parse":      "./dist/src/parse.js",
+  "./resolve":    "./dist/src/resolve.js",
+  "./write":      "./dist/src/write.js",
+  "./mutations":  "./dist/src/mutations/index.js"
+},
+```
+
 - [ ] **Step 6.2: Add mutations block to `src/index.ts`**
 
 After the existing component tree utilities export block, add:
@@ -1313,12 +1347,12 @@ Expected: Clean compile with no errors.
 pnpm test
 ```
 
-Expected: All tests pass (previous 69 + new ~36 = ~105 total).
+Expected: All tests pass (previous 69 + new 48 = 117 total).
 
 - [ ] **Step 6.5: Commit**
 
 ```bash
-git add src/mutations/index.ts src/index.ts
+git add src/mutations/index.ts src/index.ts package.json
 git commit -m "feat(v2): expose structural mutations in public API"
 ```
 
