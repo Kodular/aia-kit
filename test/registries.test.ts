@@ -3,6 +3,7 @@ import {
   createComponentRegistry,
   createBlockRegistry,
   defaultBlockRegistry,
+  DEFAULT_BUILTINS,
 } from '#/core/registries.js'
 import type { ComponentDescriptor } from '#/core/descriptors.js'
 
@@ -111,6 +112,10 @@ describe('createBlockRegistry', () => {
 
 describe('defaultBlockRegistry', () => {
   const registry = defaultBlockRegistry()
+
+  it('has the expected total number of built-in block types', () => {
+    expect(registry.builtins.size).toBe(110)
+  })
 
   it('contains logic blocks', () => {
     expect(registry.lookup('logic_boolean')?.category).toBe('logic')

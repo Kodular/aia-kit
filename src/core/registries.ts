@@ -43,6 +43,8 @@ export interface BuiltinBlockDescriptor {
 export interface BlockRegistry {
   readonly builtins: ReadonlyMap<string, BuiltinBlockDescriptor>
   lookup(type: string): BuiltinBlockDescriptor | null
+  // Note: BlockRegistry has no `extend` method because block builtins are language primitives,
+  // not extended by plugins. Component extensions add new components, not new block types.
 }
 
 export function createBlockRegistry(builtins: BuiltinBlockDescriptor[]): BlockRegistry {
@@ -56,7 +58,7 @@ export function createBlockRegistry(builtins: BuiltinBlockDescriptor[]): BlockRe
   }
 }
 
-const DEFAULT_BUILTINS: BuiltinBlockDescriptor[] = [
+export const DEFAULT_BUILTINS: BuiltinBlockDescriptor[] = [
   // logic
   { type: 'logic_boolean', category: 'logic' },
   { type: 'logic_negate', category: 'logic' },
