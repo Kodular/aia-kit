@@ -78,4 +78,4 @@ Extensions (`.aix`) can be loaded with `parseAix` and added to an environment vi
 
 ---
 
-Copyright (c) 2023 Junnovate, LLC
+Copyright (c) 2023–2026 Junnovate, LLC
