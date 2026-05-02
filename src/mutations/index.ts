@@ -1,0 +1,6 @@
+export { addScreen, removeScreen, cloneScreen } from '#/mutations/screens.js'
+export { addComponent, removeComponent, updatePropertyWhere } from '#/mutations/components.js'
+export { addAsset, removeAsset } from '#/mutations/assets.js'
+export { addExtension, removeExtension } from '#/mutations/extensions.js'
+export { mergeProjects } from '#/mutations/projects.js'
+export type { MergeOptions } from '#/mutations/projects.js'

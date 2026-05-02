@@ -20,6 +20,7 @@
   "module": "./dist/src/index.js",
   "exports": {
     ".":           "./dist/src/index.js",
+    "./mutations": "./dist/src/mutations/index.js",
     "./parse":     "./dist/src/parse.js",
     "./resolve":   "./dist/src/resolve.js",
     "./write":     "./dist/src/write.js"
