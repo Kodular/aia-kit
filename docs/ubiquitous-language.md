@@ -22,7 +22,7 @@ The component definition file for a screen. A JSON document describing the compo
 The block definition file for a screen. An XML document (Blockly format) describing all event handlers, procedures, and logic blocks. One BKY file per screen (e.g., `Screen1.bky`).
 
 **YAIL**
-The compiled output format. Scheme-like code generated from a screen's component tree and blocks, executed by the App Inventor runtime on-device. Stands for _Yet Another Intermediate Language_.
+The intermediate textual format (Scheme-like, typically interpreted by **Kawa** in the Companion) generated from a screen's SCM + BKY. MIT sources expand the acronym as **Young Android Intermediate Language**; **Yet Another Intermediate Language** appears in older/community writing — both names refer to the same layer. See [YAIL](yail.md).
 
 ---
 

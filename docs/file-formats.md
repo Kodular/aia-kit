@@ -163,7 +163,7 @@ Standard Blockly primitives (`math_number`, `text`, `logic_boolean`, `math_arith
 
 ### YAIL Files (`*.yail`)
 
-Optional. One YAIL file per screen. A Kawa/Scheme dialect compiled from SCM + BKY.
+Optional. One YAIL file per screen. A Kawa/Scheme dialect compiled from SCM + BKY. For execution model, macro vocabulary (`define-repl-form`, `add-component`, …), and pointers into MIT’s sources, see **[YAIL deep dive](yail.md)**.
 
 **File structure:**
 ```scheme
