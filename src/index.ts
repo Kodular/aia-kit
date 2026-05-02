@@ -49,7 +49,7 @@ export {
 export type { BlockAst, BlockNode } from '#/blocks/ast.js'
 
 // Component tree utilities
-export { findComponent, getComponentsByType, getParent, getComponentPath } from '#/components/tree.js'
+export { findComponentByUid, getComponentsByType, getParentComponent, getComponentPathByUid } from '#/components/tree.js'
 
 // Structural mutations
 export { addScreen, removeScreen, cloneScreen } from '#/mutations/screens.js'

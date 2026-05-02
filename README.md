@@ -1,72 +1,80 @@
 # aia-kit
 
-![npm](https://img.shields.io/npm/v/aia-kit)
-
-Read, Parse, Edit, Write AIA/AIX/AIS files.
+TypeScript library for reading, parsing, editing, and writing AIA/AIX/AIS files — the project formats used by [App Inventor](https://appinventor.mit.edu)-based platforms such as [Kodular](https://kodular.io).
 
 ## Installation
 
-```bash
+```sh
 npm install aia-kit
+# or
+pnpm add aia-kit
 ```
 
-## Usage
+## Quick start
 
 ```typescript
-import fs from "node:fs/promises";
-import { parseAia } from "./src/reader.js";
-import { Environment } from "./src/Environment.js";
+import { Environment, parseAndResolve, updateBlocks, writeAia } from 'aia-kit'
 
-async function main() {
-  try {
-    const aiaFile = await fs.readFile("test/fixtures/Test.aia");
-    const aiaFileBlob = new Blob([aiaFile]);
+// 1. Load a platform environment (Kodular or MIT App Inventor)
+const env = await Environment.kodularCreator()
 
-    // Get the Kodular environment
-    const kodularEnvironment = await Environment.kodularCreator();
+// 2. Parse and resolve an AIA file
+const blob = /* Blob from file input, fetch, or fs.readFile */
+const { project, diagnostics } = await parseAndResolve(blob, env)
 
-    // Parse the AIA file
-    const project = await parseAia(aiaFileBlob, kodularEnvironment);
+// 3. Inspect
+console.log(project.source.name)             // project name
+console.log(project.screens.map(s => s.name)) // screen names
 
-    // Pretty print the parsed information
-    console.log("Project Information:");
-    console.log("===================");
-    console.log(`Name: ${project.name}`);
+// 4. Mutate (returns a new AiaProject — nothing is mutated in place)
+const { project: updated } = updateBlocks(project.source, 'Screen1', ast => ({
+  ...ast,
+  blocks: ast.blocks.filter(b => !b.disabled),
+}))
 
-    // Print screens information
-    console.log("\nScreens:");
-    console.log("========");
-    project.screens.forEach((screen) => {
-      console.log(`\nScreen: ${screen.name}`);
-    });
-
-    // Print assets information
-    console.log("\nAssets:");
-    console.log("=======");
-    project.assets.forEach((asset) => {
-      console.log(`- ${asset.name}`);
-    });
-  } catch (error) {
-    console.error("Error parsing AIA file:", error);
-  }
-}
-
-main();
+// 5. Write back to AIA
+const output = await writeAia(updated)
 ```
 
-## Environment
+## Core concepts
 
-The `Environment` class provides a way to specify the target App Inventor platform. This is important because different platforms may have different sets of built-in components. By providing an environment, `aia-kit` can accurately parse the project's components.
+**Two-stage pipeline** — `parseAia` reads the ZIP and produces a raw `AiaProject`; `resolve` enriches it into a `ModelProject` using a platform `Environment`. You can stop at the raw layer if you only need properties, screen names, or assets.
 
-Currently, the only available environment is `Kodular`. You can get an instance of the Kodular environment by calling the static `kodularCreator` method:
+**Immutable data** — every mutation function returns a new object. The original is never modified.
 
-```typescript
-import { Environment } from 'aia-kit';
+**Diagnostics over throws** — data-level problems (unknown components, invalid properties) surface as `Diagnostic[]`. Throws are reserved for hard I/O failures (bad ZIP, missing required entries).
 
-const kodularEnvironment = await Environment.kodularCreator();
-```
+## Supported platforms
 
+| Platform | Factory |
+|----------|---------|
+| Kodular Creator | `Environment.kodularCreator()` |
+| MIT App Inventor | `Environment.mitAppInventor()` |
 
+Extensions (`.aix`) can be loaded with `parseAix` and added to an environment via `env.withExtension(aix)`.
+
+## What you can do
+
+| Area | Functions |
+|------|-----------|
+| **Parse** | `parseAia`, `parseAix`, `parseAndResolve`, `parseProjectProperties` |
+| **Resolve** | `resolve` |
+| **Write** | `writeAia`, `serializeProperties` |
+| **Blocks** | `queryBlocks`, `updateBlocks`, `updateAllScreenBlocks`, `parseBlocks`, `serializeBlocks` |
+| **Component tree** | `findComponentByUid`, `getComponentsByType`, `getParentComponent`, `getComponentPathByUid` |
+| **Screens** | `addScreen`, `removeScreen`, `cloneScreen` |
+| **Components** | `addComponent`, `removeComponent`, `updatePropertyWhere` |
+| **Assets** | `addAsset`, `removeAsset` |
+| **Extensions** | `addExtension`, `removeExtension` |
+| **Projects** | `mergeProjects` |
+| **Analysis** | `diagnose`, `diffProjects`, `findUnusedAssets`, `findUnusedExtensions`, `analyzeVariables`, `analyzeComplexity`, `findDeadBlocks`, `buildNavGraph` |
+| **YAIL** | `createYailGenerator` |
+
+## Documentation
+
+- [Usage guide](docs/usage.md) — walkthrough with examples for every API area
+- [API reference](docs/api.md) — full type signatures and function descriptions
+- [File format reference](docs/file-formats.md) — AIA, AIX, SCM, BKY, YAIL internals
 
 ---
 

@@ -1,9 +1,9 @@
 import type { ModelComponent } from '#/core/model.js'
 
-export function findComponent(root: ModelComponent, uid: string): ModelComponent | null {
+export function findComponentByUid(root: ModelComponent, uid: string): ModelComponent | null {
   if (root.uid === uid) return root
   for (const child of root.children) {
-    const found = findComponent(child, uid)
+    const found = findComponentByUid(child, uid)
     if (found) return found
   }
   return null
@@ -18,20 +18,20 @@ export function getComponentsByType(root: ModelComponent, type: string): ModelCo
   return results
 }
 
-export function getParent(root: ModelComponent, target: ModelComponent): ModelComponent | null {
+export function getParentComponent(root: ModelComponent, target: ModelComponent): ModelComponent | null {
   if (root === target) return null
   for (const child of root.children) {
     if (child === target) return root
-    const found = getParent(child, target)
+    const found = getParentComponent(child, target)
     if (found) return found
   }
   return null
 }
 
-export function getComponentPath(root: ModelComponent, uid: string): ModelComponent[] {
+export function getComponentPathByUid(root: ModelComponent, uid: string): ModelComponent[] {
   if (root.uid === uid) return [root]
   for (const child of root.children) {
-    const subPath = getComponentPath(child, uid)
+    const subPath = getComponentPathByUid(child, uid)
     if (subPath.length > 0) return [root, ...subPath]
   }
   return []

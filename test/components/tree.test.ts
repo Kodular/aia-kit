@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import {
-  findComponent,
+  findComponentByUid,
   getComponentsByType,
-  getParent,
-  getComponentPath,
+  getParentComponent,
+  getComponentPathByUid,
 } from '#/components/tree.js'
 import type { ModelComponent } from '#/core/model.js'
 
@@ -16,21 +16,21 @@ const leaf2 = makeModel('Label1', 'Label', 'uid-2')
 const inner = makeModel('HArrangement1', 'HorizontalArrangement', 'uid-3', [leaf1, leaf2])
 const root = makeModel('Screen1', 'Form', 'uid-root', [inner])
 
-describe('findComponent', () => {
+describe('findComponentByUid', () => {
   it('finds a direct child', () => {
-    expect(findComponent(root, 'uid-3')).toBe(inner)
+    expect(findComponentByUid(root, 'uid-3')).toBe(inner)
   })
 
   it('finds a deeply nested component', () => {
-    expect(findComponent(root, 'uid-1')).toBe(leaf1)
+    expect(findComponentByUid(root, 'uid-1')).toBe(leaf1)
   })
 
   it('returns null for unknown uid', () => {
-    expect(findComponent(root, 'missing')).toBeNull()
+    expect(findComponentByUid(root, 'missing')).toBeNull()
   })
 
   it('finds root itself', () => {
-    expect(findComponent(root, 'uid-root')).toBe(root)
+    expect(findComponentByUid(root, 'uid-root')).toBe(root)
   })
 })
 
@@ -46,37 +46,37 @@ describe('getComponentsByType', () => {
   })
 })
 
-describe('getParent', () => {
+describe('getParentComponent', () => {
   it('returns parent of a direct child', () => {
-    expect(getParent(root, inner)).toBe(root)
+    expect(getParentComponent(root, inner)).toBe(root)
   })
 
   it('returns parent of a deeply nested component', () => {
-    expect(getParent(root, leaf1)).toBe(inner)
+    expect(getParentComponent(root, leaf1)).toBe(inner)
   })
 
   it('returns null for root', () => {
-    expect(getParent(root, root)).toBeNull()
+    expect(getParentComponent(root, root)).toBeNull()
   })
 
   it('returns null for unknown component', () => {
     const stranger = makeModel('X', 'Button', 'uid-x')
-    expect(getParent(root, stranger)).toBeNull()
+    expect(getParentComponent(root, stranger)).toBeNull()
   })
 })
 
-describe('getComponentPath', () => {
+describe('getComponentPathByUid', () => {
   it('returns path from root to leaf', () => {
-    const path = getComponentPath(root, 'uid-1')
+    const path = getComponentPathByUid(root, 'uid-1')
     expect(path.map(c => c.uid)).toEqual(['uid-root', 'uid-3', 'uid-1'])
   })
 
   it('returns [root] for root uid', () => {
-    const path = getComponentPath(root, 'uid-root')
+    const path = getComponentPathByUid(root, 'uid-root')
     expect(path.map(c => c.uid)).toEqual(['uid-root'])
   })
 
   it('returns empty array when uid not found', () => {
-    expect(getComponentPath(root, 'missing')).toEqual([])
+    expect(getComponentPathByUid(root, 'missing')).toEqual([])
   })
 })

@@ -532,10 +532,10 @@ Applies the updater to every screen in the project.
 
 All functions operate on `ModelComponent` (resolved). Use `project.screens[n].form` as the root.
 
-### `findComponent(root, uid)`
+### `findComponentByUid(root, uid)`
 
 ```typescript
-function findComponent(root: ModelComponent, uid: string): ModelComponent | null
+function findComponentByUid(root: ModelComponent, uid: string): ModelComponent | null
 ```
 
 Depth-first search for a component by UID.
@@ -548,18 +548,18 @@ function getComponentsByType(root: ModelComponent, type: string): ModelComponent
 
 Returns all components (including root) whose `type` matches.
 
-### `getParent(root, target)`
+### `getParentComponent(root, target)`
 
 ```typescript
-function getParent(root: ModelComponent, target: ModelComponent): ModelComponent | null
+function getParentComponent(root: ModelComponent, target: ModelComponent): ModelComponent | null
 ```
 
 Returns the direct parent of `target`, or null if `target` is the root.
 
-### `getComponentPath(root, uid)`
+### `getComponentPathByUid(root, uid)`
 
 ```typescript
-function getComponentPath(root: ModelComponent, uid: string): ModelComponent[]
+function getComponentPathByUid(root: ModelComponent, uid: string): ModelComponent[]
 ```
 
 Returns the path from root to the component with the given UID, inclusive. Returns `[]` if not found.

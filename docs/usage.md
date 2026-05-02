@@ -4,16 +4,6 @@ A practical walkthrough of the v2 API. For format internals see [file-formats.md
 
 ---
 
-## Installation
-
-```sh
-npm install aia-kit
-# or
-pnpm add aia-kit
-```
-
----
-
 ## The core pipeline
 
 aia-kit has a two-stage pipeline: **parse** (ZIP → raw data) then **resolve** (raw → enriched model). Keeping them separate means you can inspect raw data without needing a platform environment, and you only pay for resolution when you need descriptors and diagnostics.
@@ -160,22 +150,21 @@ const xml = serializeBlocks(ast)             // BlockAst → BKY XML string
 The component tree utilities operate on `AiaComponent` (raw) or `ModelComponent` (resolved).
 
 ```typescript
-import { findComponent, getComponentsByType, getParent, getComponentPath } from 'aia-kit'
+import { findComponentByUid, getComponentsByType, getParentComponent, getComponentPathByUid } from 'aia-kit'
 
 const form = project.screens[0].form   // ModelComponent (root)
 
 // Find by UID
-const btn = findComponent(form, 'some-uid-string')
+const btn = findComponentByUid(form, 'some-uid-string')
 
 // Find all components of a type
 const labels = getComponentsByType(form, 'com.google.appinventor.components.runtime.Label')
 
 // Get the parent of a component (pass the ModelComponent reference)
-const parent = getParent(form, btn!)
+const parent = getParentComponent(form, btn!)
 
 // Get path from root to a UID — returns ModelComponent[]
-const path = getComponentPath(form, 'some-uid-string')
-// e.g. [Screen1Component, HorizontalArrangement1Component, SubmitButtonComponent]
+const path = getComponentPathByUid(form, 'some-uid-string')
 const names = path.map(c => c.name)
 // e.g. ['Screen1', 'HorizontalArrangement1', 'SubmitButton']
 ```
