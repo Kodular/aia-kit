@@ -99,6 +99,18 @@ const HAT_AND_ORPHAN_BKY = `<xml xmlns="https://developers.google.com/blockly/xm
   </block>
 </xml>`
 
+/** `when_*` hats do not contain `event_` — must still count as entry roots (M2b semantics). */
+const WHEN_HAT_AND_ORPHAN_BKY = `<xml xmlns="https://developers.google.com/blockly/xml">
+  <block type="when_Screen1.Initialize" id="when1"></block>
+  <block type="text_print" id="dead_when_orphan"></block>
+</xml>`
+
+/** `component_*` + `Click` event hats (M2b semantics). */
+const COMPONENT_CLICK_HAT_ORPHAN_BKY = `<xml xmlns="https://developers.google.com/blockly/xml">
+  <block type="component_Button1_Click" id="cb1"></block>
+  <block type="text_print" id="dead_click_orphan"></block>
+</xml>`
+
 describe('findDeadBlocks', () => {
   it('flags top-level block not reachable from hat', async () => {
     const env = await Environment.mitAppInventor()
@@ -111,6 +123,30 @@ describe('findDeadBlocks', () => {
     expect(ids.has('dead_print')).toBe(true)
     expect(ids.has('dead_text')).toBe(true)
     expect(ids.has('hat1')).toBe(false)
+  })
+
+  it('treats when_* top-level blocks as hats', async () => {
+    const env = await Environment.mitAppInventor()
+    const model = resolve(
+      makeProject([makeScreen('S', scmForScreen('S'), WHEN_HAT_AND_ORPHAN_BKY)]),
+      env,
+    )
+    const dead = findDeadBlocks(model)
+    const ids = new Set(dead.map(d => d.blockId))
+    expect(ids.has('when1')).toBe(false)
+    expect(ids.has('dead_when_orphan')).toBe(true)
+  })
+
+  it('treats component_*…*Click* blocks as hats', async () => {
+    const env = await Environment.mitAppInventor()
+    const model = resolve(
+      makeProject([makeScreen('S', scmForScreen('S'), COMPONENT_CLICK_HAT_ORPHAN_BKY)]),
+      env,
+    )
+    const dead = findDeadBlocks(model)
+    const ids = new Set(dead.map(d => d.blockId))
+    expect(ids.has('cb1')).toBe(false)
+    expect(ids.has('dead_click_orphan')).toBe(true)
   })
 
   it('does not throw on malformed BKY', async () => {

@@ -51,7 +51,13 @@ function screenMaxDepth(blocks: BlockNode[]): number {
 }
 
 function isHatBlock(node: BlockNode): boolean {
-  return node.type === 'event_handler' || node.type.includes('event_')
+  const t = node.type
+  return (
+    t === 'event_handler' ||
+    t.includes('event_') ||
+    t.startsWith('when_') ||
+    (t.startsWith('component_') && t.includes('Click'))
+  )
 }
 
 function buildIdTypeMap(blocks: BlockNode[]): Map<string, string> {
