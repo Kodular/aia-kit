@@ -7,13 +7,13 @@ This document defines the canonical terms used throughout aia-kit's codebase, do
 ## File Formats
 
 **AIA**
-The project archive format used by App Inventor platforms. A ZIP file containing screens, assets, extensions, and project metadata. Stands for _App Inventor Archive_.
+The project archive format used by App Inventor platforms. A ZIP file containing screens, assets, extensions, and project metadata. Stands for _App Inventor Archive_. See [aia.md](aia.md).
 
 **AIX**
-The extension package format. A ZIP file containing component descriptors, compiled code, assets, and an Android manifest. Stands for _App Inventor Extension_.
+The extension package format. A ZIP file containing component descriptors, compiled code, assets, and an Android manifest. Stands for _App Inventor Extension_. See [aix.md](aix.md).
 
 **AIS**
-A single-screen export format. Subset of AIA containing one screen's SCM and BKY files.
+A single-screen export format — AIA-shaped subset focused on one screen’s SCM/BKY (and optional YAIL). See [ais.md](ais.md).
 
 **SCM**
 The component definition file for a screen. A JSON document describing the component tree — types, names, UIDs, and property values — embedded in a `#| $JSON … |#` wrapper. One SCM file per screen (e.g., `Screen1.scm`). See [SCM](scm.md).

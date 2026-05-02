@@ -1,6 +1,6 @@
 # BKY — Blockly XML for a screen
 
-This document describes the **`.bky`** screen file: Blockly’s persisted workspace XML, App Inventor–specific block types, and how **aia-kit** treats it. For a minimal XML example and block-type table, see [File formats — BKY](file-formats.md#bky-files-bkybky).
+This document describes the **`.bky`** screen file: Blockly’s persisted workspace XML, App Inventor–specific block types, and how **aia-kit** treats it. For a minimal XML example and block-type table, see [AIA reference — BKY](aia.md#bky-files-bky).
 
 ---
 
@@ -82,7 +82,7 @@ Block mutations and fields reference **component instance names** (`Button1`, `S
 | Read/mutate via project | **Block lens** — **`queryBlocks`**, **`updateBlocks`**, **`updateAllScreenBlocks`**, **`parseBlocks`**, **`serializeBlocks`**, **`updateScreenBky`** — [`src/blocks/lens.ts`](../src/blocks/lens.ts) |
 | Raw screen field | **`AiaScreen.bky`** (`string`) |
 
-Parsing failures surface as **`MALFORMED_BKY`** when using higher-level helpers such as **`diagnose()`** (see [Analysis](file-formats.md)); **`parseBky`** itself throws on invalid XML.
+Parsing failures surface as **`MALFORMED_BKY`** when using **`diagnose()`** ([`src/analysis/diagnose.ts`](../src/analysis/diagnose.ts)); **`parseBky`** itself throws on invalid XML.
 
 ---
 

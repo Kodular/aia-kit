@@ -1,6 +1,6 @@
 # YAIL — Young Android Intermediate Language
 
-This document explains what YAIL is, how it relates to AIA screens (SCM + BKY), and where to learn more in MIT’s open-source tree. For ZIP layout and a minimal example file, see [File formats — YAIL](file-formats.md#yail-files-yailyail).
+This document explains what YAIL is, how it relates to AIA screens (SCM + BKY), and where to learn more in MIT’s open-source tree. For ZIP layout and a minimal example file, see [AIA reference — YAIL](aia.md#yail-files-yail).
 
 ---
 
@@ -32,7 +32,7 @@ Primary references:
 
 ## Typical shape of a screen `.yail` file
 
-The following pieces appear repeatedly in generated screens (see example in [file-formats.md](file-formats.md#yail-files-yailyail)):
+The following pieces appear repeatedly in generated screens (see example in [aia.md](aia.md#yail-files-yail)):
 
 | Form | Purpose |
 |------|---------|
@@ -56,7 +56,7 @@ The macros in `runtime.scm` compile down to data structures (e.g. lists of compo
 
 In **aia-kit**, resolved **`ComponentDescriptor.type`** values in environment JSON already carry those fully qualified names where applicable, which is what a generator should emit in YAIL.
 
-**Extensions** use their own qualified classes from the extension descriptor / AIX metadata (see [AIX format](file-formats.md#aix--app-inventor-extension)).
+**Extensions** use their own qualified classes from the extension descriptor / AIX metadata (see [AIX](aix.md)).
 
 ---
 

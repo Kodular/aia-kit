@@ -31,11 +31,11 @@
 - Let `main = model.source.properties['main'] ?? ''`, split with `.`.
 - If `parts.length > 1`, **package prefix** = `parts.slice(0, -1).join('.')` (all but last segment). Else use a fallback consistent with `getPackagePath` in `src/write.ts` (document the same default base).
 - **Qualified repl class** for screen `S` = `${packagePrefix}.${S}` (e.g. `io.kodular.user.App.Screen1`).
-- **`define-repl-form`** first argument = that qualified class; second argument = Scheme symbol for the screen (typically same as screen name — match conventions in `docs/file-formats.md` examples).
+- **`define-repl-form`** first argument = that qualified class; second argument = Scheme symbol for the screen (typically same as screen name — match conventions in `docs/aia.md` YAIL example).
 
 ### File shape
 
-Follow `docs/file-formats.md` § YAIL Files:
+Follow `docs/aia.md` § YAIL files:
 
 1. Header: `#|\n$Source $Yail\n|#\n`
 2. `(define-repl-form …)`
@@ -63,7 +63,7 @@ Follow `docs/file-formats.md` § YAIL Files:
   - Empty block forest: omit block sections except footer; still emit full component section + `(init-runtime)`.
   - `global_declaration`: emit a best-effort `define-variable` or comment stub consistent with sample YAIL in docs (pick one strategy and test it).
   - `procedures_defnoreturn` / `procedures_defreturn`: emit procedure shell with body placeholder or recursive emission for **expression leaf blocks only** (`math_number`, `text`, `logic_boolean`).
-  - `component_event` (and equivalent): emit `(define-event <Instance> <EventName> (<params>) …)` — parameter list from mutation/fields per BKY conventions in `docs/file-formats.md`; body uses same leaf-block subset as procedures.
+  - `component_event` (and equivalent): emit `(define-event <Instance> <EventName> (<params>) …)` — parameter list from mutation/fields per BKY conventions in `docs/aia.md`; body uses same leaf-block subset as procedures.
 - **Unknown / unsupported block types:** emit `;;; aia-kit: unsupported block <type> id=<id>` (never throw from generator). This keeps output deterministic and debuggable.
 
 Expand the whitelist in later milestones; M2c only needs a clear, tested baseline.

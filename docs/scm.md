@@ -1,6 +1,6 @@
 # SCM — Screen component metadata
 
-This document describes the **`.scm`** screen file: JSON describing the **Visual Designer** component tree, wrapped in a block comment. For field tables and a minimal example, see [File formats — SCM](file-formats.md#scm-files-scmsc).
+This document describes the **`.scm`** screen file: JSON describing the **Visual Designer** component tree, wrapped in a block comment. For field tables and a minimal example, see [AIA reference — SCM](aia.md#scm-files-scm).
 
 ---
 
@@ -32,7 +32,7 @@ The file looks like a **Scheme block comment** enclosing a **`$JSON`** payload. 
 
 ## JSON envelope
 
-Typical top-level keys (see [file-formats.md](file-formats.md#scm-files-scmsc)):
+Typical top-level keys (see [aia.md § SCM](aia.md#scm-files-scm)):
 
 | Field | Meaning |
 |-------|---------|
