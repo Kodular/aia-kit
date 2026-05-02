@@ -14,10 +14,10 @@ export function serializeScm(root: AiaComponent, originalScm: string): string {
 
 function componentToJson(comp: AiaComponent): Record<string, unknown> {
   return {
+    ...comp.properties,
     $Name: comp.name,
     $Type: comp.type,
     Uuid: comp.uid,
-    ...comp.properties,
     $Components: comp.children.map(componentToJson),
   }
 }
