@@ -1,7 +1,7 @@
-import type { AiaProject, AiaScreen } from './types.js'
-import type { ComponentDescriptor, ComponentPropertyDescriptor } from './descriptors.js'
-import type { Diagnostic } from './diagnostics.js'
-import type { Environment } from './environment.js'
+import type { AiaProject, AiaScreen } from '#/core/types.js'
+import type { ComponentDescriptor, ComponentPropertyDescriptor } from '#/core/descriptors.js'
+import type { Diagnostic } from '#/core/diagnostics.js'
+import type { Environment } from '#/core/environment.js'
 
 export interface ModelProject {
   readonly _tag: 'ModelProject'

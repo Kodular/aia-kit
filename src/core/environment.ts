@@ -1,8 +1,8 @@
 import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import type { ComponentDescriptor } from './descriptors.js'
-import type { AiaExtension } from './types.js'
+import type { ComponentDescriptor } from '#/core/descriptors.js'
+import type { AiaExtension } from '#/core/types.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 

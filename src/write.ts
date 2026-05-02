@@ -1,7 +1,7 @@
 import { BlobWriter, ZipWriter, TextReader, BlobReader } from '@zip.js/zip.js'
-import type { AiaProject } from './core/types.js'
-import type { ModelProject } from './core/model.js'
-import { AiaWriteError } from './core/errors.js'
+import type { AiaProject } from '#/core/types.js'
+import type { ModelProject } from '#/core/model.js'
+import { AiaWriteError } from '#/core/errors.js'
 
 export async function writeAia(project: AiaProject | ModelProject): Promise<Blob> {
   const raw: AiaProject = '_tag' in project && project._tag === 'ModelProject'

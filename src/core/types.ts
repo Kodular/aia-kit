@@ -1,4 +1,4 @@
-import type { ComponentDescriptor } from './descriptors.js'
+import type { ComponentDescriptor } from '#/core/descriptors.js'
 
 export interface AiaProject {
   readonly _tag: 'AiaProject'

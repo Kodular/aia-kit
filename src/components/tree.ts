@@ -1,4 +1,4 @@
-import type { ModelComponent } from '../core/model.js'
+import type { ModelComponent } from '#/core/model.js'
 
 export function findComponent(root: ModelComponent, uid: string): ModelComponent | null {
   if (root.uid === uid) return root

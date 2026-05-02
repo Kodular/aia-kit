@@ -1,10 +1,10 @@
 import { BlobReader, BlobWriter, ZipReader, ZipWriter, TextWriter, type Entry, type FileEntry } from '@zip.js/zip.js'
 import { getProperties } from 'properties-file'
-import type { AiaProject, AiaScreen, AiaAsset, AiaExtension, AixManifest, AixAsset } from './core/types.js'
-import type { ComponentDescriptor } from './core/descriptors.js'
-import { AiaZipError, AiaStructureError } from './core/errors.js'
-import type { Environment } from './core/environment.js'
-import type { ModelProject } from './core/model.js'
+import type { AiaProject, AiaScreen, AiaAsset, AiaExtension, AixManifest, AixAsset } from '#/core/types.js'
+import type { ComponentDescriptor } from '#/core/descriptors.js'
+import { AiaZipError, AiaStructureError } from '#/core/errors.js'
+import type { Environment } from '#/core/environment.js'
+import type { ModelProject } from '#/core/model.js'
 
 export async function parseAia(input: Uint8Array | ArrayBuffer | Blob): Promise<AiaProject> {
   const blob = toBlob(input)
@@ -185,7 +185,7 @@ export async function parseAndResolve(
   input: Uint8Array | ArrayBuffer | Blob,
   env: Environment
 ): Promise<ModelProject> {
-  const { resolve } = await import('./resolve.js')
+  const { resolve } = await import('#/resolve.js')
   const project = await parseAia(input)
   return resolve(project, env)
 }

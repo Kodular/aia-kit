@@ -1,4 +1,4 @@
-import type { AiaComponent } from '../core/types.js'
+import type { AiaComponent } from '#/core/types.js'
 
 interface RawComponentJson {
   $Name: string
