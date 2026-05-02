@@ -1,17 +1,18 @@
-import { BkyParser } from './bky-parser.js'
-import type { BlockAst } from './ast.js'
-import type { AiaProject, AiaScreen } from '../core/types.js'
-import type { Diagnostic } from '../core/diagnostics.js'
+import { parseBky } from '#/blocks/bky-parser.js'
+import { serializeBky } from '#/blocks/bky-serializer.js'
+import type { BlockAst } from '#/blocks/ast.js'
+import type { AiaProject, AiaScreen } from '#/core/types.js'
+import type { Diagnostic } from '#/core/diagnostics.js'
 
-export type { BlockAst } from './ast.js'
-export type { BlockNode } from './ast.js'
+export type { BlockAst } from '#/blocks/ast.js'
+export type { BlockNode } from '#/blocks/ast.js'
 
 export function parseBlocks(bky: string): BlockAst {
-  return BkyParser.parse(bky)
+  return parseBky(bky)
 }
 
 export function serializeBlocks(ast: BlockAst): string {
-  return BkyParser.serialize(ast)
+  return serializeBky(ast)
 }
 
 export function queryBlocks<T>(
@@ -19,7 +20,7 @@ export function queryBlocks<T>(
   query: (ast: BlockAst) => T
 ): T {
   const bky = 'source' in screen ? screen.source.bky : screen.bky
-  return query(BkyParser.parse(bky))
+  return query(parseBky(bky))
 }
 
 export function updateBlocks(
@@ -41,10 +42,10 @@ export function updateBlocks(
   }
   const screen = project.screens[screenIndex]
   const ast = typeof astOrUpdater === 'function'
-    ? astOrUpdater(BkyParser.parse(screen.bky))
+    ? astOrUpdater(parseBky(screen.bky))
     : astOrUpdater
   const newScreens = [...project.screens]
-  newScreens[screenIndex] = { ...screen, bky: BkyParser.serialize(ast) }
+  newScreens[screenIndex] = { ...screen, bky: serializeBky(ast) }
   return { project: { ...project, screens: newScreens }, diagnostics: [] }
 }
 
@@ -53,8 +54,8 @@ export function updateAllScreenBlocks(
   updater: (ast: BlockAst, screenName: string) => BlockAst
 ): { project: AiaProject; diagnostics: Diagnostic[] } {
   const newScreens = project.screens.map(screen => {
-    const ast = updater(BkyParser.parse(screen.bky), screen.name)
-    return { ...screen, bky: BkyParser.serialize(ast) }
+    const ast = updater(parseBky(screen.bky), screen.name)
+    return { ...screen, bky: serializeBky(ast) }
   })
   return { project: { ...project, screens: newScreens }, diagnostics: [] }
 }
