@@ -54,7 +54,9 @@ export interface AiaComponent {
   children: AiaComponent[]
 }
 
+import type { Diagnostic } from '#/core/diagnostics.js'
+
 export interface MutationResult {
   project: AiaProject
-  diagnostics: import('./diagnostics.js').Diagnostic[]
+  diagnostics: Diagnostic[]
 }
