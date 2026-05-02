@@ -2,11 +2,15 @@ import { BlobWriter, ZipWriter, TextReader, BlobReader } from '@zip.js/zip.js'
 import type { AiaProject } from '#/core/types.js'
 import type { ModelProject } from '#/core/model.js'
 import { AiaWriteError } from '#/core/errors.js'
+import { createYailGenerator } from '#/yail/index.js'
 
 export async function writeAia(project: AiaProject | ModelProject): Promise<Blob> {
-  const raw: AiaProject = '_tag' in project && project._tag === 'ModelProject'
+  const isModel = '_tag' in project && project._tag === 'ModelProject'
+  const raw: AiaProject = isModel
     ? (project as ModelProject).source
     : project as AiaProject
+  const yailGen = isModel ? createYailGenerator(project as ModelProject) : null
+  const modelScreens = isModel ? (project as ModelProject).screens : null
 
   try {
     const zw = new ZipWriter(new BlobWriter('application/zip'))
@@ -22,8 +26,13 @@ export async function writeAia(project: AiaProject | ModelProject): Promise<Blob
       const dir = `src/${packagePath}`
       await zw.add(`${dir}/${screen.name}.scm`, new TextReader(screen.scm))
       await zw.add(`${dir}/${screen.name}.bky`, new TextReader(screen.bky))
-      if (screen.yail) {
-        await zw.add(`${dir}/${screen.name}.yail`, new TextReader(screen.yail))
+      let yailOut = screen.yail
+      if (yailOut == null && yailGen && modelScreens) {
+        const ms = modelScreens.find(s => s.name === screen.name)
+        if (ms) yailOut = yailGen(ms)
+      }
+      if (yailOut) {
+        await zw.add(`${dir}/${screen.name}.yail`, new TextReader(yailOut))
       }
     }
 

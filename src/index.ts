@@ -29,6 +29,9 @@ export { parseAia, parseAix, parseAndResolve } from '#/parse.js'
 export { resolve } from '#/resolve.js'
 export { writeAia } from '#/write.js'
 
+// YAIL generation
+export { createYailGenerator } from '#/yail/index.js'
+
 // Block lens (public API only — parseBky/serializeBky are internal)
 export {
   parseBlocks, serializeBlocks,
