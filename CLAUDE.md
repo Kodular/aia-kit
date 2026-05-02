@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is `aia-kit`, a TypeScript library for reading, parsing, editing, and writing AIA/AIX/AIS files (App Inventor project files). The library is designed to work with App Inventor-based platforms, particularly Kodular Creator.
 
-**Status:** Currently on the `v2-rewrite` branch, undergoing a complete architectural redesign. See [v2 Design Spec](docs/superpowers/specs/2026-05-01-aia-kit-v2-design.md) and [Milestone 1 Plan](docs/superpowers/plans/2026-05-02-aia-kit-v2-m1-core-pipeline.md) for details.
+**Status:** Currently on the `v2-rewrite` branch, undergoing a complete architectural redesign. See [v2 Design Spec](docs/superpowers/specs/2026-05-01-aia-kit-v2-design.md), [M1 Plan](docs/superpowers/plans/2026-05-02-aia-kit-v2-m1-core-pipeline.md), and [M2a Plan](docs/superpowers/plans/2026-05-02-aia-kit-v2-m2a-structural-mutations.md) for details.
 
 ## Common Commands
 
@@ -49,8 +49,8 @@ v2 is built on three core principles:
 - **Errors** (`src/core/errors.ts`): Error hierarchy — `AiaKitError`, `AiaParseError`, `AiaZipError`, `AiaStructureError`, `AiaWriteError`
 
 **Specialised Parsers** (internal, not exported):
-- **BkyParser** (`src/blocks/bky-parser.ts`): XML ↔ BlockAst conversion
-- **ScmParser** (`src/components/scm-parser.ts`): SCM JSON → component tree
+- **BKY** (`src/blocks/bky-parser.ts`, `src/blocks/bky-serializer.ts`): `parseBky` / `serializeBky` — XML ↔ BlockAst
+- **SCM** (`src/components/scm-parser.ts`): `parseScm` — SCM JSON → component tree (serializer in `src/components/scm-serializer.ts` once M2a lands)
 
 **Public Lens APIs**:
 - **Block Lens** (`src/blocks/lens.ts`): `queryBlocks`, `updateBlocks`, `updateAllScreenBlocks`, `parseBlocks`, `serializeBlocks`
@@ -108,5 +108,4 @@ const aiaOut = await writeAia(updated);
 ## Testing
 
 - Test fixtures in `test/fixtures/` (real AIA files)
-- Unit tests in `test/v2/` organized by module
-- Use `pnpm test:w` during development for watch mode
+- Unit tests in `test/` organized by module
