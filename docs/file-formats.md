@@ -14,6 +14,14 @@ Reference hub for archive and screen-level formats that **aia-kit** reads and wr
 
 ---
 
+## Project metadata
+
+| File | Role | Deep dive |
+|------|------|-----------|
+| **`project.properties`** | Project name, version, package, theme | [project-properties.md](project-properties.md) · [reference in AIA](aia.md#projectproperties) |
+
+---
+
 ## Files inside an AIA (per screen)
 
 | Extension | Role | Deep dive |
@@ -27,7 +35,8 @@ Reference hub for archive and screen-level formats that **aia-kit** reads and wr
 ## Quick links
 
 - **Project metadata & ZIP layout:** [AIA — directory structure](aia.md#zip-directory-structure)
-- **`project.properties` keys:** [AIA — project.properties](aia.md#projectproperties)
+- **`project.properties` keys:** [project-properties.md](project-properties.md)
+- **Component registry schema:** [simple-components-json.md](simple-components-json.md)
 - **Bundled extensions:** [AIA assets](aia.md#assets) · [AIX layout](aix.md#zip-directory-structure-single-component)
 - **Extension packs:** [AIX — extension packs](aix.md#extension-packs)
 - **Writer round-trip:** [AIA — writer notes](aia.md#writer-round-trip-notes)

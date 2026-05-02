@@ -20,6 +20,8 @@ Start at the hub [**docs/file-formats.md**](docs/file-formats.md) — it links t
 | **SCM** (designer component tree) | [docs/scm.md](docs/scm.md) |
 | **BKY** (Blockly XML) | [docs/bky.md](docs/bky.md) |
 | **YAIL** (intermediate Scheme-like layer) | [docs/yail.md](docs/yail.md) |
+| `project.properties` (AIA metadata key-value file) | [docs/project-properties.md](docs/project-properties.md) |
+| `simple_components.json` (platform component registry) | [docs/simple-components-json.md](docs/simple-components-json.md) |
 | Glossary and naming | [docs/ubiquitous-language.md](docs/ubiquitous-language.md) |
 
 ## Common Commands
