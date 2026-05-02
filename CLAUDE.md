@@ -8,6 +8,20 @@ This is `aia-kit`, a TypeScript library for reading, parsing, editing, and writi
 
 **Status:** Currently on the `v2-rewrite` branch, undergoing a complete architectural redesign. See [v2 Design Spec](docs/superpowers/specs/2026-05-01-aia-kit-v2-design.md), [M1 Plan](docs/superpowers/plans/2026-05-02-aia-kit-v2-m1-core-pipeline.md), and [M2a Plan](docs/superpowers/plans/2026-05-02-aia-kit-v2-m2a-structural-mutations.md) for details.
 
+## File format documentation
+
+Start at the hub [**docs/file-formats.md**](docs/file-formats.md) — it links to all format pages.
+
+| Topic | Doc |
+|--------|-----|
+| **AIA** (multi-screen project ZIP) | [docs/aia.md](docs/aia.md) |
+| **AIX** (extension package ZIP) | [docs/aix.md](docs/aix.md) |
+| **AIS** (single-screen export; AIA-shaped) | [docs/ais.md](docs/ais.md) |
+| **SCM** (designer component tree) | [docs/scm.md](docs/scm.md) |
+| **BKY** (Blockly XML) | [docs/bky.md](docs/bky.md) |
+| **YAIL** (intermediate Scheme-like layer) | [docs/yail.md](docs/yail.md) |
+| Glossary and naming | [docs/ubiquitous-language.md](docs/ubiquitous-language.md) |
+
 ## Common Commands
 
 ### Build and Development
@@ -50,7 +64,7 @@ v2 is built on three core principles:
 
 **Specialised Parsers** (internal, not exported):
 - **BKY** (`src/blocks/bky-parser.ts`, `src/blocks/bky-serializer.ts`): `parseBky` / `serializeBky` — XML ↔ BlockAst
-- **SCM** (`src/components/scm-parser.ts`): `parseScm` — SCM JSON → component tree (serializer in `src/components/scm-serializer.ts` once M2a lands)
+- **SCM** (`src/components/scm-parser.ts`, `src/components/scm-serializer.ts`): `parseScm` / `serializeScm` — SCM ↔ component tree
 
 **Public Lens APIs**:
 - **Block Lens** (`src/blocks/lens.ts`): `queryBlocks`, `updateBlocks`, `updateAllScreenBlocks`, `parseBlocks`, `serializeBlocks`
