@@ -8,6 +8,13 @@ This is `aia-kit`, a TypeScript library for reading, parsing, editing, and writi
 
 **Status:** Currently on the `v2-rewrite` branch, undergoing a complete architectural redesign. See [v2 Design Spec](docs/superpowers/specs/2026-05-01-aia-kit-v2-design.md), [M1 Plan](docs/superpowers/plans/2026-05-02-aia-kit-v2-m1-core-pipeline.md), and [M2a Plan](docs/superpowers/plans/2026-05-02-aia-kit-v2-m2a-structural-mutations.md) for details.
 
+## Library documentation
+
+| Doc | Purpose |
+|-----|---------|
+| [docs/usage.md](docs/usage.md) | Usage guide — core pipeline, examples for every API area |
+| [docs/api.md](docs/api.md) | Full API reference — all exported types and functions |
+
 ## File format documentation
 
 Start at the hub [**docs/file-formats.md**](docs/file-formats.md) — it links to all format pages.
