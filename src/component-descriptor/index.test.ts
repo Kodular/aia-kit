@@ -45,7 +45,7 @@ describe('public component descriptor API', () => {
     ) as { exports: Record<string, string> }
 
     expect(packageJson.exports['./component-descriptor']).toBe(
-      './dist/src/component-descriptor/index.js',
+      './dist/component-descriptor/index.mjs',
     )
   })
 })
