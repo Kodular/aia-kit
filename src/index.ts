@@ -1,3 +1,15 @@
+import {
+  Platform as PlatformValue,
+  createEnvironment,
+  getEnvironmentFor,
+} from '#/environment.js'
+import type {
+  CreateEnvironmentInput,
+  Environment,
+  EnvironmentMeta,
+  Platform as PlatformType,
+} from '#/environment.js'
+
 // Raw layer types
 export type {
   AiaProject, AiaScreen, AiaAsset, AiaExtension,
@@ -20,18 +32,37 @@ export type { Diagnostic, DiagnosticSeverity, DiagnosticCode } from '#/core/diag
 export { mergeReports } from '#/core/diagnostics.js'
 
 // Errors
-export { AiaKitError, AiaParseError, AiaZipError, AiaStructureError, AiaWriteError } from '#/core/errors.js'
+export {
+  AiaKitError,
+  AiaParseError,
+  AiaZipError,
+  AiaStructureError,
+  AiaWriteError,
+  EnvironmentConstructionError,
+} from '#/core/errors.js'
 
 // Registries
-export type {
+export {
+  BuiltinBlockRegistry,
   ComponentRegistry,
-  BlockRegistry,
+  DEFAULT_BUILTINS,
+  MutableComponentRegistry,
+  defaultBlockRegistry,
+} from '#/core/registries.js'
+export type {
   BuiltinBlockDescriptor,
   BuiltinBlockCategory,
 } from '#/core/registries.js'
 
 // Environment
-export { Environment } from '#/core/environment.js'
+export const Platform = PlatformValue
+export { createEnvironment, getEnvironmentFor }
+export type {
+  CreateEnvironmentInput,
+  Environment,
+  EnvironmentMeta,
+}
+export type Platform = PlatformType
 
 // Pipeline
 export { parseAia, parseAix, parseAndResolve, parseProjectProperties } from '#/parse.js'

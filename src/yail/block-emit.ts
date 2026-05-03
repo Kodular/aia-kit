@@ -1,5 +1,5 @@
 import type { BlockAst, BlockNode } from "#/blocks/ast.js";
-import type { BlockRegistry } from "#/core/registries.js";
+import type { BuiltinBlockRegistry } from "#/core/registries.js";
 import { isEventHandlerBlock } from "#/utils/block-types.js";
 import { emitLiteral, lines } from "./emit.js";
 
@@ -149,7 +149,7 @@ function emitEventHat(block: BlockNode): string {
  * (each group keeps source order). Intended to follow the component section
  * when concatenating full-screen YAIL.
  */
-export function emitBlockSection(ast: BlockAst, blockRegistry: BlockRegistry): string {
+export function emitBlockSection(ast: BlockAst, blockRegistry: BuiltinBlockRegistry): string {
   const events: string[] = [];
   const procedures: string[] = [];
   const globals: string[] = [];

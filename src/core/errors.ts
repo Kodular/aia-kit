@@ -34,3 +34,10 @@ export class AiaWriteError extends AiaKitError {
     this.name = 'AiaWriteError'
   }
 }
+
+export class EnvironmentConstructionError extends AiaKitError {
+  constructor(message: string) {
+    super(message)
+    this.name = 'EnvironmentConstructionError'
+  }
+}

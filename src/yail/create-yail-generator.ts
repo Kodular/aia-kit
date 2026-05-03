@@ -20,7 +20,7 @@ export function createYailGenerator(
     const qualifiedClass = `${packagePrefix}.${resolved.name}`;
     const blockSection = emitBlockSection(
       parseBky(resolved.source.bky),
-      model.environment.blockRegistry,
+      model.environment.builtinBlockRegistry,
     );
 
     const chunks = [

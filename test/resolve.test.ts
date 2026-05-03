@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { parseAia } from '#/parse.js'
 import { resolve } from '#/resolve.js'
-import { Environment } from '#/core/environment.js'
+import { Platform, createEnvironment, getEnvironmentFor } from '#/core/environment.js'
 import { makeProjectProperties } from './helpers.js'
 
 const FIXTURES = join(import.meta.dirname, 'fixtures')
@@ -12,7 +12,7 @@ describe('resolve', () => {
   it('returns a ModelProject with _tag', async () => {
     const bytes = readFileSync(join(FIXTURES, 'HelloPurr.aia'))
     const raw = await parseAia(new Uint8Array(bytes))
-    const env = await Environment.kodularCreator()
+    const env = await getEnvironmentFor(Platform.KodularCreator)
     const model = resolve(raw, env)
     expect(model._tag).toBe('ModelProject')
   })
@@ -20,7 +20,7 @@ describe('resolve', () => {
   it('model.screens has same count as raw screens', async () => {
     const bytes = readFileSync(join(FIXTURES, 'HelloPurr.aia'))
     const raw = await parseAia(new Uint8Array(bytes))
-    const env = await Environment.kodularCreator()
+    const env = await getEnvironmentFor(Platform.KodularCreator)
     const model = resolve(raw, env)
     expect(model.screens).toHaveLength(raw.screens.length)
   })
@@ -28,7 +28,7 @@ describe('resolve', () => {
   it('resolves root form component', async () => {
     const bytes = readFileSync(join(FIXTURES, 'HelloPurr.aia'))
     const raw = await parseAia(new Uint8Array(bytes))
-    const env = await Environment.kodularCreator()
+    const env = await getEnvironmentFor(Platform.KodularCreator)
     const model = resolve(raw, env)
     const screen = model.screens[0]
     expect(screen.form.name).toBeTruthy()
@@ -49,7 +49,10 @@ describe('resolve', () => {
       assets: [],
       extensions: [],
     }
-    const env = { lookup: () => null, withExtension: () => env, withExtensions: () => env } as any
+    const env = createEnvironment({
+      meta: { id: 'empty', name: 'Empty' },
+      components: [],
+    })
     expect(() => resolve(raw, env)).not.toThrow()
   })
 
@@ -67,7 +70,10 @@ describe('resolve', () => {
       assets: [],
       extensions: [],
     }
-    const env = { lookup: () => null, withExtension: () => env, withExtensions: () => env } as any
+    const env = createEnvironment({
+      meta: { id: 'empty', name: 'Empty' },
+      components: [],
+    })
     const model = resolve(raw, env)
     expect(model.diagnostics.some(d => d.code === 'UNRESOLVABLE_COMPONENT')).toBe(true)
   })

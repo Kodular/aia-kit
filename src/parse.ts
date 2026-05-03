@@ -3,7 +3,7 @@ import { getProperties } from 'properties-file'
 import type { AiaProject, AiaScreen, AiaAsset, AiaExtension, AixManifest, AixAsset, ProjectProperties } from '#/core/types.js'
 import type { ComponentDescriptor } from '#/core/descriptors.js'
 import { AiaZipError, AiaStructureError } from '#/core/errors.js'
-import type { Environment } from '#/core/environment.js'
+import type { Environment } from '#/environment.js'
 import type { ModelProject } from '#/core/model.js'
 import { extractClassName, extractPackageName } from '#/utils/package-names.js'
 

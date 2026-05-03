@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Diagnostic } from "#/core/diagnostics.js";
-import { Environment } from "#/core/environment.js";
+import { Platform, getEnvironmentFor } from "#/core/environment.js";
 import type { AiaProject, AiaScreen, ProjectProperties } from "#/core/types.js";
 import { resolve } from "#/resolve.js";
 import { createYailGenerator } from "#/yail/index.js";
@@ -37,7 +37,7 @@ function minimalProject(
 
 describe("createYailGenerator", () => {
   it("emits define-repl-form, do-after-form-creation, and init-runtime for empty BKY", async () => {
-    const env = await Environment.mitAppInventor();
+    const env = await getEnvironmentFor(Platform.MitAppInventor);
     const model = resolve(
       minimalProject([{ name: "Screen1", scm: scmForScreen("Screen1") }]),
       env,
@@ -55,7 +55,7 @@ describe("createYailGenerator", () => {
   });
 
   it("uses distinct qualified repl classes for each screen", async () => {
-    const env = await Environment.mitAppInventor();
+    const env = await getEnvironmentFor(Platform.MitAppInventor);
     const model = resolve(
       minimalProject(
         [

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { diagnose } from '#/analysis/diagnose.js'
 import type { AiaProject, AiaScreen } from '#/core/types.js'
-import { Environment } from '#/core/environment.js'
+import { Platform, getEnvironmentFor } from '#/core/environment.js'
 import { makeProjectProperties } from '../helpers.js'
 
 const EMPTY_SCM = `#|
@@ -29,7 +29,7 @@ function makeProject(overrides: Partial<AiaProject> = {}): AiaProject {
 
 describe('diagnose', () => {
   it('appends MALFORMED_BKY for invalid BKY XML and path includes screen name', async () => {
-    const env = await Environment.mitAppInventor()
+    const env = await getEnvironmentFor(Platform.MitAppInventor)
     const project = makeProject({
       screens: [makeScreen('Bad', EMPTY_SCM, '<<<')],
     })
@@ -40,7 +40,7 @@ describe('diagnose', () => {
   })
 
   it('does not add MALFORMED_BKY when BKY parses and SCM resolves', async () => {
-    const env = await Environment.mitAppInventor()
+    const env = await getEnvironmentFor(Platform.MitAppInventor)
     const project = makeProject({
       screens: [makeScreen('S1', EMPTY_SCM, EMPTY_BKY)],
     })

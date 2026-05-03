@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import type { AiaProject, AiaScreen, AiaAsset, AiaExtension } from '#/core/types.js'
 import type { ComponentDescriptor } from '#/core/descriptors.js'
-import { Environment } from '#/core/environment.js'
+import { Platform, getEnvironmentFor } from '#/core/environment.js'
 import { resolve } from '#/resolve.js'
 import { findUnusedExtensions, findUnusedAssets, findAssetReferences } from '#/analysis/unused.js'
 import { makeProjectProperties } from '../helpers.js'
@@ -71,7 +71,7 @@ function makeProject(overrides: Partial<AiaProject> = {}): AiaProject {
 
 describe('findUnusedExtensions', () => {
   it('lists extension as unused when no SCM node uses any extension component type', async () => {
-    const env = await Environment.mitAppInventor()
+    const env = await getEnvironmentFor(Platform.MitAppInventor)
     const ext = makeExtension([fakeDescriptor('com.fake.Widget')])
     const project = makeProject({ extensions: [ext] })
     const model = resolve(project, env)
@@ -80,7 +80,7 @@ describe('findUnusedExtensions', () => {
   })
 
   it('does not list extension when SCM includes a component of that type', async () => {
-    const env = await Environment.mitAppInventor()
+    const env = await getEnvironmentFor(Platform.MitAppInventor)
     const ext = makeExtension([fakeDescriptor('com.fake.Widget')])
     const scmWithWidget = `#|
 $JSON
@@ -99,14 +99,14 @@ $JSON
 
 describe('findUnusedAssets', () => {
   it('treats asset as unused when absent from scm, bky, and project.properties', async () => {
-    const env = await Environment.mitAppInventor()
+    const env = await getEnvironmentFor(Platform.MitAppInventor)
     const project = makeProject({ assets: [makeAsset('x.png')] })
     const model = resolve(project, env)
     expect(findUnusedAssets(model).map(a => a.name)).toEqual(['x.png'])
   })
 
   it('does not treat asset as unused when filename appears in a Label Picture property', async () => {
-    const env = await Environment.mitAppInventor()
+    const env = await getEnvironmentFor(Platform.MitAppInventor)
     const scmLabelPicture = `#|
 $JSON
 {"authURL":["aia-kit"],"YaVersion":"1","Source":"Form","Properties":{"$Name":"Screen1","$Type":"Form","Uuid":"root","Title":"Screen1","$Components":[
@@ -124,7 +124,7 @@ $JSON
 
 describe('findAssetReferences', () => {
   it('emits property reference when a component property value contains the asset name', async () => {
-    const env = await Environment.mitAppInventor()
+    const env = await getEnvironmentFor(Platform.MitAppInventor)
     const scm = `#|
 $JSON
 {"authURL":["aia-kit"],"YaVersion":"1","Source":"Form","Properties":{"$Name":"Screen1","$Type":"Form","Uuid":"root","BackgroundImage":"pic.png","$Components":[]}}
@@ -142,7 +142,7 @@ $JSON
   })
 
   it('emits block_xml when BKY text contains the asset name', async () => {
-    const env = await Environment.mitAppInventor()
+    const env = await getEnvironmentFor(Platform.MitAppInventor)
     const bky = `${EMPTY_BKY.slice(0, -6)}<field name="TEXT">pic.png</field></xml>`
     const project = makeProject({
       assets: [makeAsset('pic.png')],

@@ -1,54 +1,115 @@
 import { readFile } from 'node:fs/promises'
-import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import type { ComponentDescriptor } from '#/core/descriptors.js'
-import type { AiaExtension } from '#/core/types.js'
-import type { ComponentRegistry, BlockRegistry } from '#/core/registries.js'
-import { createComponentRegistry, defaultBlockRegistry } from '#/core/registries.js'
+import { EnvironmentConstructionError } from '#/core/errors.js'
+import {
+  BuiltinBlockRegistry,
+  ComponentRegistry,
+  defaultBlockRegistry,
+  MutableComponentRegistry,
+  type BuiltinBlockDescriptor,
+} from '#/core/registries.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
-export class Environment {
+export const Platform = {
+  MitAppInventor: 'mit-app-inventor',
+  KodularCreator: 'kodular-creator',
+} as const
+
+export type Platform = typeof Platform[keyof typeof Platform]
+
+export interface EnvironmentMeta {
+  id: string
+  name: string
+  version?: string
+  website?: string
+  source?: string
+}
+
+export interface Environment {
   readonly componentRegistry: ComponentRegistry
-  readonly blockRegistry: BlockRegistry
+  readonly builtinBlockRegistry: BuiltinBlockRegistry
+  readonly meta: EnvironmentMeta
+}
 
-  private constructor(componentRegistry: ComponentRegistry, blockRegistry: BlockRegistry) {
-    this.componentRegistry = componentRegistry
-    this.blockRegistry = blockRegistry
-  }
+export interface CreateEnvironmentInput {
+  meta: EnvironmentMeta
+  components: ComponentRegistry | Iterable<ComponentDescriptor>
+  builtinBlocks?: BuiltinBlockRegistry | Iterable<BuiltinBlockDescriptor>
+}
 
-  /** Convenience delegation to componentRegistry.lookup() */
-  lookup(typeName: string): ComponentDescriptor | null {
-    return this.componentRegistry.lookup(typeName)
-  }
+const platformNames: Record<Platform, string> = {
+  [Platform.MitAppInventor]: 'MIT App Inventor',
+  [Platform.KodularCreator]: 'Kodular Creator',
+}
 
-  withExtension(ext: AiaExtension): Environment {
-    return new Environment(
-      this.componentRegistry.extend(ext.components),
-      this.blockRegistry,
-    )
-  }
+const environmentCache = new Map<Platform, Promise<Environment>>()
 
-  withExtensions(exts: AiaExtension[]): Environment {
-    return new Environment(
-      this.componentRegistry.extend(exts.flatMap(e => e.components)),
-      this.blockRegistry,
-    )
-  }
+export function createEnvironment(input: CreateEnvironmentInput): Environment {
+  const meta = validateMeta(input.meta)
+  const componentRegistry = input.components instanceof MutableComponentRegistry
+    ? input.components.snapshot()
+    : input.components instanceof ComponentRegistry
+      ? input.components
+      : ComponentRegistry.of(input.components)
+  const builtinBlockRegistry = input.builtinBlocks === undefined
+    ? defaultBlockRegistry()
+    : input.builtinBlocks instanceof BuiltinBlockRegistry
+      ? input.builtinBlocks
+      : BuiltinBlockRegistry.of(input.builtinBlocks)
 
-  private static async loadJson(platform: string): Promise<ComponentDescriptor[]> {
-    const path = join(__dirname, '../../environments', platform, 'simple_components.json')
-    const text = await readFile(path, 'utf-8')
-    return JSON.parse(text) as ComponentDescriptor[]
-  }
+  return Object.freeze({
+    meta,
+    componentRegistry,
+    builtinBlockRegistry,
+  })
+}
 
-  static async kodularCreator(): Promise<Environment> {
-    const descriptors = await Environment.loadJson('kodular-creator')
-    return new Environment(createComponentRegistry(descriptors), defaultBlockRegistry())
-  }
+export function getEnvironmentFor(platform: Platform): Promise<Environment> {
+  const cached = environmentCache.get(platform)
+  if (cached) return cached
 
-  static async mitAppInventor(): Promise<Environment> {
-    const descriptors = await Environment.loadJson('mit-app-inventor')
-    return new Environment(createComponentRegistry(descriptors), defaultBlockRegistry())
+  const promise = loadEnvironment(platform).catch((error: unknown) => {
+    environmentCache.delete(platform)
+    throw error
+  })
+  environmentCache.set(platform, promise)
+  return promise
+}
+
+async function loadEnvironment(platform: Platform): Promise<Environment> {
+  const source = `environments/${platform}/simple_components.json`
+  const path = join(__dirname, '../../', source)
+  const text = await readFile(path, 'utf-8')
+  const components = JSON.parse(text) as ComponentDescriptor[]
+
+  return createEnvironment({
+    meta: {
+      id: platform,
+      name: platformNames[platform],
+      source,
+    },
+    components,
+    builtinBlocks: defaultBlockRegistry(),
+  })
+}
+
+function validateMeta(meta: EnvironmentMeta): EnvironmentMeta {
+  if (!hasNonBlankString(meta, 'id')) {
+    throw new EnvironmentConstructionError('Environment meta.id is required')
   }
+  if (!hasNonBlankString(meta, 'name')) {
+    throw new EnvironmentConstructionError('Environment meta.name is required')
+  }
+  return Object.freeze({ ...meta })
+}
+
+function hasNonBlankString(
+  meta: EnvironmentMeta,
+  key: 'id' | 'name',
+): boolean {
+  const value = key === 'id' ? meta.id : meta.name
+  return typeof value === 'string' && value.trim() !== ''
 }

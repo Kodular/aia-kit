@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { Diagnostic } from '#/core/diagnostics.js'
-import { Environment } from '#/core/environment.js'
+import { Platform, getEnvironmentFor } from '#/core/environment.js'
 import type { AiaProject, AiaScreen, ProjectProperties } from '#/core/types.js'
 import { parseAia } from '#/parse.js'
 import { resolve } from '#/resolve.js'
@@ -73,14 +73,14 @@ describe('writeAia', () => {
   it('accepts a ModelProject by using its source', async () => {
     const bytes = readFileSync(join(FIXTURES, 'HelloPurr.aia'))
     const project = await parseAia(new Uint8Array(bytes))
-    const env = await Environment.kodularCreator()
+    const env = await getEnvironmentFor(Platform.KodularCreator)
     const model = resolve(project, env)
     const out = await writeAia(model)
     expect(out).toBeInstanceOf(Blob)
   })
 
   it('writes generated .yail for ModelProject when source screens have yail null', async () => {
-    const env = await Environment.mitAppInventor()
+    const env = await getEnvironmentFor(Platform.MitAppInventor)
     const model = resolve(
       minimalProjectWithNullYail([{ name: 'Screen1', scm: scmForScreen('Screen1') }]),
       env,

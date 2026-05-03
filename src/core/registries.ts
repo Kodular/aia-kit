@@ -2,27 +2,102 @@ import type { ComponentDescriptor } from '#/core/descriptors.js'
 
 // ── ComponentRegistry ──────────────────────────────────────────────────────
 
-export interface ComponentRegistry {
-  readonly descriptors: ReadonlyArray<ComponentDescriptor>
-  lookup(typeName: string): ComponentDescriptor | null
-  extend(descriptors: ComponentDescriptor[]): ComponentRegistry
-}
+export class ComponentRegistry {
+  readonly #descriptors: ReadonlyArray<ComponentDescriptor>
+  readonly #byTypeOrName: ReadonlyMap<string, ComponentDescriptor>
 
-export function createComponentRegistry(descriptors: ComponentDescriptor[]): ComponentRegistry {
-  const map = new Map<string, ComponentDescriptor>(descriptors.map(d => [d.type, d]))
+  protected constructor(descriptors: Iterable<ComponentDescriptor>) {
+    const snapshot = Object.freeze([...descriptors])
+    const byTypeOrName = new Map<string, ComponentDescriptor>()
+    for (const descriptor of snapshot) {
+      byTypeOrName.set(descriptor.type, descriptor)
+      byTypeOrName.set(descriptor.name, descriptor)
+    }
+    this.#descriptors = snapshot
+    this.#byTypeOrName = byTypeOrName
+  }
 
-  return {
-    descriptors,
-    lookup(typeName: string): ComponentDescriptor | null {
-      return map.get(typeName) ?? null
-    },
-    extend(extra: ComponentDescriptor[]): ComponentRegistry {
-      return createComponentRegistry([...descriptors, ...extra])
-    },
+  static of(descriptors: Iterable<ComponentDescriptor>): ComponentRegistry {
+    return new ComponentRegistry(descriptors)
+  }
+
+  get descriptors(): ReadonlyArray<ComponentDescriptor> {
+    return this.#descriptors
+  }
+
+  lookup(typeOrName: string): ComponentDescriptor | null {
+    return this.#byTypeOrName.get(typeOrName) ?? null
+  }
+
+  has(typeOrName: string): boolean {
+    return this.#byTypeOrName.has(typeOrName)
+  }
+
+  toMutable(): MutableComponentRegistry {
+    return new MutableComponentRegistry(this.#descriptors)
   }
 }
 
-// ── BlockRegistry ──────────────────────────────────────────────────────────
+export class MutableComponentRegistry extends ComponentRegistry {
+  readonly #descriptors: ComponentDescriptor[]
+
+  constructor(descriptors: Iterable<ComponentDescriptor> = []) {
+    const snapshot = [...descriptors]
+    super(snapshot)
+    this.#descriptors = snapshot
+  }
+
+  override get descriptors(): ReadonlyArray<ComponentDescriptor> {
+    return Object.freeze([...this.#descriptors])
+  }
+
+  override lookup(typeOrName: string): ComponentDescriptor | null {
+    return this.#descriptors.find(
+      descriptor => descriptor.type === typeOrName || descriptor.name === typeOrName,
+    ) ?? null
+  }
+
+  override has(typeOrName: string): boolean {
+    return this.lookup(typeOrName) !== null
+  }
+
+  override toMutable(): MutableComponentRegistry {
+    return new MutableComponentRegistry(this.#descriptors)
+  }
+
+  add(descriptors: ComponentDescriptor | readonly ComponentDescriptor[]): void {
+    const nextDescriptors = Array.isArray(descriptors) ? descriptors : [descriptors]
+    for (const descriptor of nextDescriptors) {
+      this.remove(descriptor.type)
+      this.remove(descriptor.name)
+      this.#descriptors.push(descriptor)
+    }
+  }
+
+  remove(typeOrNames: string | readonly string[]): boolean {
+    const names = Array.isArray(typeOrNames) ? typeOrNames : [typeOrNames]
+    let removed = false
+    for (const typeOrName of names) {
+      let index = this.#descriptors.findIndex(
+        descriptor => descriptor.type === typeOrName || descriptor.name === typeOrName,
+      )
+      while (index !== -1) {
+        this.#descriptors.splice(index, 1)
+        removed = true
+        index = this.#descriptors.findIndex(
+          descriptor => descriptor.type === typeOrName || descriptor.name === typeOrName,
+        )
+      }
+    }
+    return removed
+  }
+
+  snapshot(): ComponentRegistry {
+    return ComponentRegistry.of(this.#descriptors)
+  }
+}
+
+// ── BuiltinBlockRegistry ───────────────────────────────────────────────────
 
 export type BuiltinBlockCategory =
   | 'logic'
@@ -40,21 +115,27 @@ export interface BuiltinBlockDescriptor {
   category: BuiltinBlockCategory
 }
 
-export interface BlockRegistry {
-  readonly builtins: ReadonlyMap<string, BuiltinBlockDescriptor>
-  lookup(type: string): BuiltinBlockDescriptor | null
-  // Note: BlockRegistry has no `extend` method because block builtins are language primitives,
-  // not extended by plugins. Component extensions add new components, not new block types.
-}
+export class BuiltinBlockRegistry {
+  readonly #builtins: ReadonlyMap<string, BuiltinBlockDescriptor>
 
-export function createBlockRegistry(builtins: BuiltinBlockDescriptor[]): BlockRegistry {
-  const map = new Map<string, BuiltinBlockDescriptor>(builtins.map(b => [b.type, b]))
+  private constructor(builtins: Iterable<BuiltinBlockDescriptor>) {
+    this.#builtins = new Map([...builtins].map(builtin => [builtin.type, builtin]))
+  }
 
-  return {
-    builtins: map,
-    lookup(type: string): BuiltinBlockDescriptor | null {
-      return map.get(type) ?? null
-    },
+  static of(builtins: Iterable<BuiltinBlockDescriptor>): BuiltinBlockRegistry {
+    return new BuiltinBlockRegistry(builtins)
+  }
+
+  get builtins(): ReadonlyMap<string, BuiltinBlockDescriptor> {
+    return new Map(this.#builtins)
+  }
+
+  lookup(type: string): BuiltinBlockDescriptor | null {
+    return this.#builtins.get(type) ?? null
+  }
+
+  has(type: string): boolean {
+    return this.#builtins.has(type)
   }
 }
 
@@ -188,6 +269,6 @@ export const DEFAULT_BUILTINS: BuiltinBlockDescriptor[] = [
   { type: 'dictionaries_keys_not_found', category: 'dicts' },
 ]
 
-export function defaultBlockRegistry(): BlockRegistry {
-  return createBlockRegistry(DEFAULT_BUILTINS)
+export function defaultBlockRegistry(): BuiltinBlockRegistry {
+  return BuiltinBlockRegistry.of(DEFAULT_BUILTINS)
 }

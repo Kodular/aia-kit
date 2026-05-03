@@ -21,6 +21,8 @@
   "exports": {
     ".":           "./dist/src/index.js",
     "./analysis": "./dist/src/analysis/index.js",
+    "./component-descriptor": "./dist/src/component-descriptor.js",
+    "./environment": "./dist/src/environment.js",
     "./mutations": "./dist/src/mutations/index.js",
     "./parse":     "./dist/src/parse.js",
     "./resolve":   "./dist/src/resolve.js",

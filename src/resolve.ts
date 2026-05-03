@@ -3,7 +3,7 @@ import type { AiaProject, AiaComponent } from '#/core/types.js'
 import type { ModelProject, ModelScreen, ModelComponent, ComponentProperty } from '#/core/model.js'
 import type { ComponentDescriptor, ComponentPropertyDescriptor } from '#/core/descriptors.js'
 import type { Diagnostic } from '#/core/diagnostics.js'
-import type { Environment } from '#/core/environment.js'
+import type { Environment } from '#/environment.js'
 
 export function resolve(project: AiaProject, env: Environment): ModelProject {
   const diagnostics: Diagnostic[] = []
@@ -40,7 +40,7 @@ function resolveComponent(
     ? raw.type
     : `com.google.appinventor.components.runtime.${raw.type}`
 
-  let descriptor = env.lookup(fullType)
+  let descriptor = env.componentRegistry.lookup(fullType)
   if (!descriptor) {
     diagnostics.push({
       code: 'UNRESOLVABLE_COMPONENT',

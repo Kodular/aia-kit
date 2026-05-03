@@ -1,7 +1,7 @@
 // test/yail/component-emit.test.ts
 import { describe, expect, it } from "vitest";
 import type { Diagnostic } from "#/core/diagnostics.js";
-import { Environment } from "#/core/environment.js";
+import { Platform, getEnvironmentFor } from "#/core/environment.js";
 import type { AiaProject, AiaScreen } from "#/core/types.js";
 import { resolve } from "#/resolve.js";
 import { emitComponentSection } from "#/yail/component-emit.js";
@@ -49,7 +49,7 @@ function modelFromScm(scm: string): AiaProject {
 
 describe("emitComponentSection", () => {
   it("emits do-after-form-creation with root property sets only", async () => {
-    const env = await Environment.mitAppInventor();
+    const env = await getEnvironmentFor(Platform.MitAppInventor);
     const model = resolve(modelFromScm(EMPTY_SCM), env);
     expect(
       model.diagnostics.filter((d: Diagnostic) => d.severity === "error"),
@@ -65,7 +65,7 @@ describe("emitComponentSection", () => {
   });
 
   it("emits add-component for descendants with quoted property symbols", async () => {
-    const env = await Environment.mitAppInventor();
+    const env = await getEnvironmentFor(Platform.MitAppInventor);
     const model = resolve(modelFromScm(SCM_WITH_BUTTON), env);
     expect(
       model.diagnostics.filter((d: Diagnostic) => d.severity === "error"),
@@ -83,7 +83,7 @@ describe("emitComponentSection", () => {
   });
 
   it("follows SCM child order top-to-bottom", async () => {
-    const env = await Environment.mitAppInventor();
+    const env = await getEnvironmentFor(Platform.MitAppInventor);
     const model = resolve(modelFromScm(SCM_TWO_BUTTONS), env);
     const y = emitComponentSection("Screen1", model.screens[0].form);
 
@@ -91,7 +91,7 @@ describe("emitComponentSection", () => {
   });
 
   it("uses text coercion for &H colors; number from blockHints when designer row absent", async () => {
-    const env = await Environment.mitAppInventor();
+    const env = await getEnvironmentFor(Platform.MitAppInventor);
     const model = resolve(modelFromScm(SCM_COLOR_AND_ARRANGEMENT), env);
     expect(
       model.diagnostics.filter((d: Diagnostic) => d.severity === "error"),
