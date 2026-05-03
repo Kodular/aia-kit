@@ -3,7 +3,7 @@ import { readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { readAia, writeAia } from '#/aia/index.js'
 
-const FIXTURES = join(import.meta.dirname, '../fixtures')
+const FIXTURES = join(import.meta.dirname, '../../test-fixtures')
 const AIA_FILES = readdirSync(FIXTURES).filter(f => f.endsWith('.aia'))
 
 describe('round-trip: readAia → writeAia → readAia', () => {

@@ -7,7 +7,7 @@ import {
 import type { AiaProject, AiaScreen } from '#/types.js'
 import { Platform, getEnvironmentFor } from '#/environment/index.js'
 import { buildModel } from '#/model/index.js'
-import { makeProjectProperties } from '../helpers.js'
+import { makeProjectProperties } from '../test-helpers.js'
 
 /** Valid MIT-style SCM block (`|#` required by `#/scm/parse.js`). */
 function scmForScreen(name: string): string {

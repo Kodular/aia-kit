@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { diffProjects } from '#/analysis/project-diff.js'
 import type { AiaProject, AiaScreen } from '#/types.js'
-import { makeProjectProperties } from '../helpers.js'
+import { makeProjectProperties } from '../test-helpers.js'
 
 function screen(n: string, scm = '', bky = ''): AiaScreen {
   return { name: n, scm, bky, yail: null }

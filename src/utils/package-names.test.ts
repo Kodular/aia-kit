@@ -5,7 +5,7 @@ import {
   getDotPackagePrefix,
   getPackagePath,
 } from '#/utils/package-names.js'
-import { makeProjectProperties } from '../helpers.js'
+import { makeProjectProperties } from '../test-helpers.js'
 
 describe('package-name utilities', () => {
   it('gets the dotted package prefix from the main screen class', () => {

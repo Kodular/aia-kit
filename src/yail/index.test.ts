@@ -6,7 +6,7 @@ import type { AiaProject, AiaScreen } from "#/types.js";
 import type { ProjectProperties } from "#/project-properties/index.js";
 import { buildModel } from "#/model/index.js";
 import { YailEmitter } from "#/yail/index.js";
-import { makeMinimalModelProject, makeProjectProperties } from "../helpers.js";
+import { makeMinimalModelProject, makeProjectProperties } from "../test-helpers.js";
 
 const EMPTY_BKY = `<xml xmlns="https://developers.google.com/blockly/xml"></xml>`;
 

@@ -5,7 +5,7 @@ import {
   getRawComponentsByType,
   removeRawComponentByUid,
 } from '#/utils/component-tree.js'
-import { makeComponent } from '../helpers.js'
+import { makeComponent } from '../test-helpers.js'
 
 function makeTree() {
   const nestedLabel = makeComponent({

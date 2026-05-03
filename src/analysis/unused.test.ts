@@ -4,7 +4,7 @@ import type { ComponentDescriptor } from '#/component-descriptor/descriptors.js'
 import { Platform, getEnvironmentFor } from '#/environment/index.js'
 import { buildModel } from '#/model/index.js'
 import { findUnusedExtensions, findUnusedAssets, findAssetReferences } from '#/analysis/unused.js'
-import { makeProjectProperties } from '../helpers.js'
+import { makeProjectProperties } from '../test-helpers.js'
 
 const EMPTY_SCM = `#|
 $JSON
