@@ -2,18 +2,18 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { parseAia } from '#/parse.js'
-import { resolve } from '#/resolve.js'
+import { buildModel } from '#/model.js'
 import { Platform, createEnvironment, getEnvironmentFor } from '#/core/environment.js'
-import { makeProjectProperties } from './helpers.js'
+import { makeDescriptor, makeExtension, makeProjectProperties } from './helpers.js'
 
 const FIXTURES = join(import.meta.dirname, 'fixtures')
 
-describe('resolve', () => {
+describe('buildModel', () => {
   it('returns a ModelProject with _tag', async () => {
     const bytes = readFileSync(join(FIXTURES, 'HelloPurr.aia'))
     const raw = await parseAia(new Uint8Array(bytes))
     const env = await getEnvironmentFor(Platform.KodularCreator)
-    const model = resolve(raw, env)
+    const model = buildModel(raw, env)
     expect(model._tag).toBe('ModelProject')
   })
 
@@ -21,7 +21,7 @@ describe('resolve', () => {
     const bytes = readFileSync(join(FIXTURES, 'HelloPurr.aia'))
     const raw = await parseAia(new Uint8Array(bytes))
     const env = await getEnvironmentFor(Platform.KodularCreator)
-    const model = resolve(raw, env)
+    const model = buildModel(raw, env)
     expect(model.screens).toHaveLength(raw.screens.length)
   })
 
@@ -29,7 +29,7 @@ describe('resolve', () => {
     const bytes = readFileSync(join(FIXTURES, 'HelloPurr.aia'))
     const raw = await parseAia(new Uint8Array(bytes))
     const env = await getEnvironmentFor(Platform.KodularCreator)
-    const model = resolve(raw, env)
+    const model = buildModel(raw, env)
     const screen = model.screens[0]
     expect(screen.form.name).toBeTruthy()
     expect(screen.form.descriptor).toBeTruthy()
@@ -53,7 +53,7 @@ describe('resolve', () => {
       meta: { id: 'empty', name: 'Empty' },
       components: [],
     })
-    expect(() => resolve(raw, env)).not.toThrow()
+    expect(() => buildModel(raw, env)).not.toThrow()
   })
 
   it('emits UNRESOLVABLE_COMPONENT diagnostic for unknown type', () => {
@@ -74,7 +74,47 @@ describe('resolve', () => {
       meta: { id: 'empty', name: 'Empty' },
       components: [],
     })
-    const model = resolve(raw, env)
+    const model = buildModel(raw, env)
     expect(model.diagnostics.some(d => d.code === 'UNRESOLVABLE_COMPONENT')).toBe(true)
+  })
+
+  it('folds project extension descriptors into the effective component registry without mutating the environment registry', () => {
+    const extensionDescriptor = makeDescriptor({
+      type: 'com.example.ExtensionWidget',
+      name: 'ExtensionWidget',
+      external: true,
+    })
+    const project = {
+      _tag: 'AiaProject' as const,
+      name: 'ExtensionProject',
+      properties: makeProjectProperties(),
+      screens: [{
+        name: 'Screen1',
+        scm: `#|\n$JSON\n{"YaVersion":"1","Source":"Form","Properties":{"$Name":"Screen1","$Type":"Form","Uuid":"-1","$Components":[{"$Name":"Widget1","$Type":"com.example.ExtensionWidget","Uuid":"abc","$Components":[]}]}}\n|#`,
+        bky: '<xml xmlns="https://developers.google.com/blockly/xml"></xml>',
+        yail: null,
+      }],
+      assets: [],
+      extensions: [makeExtension({
+        packageName: 'com.example',
+        components: [extensionDescriptor],
+      })],
+    }
+    const env = createEnvironment({
+      meta: { id: 'base', name: 'Base' },
+      components: [
+        makeDescriptor({
+          type: 'com.google.appinventor.components.runtime.Form',
+          name: 'Form',
+        }),
+      ],
+    })
+
+    const model = buildModel(project, env)
+
+    expect(model.componentRegistry.lookup('com.example.ExtensionWidget')).toBe(extensionDescriptor)
+    expect(model.screens[0]?.form.children[0]?.descriptor).toBe(extensionDescriptor)
+    expect(model.diagnostics.some(d => d.code === 'UNRESOLVABLE_COMPONENT')).toBe(false)
+    expect(env.componentRegistry.lookup('com.example.ExtensionWidget')).toBeNull()
   })
 })

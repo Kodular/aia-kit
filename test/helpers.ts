@@ -7,6 +7,9 @@ import type {
   ProjectProperties,
 } from '#/core/types.js'
 import type { ComponentDescriptor } from '#/core/descriptors.js'
+import { createEnvironment } from '#/core/environment.js'
+import { buildModel } from '#/model.js'
+import type { ModelProject } from '#/core/model.js'
 
 export const EMPTY_BKY = '<xml xmlns="https://developers.google.com/blockly/xml"></xml>'
 
@@ -99,4 +102,18 @@ export function makeMinimalProject(overrides: Partial<AiaProject> = {}): AiaProj
     extensions: [],
     ...overrides,
   }
+}
+
+export function makeMinimalModelProject(project = makeMinimalProject()): ModelProject {
+  const env = createEnvironment({
+    meta: { id: 'test', name: 'Test' },
+    components: [
+      makeDescriptor({
+        type: 'com.google.appinventor.components.runtime.Form',
+        name: 'Form',
+      }),
+    ],
+  })
+
+  return buildModel(project, env)
 }

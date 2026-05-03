@@ -66,6 +66,7 @@ export type Platform = PlatformType
 
 // Pipeline
 export { parseAia, parseAix, parseAndResolve, parseProjectProperties } from '#/parse.js'
+export { buildModel } from '#/model.js'
 export { resolve } from '#/resolve.js'
 export { writeAia, serializeProperties } from '#/write.js'
 
