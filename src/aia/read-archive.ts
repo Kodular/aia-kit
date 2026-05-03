@@ -71,23 +71,23 @@ export async function readAia(input: Uint8Array | ArrayBuffer | Blob): Promise<A
     throw new AiaStructureError('AIA contains no valid screens (missing .scm/.bky pairs)', null)
   }
 
-  const assets: AiaAsset[] = await Promise.all(
-    assetEntries.map(async entry => {
-      const blobData = await readZipEntryBlob(entry)
-      const assetName = entry.filename.split('/').pop() ?? entry.filename
-      const type = assetName.includes('.') ? assetName.split('.').pop() ?? '' : ''
-      return {
-        name: assetName,
-        type,
-        sizeBytes: blobData.size,
-        data: async () => new Uint8Array(await blobData.arrayBuffer()),
-      }
-    })
-  )
+  const assets: AiaAsset[] = await Promise.all(assetEntries.map(entry => aiaAssetFromZipEntry(entry)))
 
   const extensions: AiaExtension[] = await buildExtensions(extEntries, entries)
 
   return { _tag: 'AiaProject', name, properties, screens, assets, extensions }
+}
+
+async function aiaAssetFromZipEntry(entry: Entry): Promise<AiaAsset> {
+  const blobData = await readZipEntryBlob(entry)
+  const assetName = entry.filename.split('/').pop() ?? entry.filename
+  const type = assetName.includes('.') ? assetName.split('.').pop() ?? '' : ''
+  return {
+    name: assetName,
+    type,
+    sizeBytes: blobData.size,
+    data: async () => new Uint8Array(await blobData.arrayBuffer()),
+  }
 }
 
 async function buildExtensions(
