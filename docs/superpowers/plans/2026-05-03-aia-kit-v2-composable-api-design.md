@@ -74,7 +74,7 @@ Execute tasks sequentially. Do not dispatch multiple implementation subagents in
 | `src/components/scm-serializer.ts` | Internal serializer used by `ScmDocument` and mutations |
 | `src/blocks/bky-parser.ts` | Internal parser re-exported through `src/bky.ts` |
 | `src/blocks/bky-serializer.ts` | Internal serializer re-exported through `src/bky.ts` |
-| `src/blocks/lens.ts` | Not a canonical public surface in the composable API |
+| `src/blocks/lens.ts` | Delete after YAIL generation uses `parseBky` directly |
 
 ## Subagent Execution Protocol
 
@@ -93,10 +93,10 @@ Use these ownership boundaries:
 | 0 | `test/helpers.ts`, `src/utils/*.ts`, utility extraction tests |
 | 1 | `src/core/registries.ts`, `src/core/environment.ts`, `src/environment.ts`, registry/environment tests |
 | 2 | `src/core/model.ts`, `src/model.ts`, `src/resolve.ts`, model tests |
-| 3 | `src/aia.ts`, `src/write.ts`, `src/mutations/*.ts`, AIA tests |
-| 4 | `src/scm.ts`, SCM document tests |
-| 5 | `src/bky.ts`, BKY public tests |
-| 6 | `src/yail/index.ts`, `src/write.ts`, YAIL emitter tests |
+| 3 | `src/yail/index.ts`, YAIL emitter tests |
+| 4 | `src/aia.ts`, `src/write.ts`, `src/mutations/*.ts`, AIA tests |
+| 5 | `src/scm.ts`, SCM document tests |
+| 6 | `src/bky.ts`, BKY public tests |
 | 7 | `src/*.ts` domain barrels, `package.json`, public API tests |
 | 8 | `docs/*.md`, final typecheck/build/test |
 
@@ -147,6 +147,7 @@ Do not leave duplicate root-level compatibility tests for non-canonical modules 
 - Modify: `src/analysis/cross-cutting.ts`
 - Modify: `src/yail/block-emit.ts`
 - Modify: `src/mutations/projects.ts`
+- Delete: `src/blocks/lens.ts`
 - Create: `test/utils/package-names.test.ts`
 - Create: `test/utils/block-types.test.ts`
 - Create: `test/utils/naming.test.ts`
@@ -251,7 +252,7 @@ export function makeMinimalProject(overrides: Partial<AiaProject> = {}): AiaProj
 }
 ```
 
-- [ ] **Step 0.2: Extract package-name helpers**
+- [ ] **Step 0.2: Extract package-name helpers and remove YAIL lens dependency**
 
 Create `src/utils/package-names.ts` and update `src/write.ts`, `src/yail/create-yail-generator.ts`, and `src/parse.ts` to use it.
 
@@ -278,6 +279,17 @@ export function extractClassName(typeName: string): string {
   const parts = typeName.split('.').filter(Boolean)
   return parts.at(-1) ?? typeName
 }
+```
+
+While updating `src/yail/create-yail-generator.ts`, remove the import from `#/blocks/lens.js`. Use `parseBky(screen.source.bky)` directly.
+
+```typescript
+import { parseBky } from '#/blocks/bky-parser.js'
+
+const blockSection = emitBlockSection(
+  parseBky(resolved.source.bky),
+  model.builtinBlockRegistry,
+)
 ```
 
 - [ ] **Step 0.3: Extract block type classification**
@@ -370,26 +382,30 @@ export function removeRawComponentByUid(
 }
 ```
 
-- [ ] **Step 0.6: Add focused utility tests**
+- [ ] **Step 0.6: Delete `src/blocks/lens.ts` and move remaining coverage**
+
+Delete `src/blocks/lens.ts` and `test/blocks/lens.test.ts`. Move parse/serialize coverage into `test/bky.test.ts` in Task 6. Do not preserve `parseBlocks`, `serializeBlocks`, `queryBlocks`, `updateBlocks`, or `updateAllScreenBlocks`; callback-style lens helpers are a non-goal of the composable API.
+
+- [ ] **Step 0.7: Add focused utility tests**
 
 Create `test/utils/package-names.test.ts`, `test/utils/block-types.test.ts`, `test/utils/naming.test.ts`, and `test/utils/component-tree.test.ts`. Each test file should cover the exported helpers directly. Use `test/helpers.ts` builders for raw component fixtures.
 
-- [ ] **Step 0.7: Run verification**
+- [ ] **Step 0.8: Run verification**
 
 Run:
 
 ```bash
 pnpm test test/utils
-pnpm test test/write.test.ts test/yail/create-yail-generator.test.ts test/analysis/cross-cutting.test.ts test/yail/block-emit.test.ts test/mutations/projects.test.ts
+pnpm test test/write.test.ts test/yail/create-yail-generator.test.ts test/analysis/cross-cutting.test.ts test/yail/block-emit.test.ts test/mutations/projects.test.ts test/blocks/bky-parser.test.ts test/blocks/bky-serializer.test.ts
 pnpm typecheck
 ```
 
 Expected: all utility tests pass and the existing behavior of writer, YAIL generation, analysis, and project merge remains unchanged.
 
-- [ ] **Step 0.8: Commit**
+- [ ] **Step 0.9: Commit**
 
 ```bash
-git add test/helpers.ts src/utils/package-names.ts src/utils/block-types.ts src/utils/naming.ts src/utils/component-tree.ts test/utils src/write.ts src/yail/create-yail-generator.ts src/parse.ts src/analysis/cross-cutting.ts src/yail/block-emit.ts src/mutations/projects.ts
+git add test/helpers.ts src/utils/package-names.ts src/utils/block-types.ts src/utils/naming.ts src/utils/component-tree.ts test/utils src/write.ts src/yail/create-yail-generator.ts src/parse.ts src/analysis/cross-cutting.ts src/yail/block-emit.ts src/mutations/projects.ts src/blocks/lens.ts test/blocks/lens.test.ts
 git commit -m "chore(v2): extract shared utilities and test builders"
 ```
 
@@ -483,9 +499,9 @@ describe('environment', () => {
 })
 ```
 
-- [ ] **Step 1.3: Implement registry classes and block-registry rename**
+- [ ] **Step 1.3: Implement component and built-in block registry classes**
 
-Replace the interface-only `ComponentRegistry` with classes. Preserve `createComponentRegistry()` as an internal compatibility helper for code that has not been migrated yet.
+Replace the interface-only `ComponentRegistry` with classes.
 
 ```typescript
 export class ComponentRegistry {
@@ -545,34 +561,35 @@ function buildDescriptorMap(descriptors: readonly ComponentDescriptor[]): Map<st
 }
 ```
 
-Rename the current public block-registry type to `BuiltinBlockRegistry`. Preserve `BlockRegistry` and `createBlockRegistry()` as deprecated internal aliases only while existing source modules are migrated.
+Replace the interface-style block registry with a `BuiltinBlockRegistry` class. Do not keep `BlockRegistry` or `createBlockRegistry()` compatibility aliases; this branch is in the middle of a rewrite and the canonical v2 surface should use the final names directly.
 
 ```typescript
-export interface BuiltinBlockRegistry {
+export class BuiltinBlockRegistry {
   readonly builtins: ReadonlyMap<string, BuiltinBlockDescriptor>
-  lookup(type: string): BuiltinBlockDescriptor | null
-}
 
-export function createBuiltinBlockRegistry(builtins: readonly BuiltinBlockDescriptor[]): BuiltinBlockRegistry {
-  const map = new Map<string, BuiltinBlockDescriptor>(builtins.map(block => [block.type, block]))
-  return {
-    builtins: map,
-    lookup(type: string): BuiltinBlockDescriptor | null {
-      return map.get(type) ?? null
-    },
+  private constructor(builtins: readonly BuiltinBlockDescriptor[]) {
+    this.builtins = new Map(builtins.map(block => [block.type, block]))
+  }
+
+  static of(builtins: readonly BuiltinBlockDescriptor[]): BuiltinBlockRegistry {
+    return new BuiltinBlockRegistry(builtins)
+  }
+
+  lookup(type: string): BuiltinBlockDescriptor | null {
+    return this.builtins.get(type) ?? null
+  }
+
+  has(type: string): boolean {
+    return this.lookup(type) !== null
   }
 }
 
-/** @deprecated Internal compatibility alias during v2 composable API migration. */
-export type BlockRegistry = BuiltinBlockRegistry
-
-/** @deprecated Internal compatibility alias during v2 composable API migration. */
-export const createBlockRegistry = createBuiltinBlockRegistry
-
 export function defaultBlockRegistry(): BuiltinBlockRegistry {
-  return createBuiltinBlockRegistry(DEFAULT_BUILTINS)
+  return BuiltinBlockRegistry.of(DEFAULT_BUILTINS)
 }
 ```
+
+Update every source import and type reference from `BlockRegistry` / `createBlockRegistry()` to `BuiltinBlockRegistry` / `BuiltinBlockRegistry.of(...)` or `defaultBlockRegistry()`.
 
 - [ ] **Step 1.4: Convert `Environment` from class to plain value interface**
 
@@ -620,7 +637,7 @@ export function createEnvironment(input: CreateEnvironmentInput): Environment {
   return {
     meta: input.meta,
     componentRegistry: ComponentRegistry.of(input.components),
-    builtinBlockRegistry: createBuiltinBlockRegistry(input.builtinBlocks ?? DEFAULT_BUILTINS),
+    builtinBlockRegistry: BuiltinBlockRegistry.of(input.builtinBlocks ?? DEFAULT_BUILTINS),
   }
 }
 ```
@@ -811,19 +828,88 @@ git add src/core/model.ts src/model.ts src/resolve.ts test/helpers.ts test/model
 git commit -m "feat(v2): replace resolve with buildModel snapshots"
 ```
 
-## Task 3: AIA Domain API and Explicit YAIL Write Semantics
+## Task 3: YailEmitter API
+
+**Files:**
+- Modify: `src/yail/index.ts`
+- Create: `test/yail/index.test.ts`
+- Modify: existing `test/yail/*.test.ts` if imports change
+
+- [ ] **Step 3.1: Write failing YAIL emitter tests**
+
+```typescript
+import { describe, expect, it } from 'vitest'
+import { YailEmitter } from '#/yail/index.js'
+import { makeMinimalModelProject } from '../helpers.js'
+
+describe('YailEmitter', () => {
+  it('emits by screen object and screen name', () => {
+    const model = makeMinimalModelProject()
+    const emitter = YailEmitter.for(model)
+    expect(emitter.emit(model.screens[0])).toContain('(define-repl-form')
+    expect(emitter.emitScreen(model.screens[0].name)).toContain('(define-repl-form')
+  })
+})
+```
+
+Use `makeMinimalModelProject()` from `test/helpers.ts` rather than defining another model fixture inside this test.
+
+- [ ] **Step 3.2: Implement `YailEmitter`**
+
+```typescript
+export class YailEmitter {
+  private readonly generator: (screen: ModelScreen) => string
+
+  private constructor(private readonly model: ModelProject) {
+    this.generator = createYailGenerator(model)
+  }
+
+  static for(model: ModelProject): YailEmitter {
+    return new YailEmitter(model)
+  }
+
+  emit(screen: ModelScreen): string {
+    return this.generator(screen)
+  }
+
+  emitScreen(screenName: string): string {
+    const screen = this.model.screens.find(candidate => candidate.name === screenName)
+    if (!screen) throw new AiaWriteError(`Cannot emit YAIL for missing screen "${screenName}"`)
+    return this.emit(screen)
+  }
+}
+```
+
+- [ ] **Step 3.3: Run verification**
+
+Run:
+
+```bash
+pnpm test test/yail/index.test.ts test/yail
+pnpm typecheck
+```
+
+Expected: existing YAIL generator tests pass and emitter tests prove the class API.
+
+- [ ] **Step 3.4: Commit**
+
+```bash
+git add src/yail/index.ts test/yail/index.test.ts test/yail
+git commit -m "feat(v2): add YailEmitter API"
+```
+
+## Task 4: AIA Domain API and Explicit YAIL Write Semantics
 
 **Files:**
 - Create: `src/aia.ts`
 - Modify: `src/write.ts`
 - Modify: `src/mutations/screens.ts`
 - Modify: `src/mutations/components.ts`
-- Modify: `src/blocks/lens.ts`
 - Create: `test/aia.test.ts`
 - Delete after moving coverage: `test/write.test.ts`
 - Delete after moving coverage: `test/parse.test.ts`
 
-- [ ] **Step 3.1: Write failing AIA domain tests**
+- [ ] **Step 4.1: Write failing AIA domain tests**
 
 ```typescript
 import { describe, expect, it } from 'vitest'
@@ -863,7 +949,7 @@ describe('aia domain operations', () => {
 })
 ```
 
-- [ ] **Step 3.2: Implement `src/aia.ts`**
+- [ ] **Step 4.2: Implement `src/aia.ts`**
 
 Export `readAia` as the public name for the current parser and collect archive-level operations in one module.
 
@@ -897,7 +983,7 @@ export function replaceScreenBky(project: AiaProject, screenName: string, bky: s
 
 Re-export existing `addScreen`, `removeScreen`, `addAsset`, `removeAsset`, `addExtension`, and `removeExtension` from the domain module.
 
-- [ ] **Step 3.3: Implement write overloads**
+- [ ] **Step 4.3: Implement write overloads**
 
 `writeAia(project, { withYail: true })` must be a TypeScript error. Runtime should also throw if a caller bypasses types.
 
@@ -915,11 +1001,19 @@ export async function writeAia(input: AiaProject | ModelProject, options: WriteA
   }
   const raw = isModel ? input.source : input
   const emitter = isModel && options.withYail === true ? YailEmitter.for(input) : null
-  // preserve existing non-null screen.yail when emitter is null
 }
 ```
 
-- [ ] **Step 3.4: Invalidate YAIL for project-level SCM/BKY edits**
+When `withYail` is true and the input is `ModelProject`, generate and embed each screen's YAIL. When `withYail` is false or omitted, preserve existing non-null `screen.yail` and do not generate missing YAIL.
+
+```typescript
+const yail = emitter ? emitter.emitScreen(screen.name) : screen.yail
+if (yail !== null && yail !== '') {
+  await zw.add(`${dir}/${screen.name}.yail`, new TextReader(yail))
+}
+```
+
+- [ ] **Step 4.4: Invalidate YAIL for project-level SCM/BKY edits**
 
 Ensure existing mutations that change `screen.scm` or `screen.bky` set `yail: null`. `addScreen` may preserve the provided screen's `yail` because it is explicit caller data; component edits and block updates must invalidate.
 
@@ -927,41 +1021,31 @@ Ensure existing mutations that change `screen.scm` or `screen.bky` set `yail: nu
 screens[idx] = { ...screen, scm: newScm, yail: null }
 ```
 
-Update `src/blocks/lens.ts` now, even though the lens helpers will stop being canonical public exports in Task 7. `updateBlocks()` and `updateAllScreenBlocks()` mutate BKY and must set the affected screen's `yail` to `null`.
-
-```typescript
-newScreens[screenIndex] = { ...screen, bky: serializeBky(ast), yail: null }
-```
-
-```typescript
-return { ...screen, bky: serializeBky(ast), yail: null }
-```
-
-- [ ] **Step 3.5: Run verification**
+- [ ] **Step 4.5: Run verification**
 
 Run:
 
 ```bash
-pnpm test test/aia.test.ts test/mutations/screens.test.ts test/mutations/components.test.ts test/blocks/lens.test.ts
+pnpm test test/aia.test.ts test/mutations/screens.test.ts test/mutations/components.test.ts
 pnpm typecheck
 ```
 
 Expected: AIA domain tests pass; write overload type assertions pass; mutation tests still pass with updated YAIL invalidation expectations.
 
-- [ ] **Step 3.6: Commit**
+- [ ] **Step 4.6: Commit**
 
 ```bash
-git add src/aia.ts src/write.ts src/mutations/screens.ts src/mutations/components.ts src/blocks/lens.ts test/aia.test.ts test/write.test.ts test/parse.test.ts test/mutations/screens.test.ts test/mutations/components.test.ts test/blocks/lens.test.ts
+git add src/aia.ts src/write.ts src/mutations/screens.ts src/mutations/components.ts test/aia.test.ts test/write.test.ts test/parse.test.ts test/mutations/screens.test.ts test/mutations/components.test.ts
 git commit -m "feat(v2): add AIA domain API and explicit yail writes"
 ```
 
-## Task 4: Public SCM Document API
+## Task 5: Public SCM Document API
 
 **Files:**
 - Create: `src/scm.ts`
 - Create: `test/scm.test.ts`
 
-- [ ] **Step 4.1: Write failing `ScmDocument` tests**
+- [ ] **Step 5.1: Write failing `ScmDocument` tests**
 
 ```typescript
 import { describe, expect, it } from 'vitest'
@@ -995,7 +1079,7 @@ describe('ScmDocument', () => {
 })
 ```
 
-- [ ] **Step 4.2: Implement `ScmDocument`**
+- [ ] **Step 5.2: Implement `ScmDocument`**
 
 Use the current parser and serializer plus the raw tree helpers from `src/utils/component-tree.ts`. Do not use `src/components/tree.ts` here; that module operates on `ModelComponent`, while `ScmDocument` owns raw `AiaComponent` data. Mutating methods only mutate the document instance after validation succeeds.
 
@@ -1041,7 +1125,7 @@ export class ScmDocument {
 }
 ```
 
-- [ ] **Step 4.3: Run verification**
+- [ ] **Step 5.3: Run verification**
 
 Run:
 
@@ -1052,27 +1136,32 @@ pnpm typecheck
 
 Expected: document API tests pass and existing parser/serializer tests are unchanged.
 
-- [ ] **Step 4.4: Commit**
+- [ ] **Step 5.4: Commit**
 
 ```bash
 git add src/scm.ts test/scm.test.ts
 git commit -m "feat(v2): add ScmDocument public API"
 ```
 
-## Task 5: BKY Public API Without Lens Helpers
+## Task 6: BKY Public API Without Lens Helpers
 
 **Files:**
 - Create: `src/bky.ts`
 - Create: `test/bky.test.ts`
-- Modify: `src/blocks/lens.ts`
 
-- [ ] **Step 5.1: Write failing BKY public tests**
+- [ ] **Step 6.1: Write failing BKY public tests**
 
 ```typescript
 import { describe, expect, it } from 'vitest'
 import { parseBky, renameComponentReferences, serializeBky } from '#/bky.js'
 
 describe('bky public API', () => {
+  it('parses and serializes block XML', () => {
+    const ast = parseBky('<xml><block type="event_handler" id="e1" /></xml>')
+    expect(ast.blocks[0].type).toBe('event_handler')
+    expect(parseBky(serializeBky(ast)).blocks[0].type).toBe('event_handler')
+  })
+
   it('parses, transforms, and serializes block XML', () => {
     const ast = parseBky('<xml><block type="component_method"><mutation component_type="Button" instance_name="Button1" /></block></xml>')
     const renamed = renameComponentReferences(ast, 'Button1', 'PrimaryButton')
@@ -1081,7 +1170,7 @@ describe('bky public API', () => {
 })
 ```
 
-- [ ] **Step 5.2: Implement `src/bky.ts`**
+- [ ] **Step 6.2: Implement `src/bky.ts`**
 
 Export the parser and serializer under the names from the spec. Implement transforms as pure functions returning new AST values.
 
@@ -1128,106 +1217,24 @@ function mapBlock(block: BlockNode, mapper: (block: BlockNode) => BlockNode): Bl
 }
 ```
 
-Do not expose `queryBlocks`, `updateBlocks`, or `updateAllScreenBlocks` from the package root or `aia-kit/bky`.
+Do not recreate or expose `queryBlocks`, `updateBlocks`, or `updateAllScreenBlocks`.
 
-- [ ] **Step 5.3: Run verification**
+- [ ] **Step 6.3: Run verification**
 
 Run:
 
 ```bash
-pnpm test test/bky.test.ts test/blocks/bky-parser.test.ts test/blocks/bky-serializer.test.ts test/blocks/lens.test.ts
+pnpm test test/bky.test.ts test/blocks/bky-parser.test.ts test/blocks/bky-serializer.test.ts
 pnpm typecheck
 ```
 
-Expected: BKY public tests pass; legacy lens tests may keep passing as internal tests.
+Expected: BKY public tests pass and parser/serializer tests still cover the internal XML conversion layer.
 
-- [ ] **Step 5.4: Commit**
+- [ ] **Step 6.4: Commit**
 
 ```bash
 git add src/bky.ts test/bky.test.ts
 git commit -m "feat(v2): add function-first BKY public API"
-```
-
-## Task 6: YailEmitter and Write Integration
-
-**Files:**
-- Modify: `src/yail/index.ts`
-- Modify: `src/write.ts`
-- Create: `test/yail/index.test.ts`
-- Modify: existing `test/yail/*.test.ts` if imports change
-
-- [ ] **Step 6.1: Write failing YAIL emitter tests**
-
-```typescript
-import { describe, expect, it } from 'vitest'
-import { YailEmitter } from '#/yail/index.js'
-import type { ModelProject } from '#/core/model.js'
-
-describe('YailEmitter', () => {
-  it('emits by screen object and screen name', () => {
-    const model = makeMinimalModelProject()
-    const emitter = YailEmitter.for(model)
-    expect(emitter.emit(model.screens[0])).toContain('(define-form')
-    expect(emitter.emitScreen(model.screens[0].name)).toContain('(define-form')
-  })
-})
-```
-
-Use `makeMinimalModelProject()` from `test/helpers.ts` rather than defining another model fixture inside this test.
-
-- [ ] **Step 6.2: Implement `YailEmitter`**
-
-```typescript
-export class YailEmitter {
-  private readonly generator: (screen: ModelScreen) => string
-
-  private constructor(private readonly model: ModelProject) {
-    this.generator = createYailGenerator(model)
-  }
-
-  static for(model: ModelProject): YailEmitter {
-    return new YailEmitter(model)
-  }
-
-  emit(screen: ModelScreen): string {
-    return this.generator(screen)
-  }
-
-  emitScreen(screenName: string): string {
-    const screen = this.model.screens.find(candidate => candidate.name === screenName)
-    if (!screen) throw new AiaWriteError(`Cannot emit YAIL for missing screen "${screenName}"`)
-    return this.emit(screen)
-  }
-}
-```
-
-- [ ] **Step 6.3: Use `YailEmitter` from `writeAia`**
-
-When `withYail` is true and the input is `ModelProject`, generate and embed each screen's YAIL. When `withYail` is false or omitted, preserve existing non-null `screen.yail` and do not generate missing YAIL.
-
-```typescript
-const yail = emitter ? emitter.emitScreen(screen.name) : screen.yail
-if (yail !== null && yail !== '') {
-  await zw.add(`${dir}/${screen.name}.yail`, new TextReader(yail))
-}
-```
-
-- [ ] **Step 6.4: Run verification**
-
-Run:
-
-```bash
-pnpm test test/yail/index.test.ts test/yail test/aia.test.ts
-pnpm typecheck
-```
-
-Expected: existing YAIL generator tests pass and emitter tests prove the class API.
-
-- [ ] **Step 6.5: Commit**
-
-```bash
-git add src/yail/index.ts src/write.ts test/yail/index.test.ts test/yail test/aia.test.ts
-git commit -m "feat(v2): add YailEmitter API"
 ```
 
 ## Task 7: Domain Subpath Barrels and Package Exports
