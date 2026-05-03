@@ -3,6 +3,7 @@ import type { AiaProject, ProjectProperties } from '#/core/types.js'
 import type { ModelProject } from '#/core/model.js'
 import { AiaWriteError } from '#/core/errors.js'
 import { createYailGenerator } from '#/yail/index.js'
+import { getPackagePath } from '#/utils/package-names.js'
 
 export async function writeAia(project: AiaProject | ModelProject): Promise<Blob> {
   const isModel = '_tag' in project && project._tag === 'ModelProject'
@@ -76,14 +77,4 @@ export function serializeProperties(props: ProjectProperties): string {
   if (props.actionBar !== undefined) entries.push(['actionbar', String(props.actionBar)])
   for (const [k, v] of Object.entries(props.unknown)) entries.push([k, v])
   return entries.map(([k, v]) => `${k}=${v}`).join('\n') + '\n'
-}
-
-function getPackagePath(properties: ProjectProperties): string {
-  const parts = properties.main.split('.')
-  // main = "appinventor.ai_user.ProjectName.ScreenName"
-  // we want "appinventor/ai_user/ProjectName" (everything except last part)
-  if (parts.length > 1) {
-    return parts.slice(0, -1).join('/')
-  }
-  return 'appinventor/ai_user/Project'
 }

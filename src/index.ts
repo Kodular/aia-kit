@@ -41,11 +41,6 @@ export { writeAia, serializeProperties } from '#/write.js'
 // YAIL generation
 export { createYailGenerator } from '#/yail/index.js'
 
-// Block lens (public API only — parseBky/serializeBky are internal)
-export {
-  parseBlocks, serializeBlocks,
-  queryBlocks, updateBlocks, updateAllScreenBlocks,
-} from '#/blocks/lens.js'
 export type { BlockAst, BlockNode } from '#/blocks/ast.js'
 
 // Component tree utilities

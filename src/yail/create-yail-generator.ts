@@ -1,17 +1,8 @@
-import { queryBlocks } from "#/blocks/lens.js";
+import { parseBky } from "#/blocks/bky-parser.js";
 import type { ModelProject, ModelScreen } from "#/core/model.js";
-import type { ProjectProperties } from "#/core/types.js";
+import { getDotPackagePrefix } from "#/utils/package-names.js";
 import { emitBlockSection } from "#/yail/block-emit.js";
 import { emitComponentSection } from "#/yail/component-emit.js";
-
-/** Dotted package prefix, mirroring `getPackagePath` in `write.ts` (slashes → dots). */
-function getDotPackagePrefix(properties: ProjectProperties): string {
-  const parts = properties.main.split(".");
-  if (parts.length > 1) {
-    return parts.slice(0, -1).join(".");
-  }
-  return "appinventor.ai_user.Project";
-}
 
 /**
  * Returns a function that emits per-screen YAIL for a resolved {@link ModelProject}.
@@ -27,8 +18,9 @@ export function createYailGenerator(
     const resolved =
       model.screens.find((s) => s.name === screen.name) ?? screen;
     const qualifiedClass = `${packagePrefix}.${resolved.name}`;
-    const blockSection = queryBlocks(resolved, (ast) =>
-      emitBlockSection(ast, model.environment.blockRegistry)
+    const blockSection = emitBlockSection(
+      parseBky(resolved.source.bky),
+      model.environment.blockRegistry,
     );
 
     const chunks = [

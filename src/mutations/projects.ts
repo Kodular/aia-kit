@@ -1,6 +1,7 @@
 import { parseScm } from '#/components/scm-parser.js'
 import { serializeScm } from '#/components/scm-serializer.js'
 import type { AiaProject, AiaScreen, AiaExtension, MutationResult } from '#/core/types.js'
+import { findUniqueName } from '#/utils/naming.js'
 
 export interface MergeOptions {
   screenConflict: 'skip' | 'overwrite' | 'rename'
@@ -58,14 +59,4 @@ export function mergeProjects(
     project: { ...target, screens, assets, extensions },
     diagnostics: [],
   }
-}
-
-function findUniqueName(base: string, existing: string[]): string {
-  let candidate = `${base}_2`
-  let i = 2
-  while (existing.includes(candidate)) {
-    i++
-    candidate = `${base}_${i}`
-  }
-  return candidate
 }

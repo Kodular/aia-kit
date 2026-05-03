@@ -1,5 +1,6 @@
 import type { BlockAst, BlockNode } from "#/blocks/ast.js";
 import type { BlockRegistry } from "#/core/registries.js";
+import { isEventHandlerBlock } from "#/utils/block-types.js";
 import { emitLiteral, lines } from "./emit.js";
 
 /**
@@ -23,14 +24,7 @@ export function forEachBlock(
 
 /** Align with `isHatBlock` in cross-cutting.ts, plus `component_event` (event hat). */
 export function isEventHat(node: BlockNode): boolean {
-  const t = node.type;
-  return (
-    t === "component_event" ||
-    t === "event_handler" ||
-    t.includes("event_") ||
-    t.startsWith("when_") ||
-    (t.startsWith("component_") && t.includes("Click"))
-  );
+  return node.type === "component_event" || isEventHandlerBlock(node.type);
 }
 
 function unsupportedBlockLine(block: BlockNode): string {

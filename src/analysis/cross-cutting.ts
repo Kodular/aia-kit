@@ -7,6 +7,7 @@ import type {
   ScreenComplexity,
 } from '#/analysis/types.js'
 import type { ModelProject } from '#/core/model.js'
+import { isEventHandlerBlock } from '#/utils/block-types.js'
 
 function forEachBlock(
   node: BlockNode | null,
@@ -51,13 +52,7 @@ function screenMaxDepth(blocks: BlockNode[]): number {
 }
 
 function isHatBlock(node: BlockNode): boolean {
-  const t = node.type
-  return (
-    t === 'event_handler' ||
-    t.includes('event_') ||
-    t.startsWith('when_') ||
-    (t.startsWith('component_') && t.includes('Click'))
-  )
+  return isEventHandlerBlock(node.type)
 }
 
 function buildIdTypeMap(blocks: BlockNode[]): Map<string, string> {

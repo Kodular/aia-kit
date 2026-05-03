@@ -5,6 +5,7 @@ import type { ComponentDescriptor } from '#/core/descriptors.js'
 import { AiaZipError, AiaStructureError } from '#/core/errors.js'
 import type { Environment } from '#/core/environment.js'
 import type { ModelProject } from '#/core/model.js'
+import { extractClassName, extractPackageName } from '#/utils/package-names.js'
 
 export function parseProjectProperties(raw: Record<string, string>): ProjectProperties {
   const known = new Set([
@@ -55,7 +56,7 @@ export async function parseAia(input: Uint8Array | ArrayBuffer | Blob): Promise<
 
   const propsText = await readText(propsEntry)
   const properties = parseProjectProperties(getProperties(propsText) as Record<string, string>)
-  const name = properties.main.split('.').pop() ?? 'Unknown'
+  const name = extractClassName(properties.main)
 
   const screenMap = new Map<string, { scm?: string; bky?: string; yail?: string }>()
   const assetEntries: Entry[] = []
@@ -184,7 +185,7 @@ export async function parseAix(input: Uint8Array | ArrayBuffer | Blob): Promise<
   const parsed = JSON.parse(text)
   const components: ComponentDescriptor[] = Array.isArray(parsed) ? parsed : [parsed]
   const first = components[0]
-  const packageName = first?.type?.split('.').slice(0, -1).join('.') ?? 'unknown'
+  const packageName = first?.type ? extractPackageName(first.type) : 'unknown'
 
   const manifest: AixManifest = {
     packageName,
