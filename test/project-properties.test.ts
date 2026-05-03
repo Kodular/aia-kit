@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { parseProjectProperties } from '#/parse.js'
-import { serializeProperties } from '#/write.js'
+import {
+  parseProjectProperties,
+  serializeProjectProperties,
+} from '#/project-properties.js'
 
 describe('parseProjectProperties — known fields', () => {
   it('parses main and name', () => {
@@ -151,7 +153,7 @@ describe('round-trip: serializeProperties(parseProjectProperties(raw))', () => {
       versioncode: '3',
       versionname: '1.2',
     }
-    const serialized = serializeProperties(parseProjectProperties(raw))
+    const serialized = serializeProjectProperties(parseProjectProperties(raw))
     expect(serialized).toContain('main=appinventor.ai_user.TestApp.Screen1')
     expect(serialized).toContain('name=TestApp')
     expect(serialized).toContain('versioncode=3')
@@ -170,7 +172,7 @@ describe('round-trip: serializeProperties(parseProjectProperties(raw))', () => {
       showlistsasjsonarray: 'true',
       actionbar: 'false',
     }
-    const serialized = serializeProperties(parseProjectProperties(raw))
+    const serialized = serializeProjectProperties(parseProjectProperties(raw))
     expect(serialized).toContain('aname=Cool App')
     expect(serialized).toContain('sizing=Responsive')
     expect(serialized).toContain('theme=Classic')
@@ -186,7 +188,7 @@ describe('round-trip: serializeProperties(parseProjectProperties(raw))', () => {
       versionname: '1.0',
       myCustomKey: 'someValue',
     }
-    const serialized = serializeProperties(parseProjectProperties(raw))
+    const serialized = serializeProjectProperties(parseProjectProperties(raw))
     expect(serialized).toContain('myCustomKey=someValue')
   })
 
@@ -197,7 +199,7 @@ describe('round-trip: serializeProperties(parseProjectProperties(raw))', () => {
       versioncode: '1',
       versionname: '1.0',
     }
-    const serialized = serializeProperties(parseProjectProperties(raw))
+    const serialized = serializeProjectProperties(parseProjectProperties(raw))
     expect(serialized).not.toContain('theme=')
     expect(serialized).not.toContain('sizing=')
     expect(serialized).not.toContain('aname=')

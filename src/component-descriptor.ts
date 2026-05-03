@@ -2,6 +2,7 @@ export {
   ComponentRegistry,
   MutableComponentRegistry,
 } from '#/core/registries.js'
+export { normalizeComponentDescriptor } from '#/core/descriptors.js'
 export type {
   ComponentBlockPropertyDescriptor,
   ComponentDescriptor,

@@ -19,22 +19,25 @@
   "type": "module",
   "module": "./dist/src/index.js",
   "exports": {
-    ".":           "./dist/src/index.js",
-    "./aia":      "./dist/src/aia.js",
-    "./analysis": "./dist/src/analysis/index.js",
-    "./bky":      "./dist/src/bky.js",
-    "./component-descriptor": "./dist/src/component-descriptor.js",
+    ".": "./dist/src/index.js",
+    "./aia": "./dist/src/aia.js",
+    "./aix": "./dist/src/aix.js",
+    "./scm": "./dist/src/scm.js",
+    "./bky": "./dist/src/bky.js",
+    "./yail": "./dist/src/yail/index.js",
+    "./model": "./dist/src/model.js",
     "./environment": "./dist/src/environment.js",
-    "./model":       "./dist/src/model.js",
-    "./mutations": "./dist/src/mutations/index.js",
-    "./parse":     "./dist/src/parse.js",
-    "./resolve":   "./dist/src/resolve.js",
-    "./scm":       "./dist/src/scm.js",
-    "./write":     "./dist/src/write.js",
-    "./yail":      "./dist/src/yail/index.js"
+    "./project-properties": "./dist/src/project-properties.js",
+    "./component-descriptor": "./dist/src/component-descriptor.js",
+    "./diagnostics": "./dist/src/core/diagnostics.js",
+    "./analysis": "./dist/src/analysis/index.js"
   },
   "imports": {
-    "#/*": "./src/*"
+    "#/*": {
+      "types": "./src/*",
+      "development": "./src/*",
+      "default": "./dist/src/*"
+    }
   },
   "types": "./dist/src/index.d.ts",
   "files": [

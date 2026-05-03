@@ -1,3 +1,5 @@
+import { AiaParseError } from '#/core/errors.js'
+
 export interface ComponentDescriptorParam {
   name: string
   type: string
@@ -48,4 +50,33 @@ export interface ComponentDescriptor {
   blockProperties: ComponentBlockPropertyDescriptor[]
   events: ComponentEventDescriptor[]
   methods: ComponentMethodDescriptor[]
+}
+
+export function normalizeComponentDescriptor(raw: unknown): ComponentDescriptor {
+  if (typeof raw !== 'object' || raw === null) {
+    throw new AiaParseError('Component descriptor must be an object', raw)
+  }
+
+  const value = raw as Partial<ComponentDescriptor>
+  if (typeof value.type !== 'string' || value.type.length === 0) {
+    throw new AiaParseError('Component descriptor requires a non-empty type', raw)
+  }
+
+  return {
+    type: value.type,
+    name: typeof value.name === 'string' && value.name.length > 0
+      ? value.name
+      : value.type.split('.').pop() ?? value.type,
+    external: value.external ?? false,
+    version: value.version ?? 1,
+    categoryString: value.categoryString ?? 'UNKNOWN',
+    helpString: value.helpString ?? '',
+    showOnPalette: value.showOnPalette ?? true,
+    nonVisible: value.nonVisible ?? false,
+    iconName: value.iconName ?? '',
+    properties: value.properties ?? [],
+    blockProperties: value.blockProperties ?? [],
+    events: value.events ?? [],
+    methods: value.methods ?? [],
+  }
 }
