@@ -28,6 +28,7 @@
     "./mutations": "./dist/src/mutations/index.js",
     "./parse":     "./dist/src/parse.js",
     "./resolve":   "./dist/src/resolve.js",
+    "./scm":       "./dist/src/scm.js",
     "./write":     "./dist/src/write.js",
     "./yail":      "./dist/src/yail/index.js"
   },
