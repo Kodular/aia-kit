@@ -4,9 +4,7 @@ import { join } from 'node:path'
 import { readAia } from '#/aia/index.js'
 import { buildModel } from '#/model/index.js'
 import { Platform, createEnvironment, getEnvironmentFor } from '#/environment/index.js'
-import { makeDescriptor, makeExtension, makeProjectProperties } from '../test-helpers.js'
-
-const FIXTURES = join(import.meta.dirname, '../../test-fixtures')
+import { FIXTURES, makeDescriptor, makeExtension, makeProjectProperties } from '#/test-helpers.js'
 
 describe('buildModel', () => {
   it('returns a ModelProject with _tag', async () => {

@@ -5,7 +5,7 @@ import { Platform, getEnvironmentFor } from '#/environment/index.js'
 import type { AiaProject, AiaScreen } from "#/types.js";
 import { buildModel } from "#/model/index.js";
 import { emitComponentSection } from "#/yail/component-emit.js";
-import { makeProjectProperties } from "../test-helpers.js";
+import { makeProjectProperties } from '#/test-helpers.js';
 
 const EMPTY_BKY = `<xml xmlns="https://developers.google.com/blockly/xml"></xml>`;
 

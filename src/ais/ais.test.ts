@@ -3,8 +3,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { exportScreenAsAis, readAis } from '#/ais/index.js'
 import { readAia } from '#/aia/read-archive.js'
-
-const FIXTURES = join(import.meta.dirname, '../../test-fixtures')
+import { FIXTURES } from '#/test-helpers.js'
 
 describe('aia-kit/ais', () => {
   it('readAis matches readAia for HelloPurr.aia', async () => {

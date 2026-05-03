@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { diagnose } from '#/analysis/diagnose.js'
 import type { AiaProject, AiaScreen } from '#/types.js'
 import { Platform, getEnvironmentFor } from '#/environment/index.js'
-import { makeProjectProperties } from '../test-helpers.js'
+import { makeProjectProperties } from '#/test-helpers.js'
 
 const EMPTY_SCM = `#|
 $JSON

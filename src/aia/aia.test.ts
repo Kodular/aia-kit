@@ -14,9 +14,7 @@ import {
   writeAia,
 } from '#/aia/index.js'
 import { buildModel } from '#/model/index.js'
-import { makeMinimalProject, makeProjectProperties } from '../test-helpers.js'
-
-const FIXTURES = join(import.meta.dirname, '../../test-fixtures')
+import { FIXTURES, makeMinimalProject, makeProjectProperties } from '#/test-helpers.js'
 
 const EMPTY_BKY = `<xml xmlns="https://developers.google.com/blockly/xml"></xml>`
 

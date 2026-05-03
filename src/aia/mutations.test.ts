@@ -11,7 +11,7 @@ import {
 } from '#/aia/index.js'
 import { parseScm } from '#/scm/parse.js'
 import type { AiaAsset, AiaExtension, AiaProject, AiaScreen } from '#/types.js'
-import { makeProjectProperties } from '../test-helpers.js'
+import { makeProjectProperties } from '#/test-helpers.js'
 
 const EMPTY_BKY = `<xml xmlns="https://developers.google.com/blockly/xml"></xml>`
 
