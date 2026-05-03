@@ -39,7 +39,9 @@ export async function readAix(input: Uint8Array | ArrayBuffer | Blob): Promise<A
   }
 
   const jarEntry = entries.find(e => e.filename.endsWith('classes.jar'))
-  const assetFileEntries = entries.filter(e => e.filename.startsWith('assets/') && !e.filename.endsWith('/'))
+  const assetFileEntries = entries
+    .filter(e => isAixAssetFileEntry(e.filename))
+    .toSorted((a, b) => a.filename.localeCompare(b.filename))
 
   return {
     packageName,
@@ -54,4 +56,10 @@ export async function readAix(input: Uint8Array | ArrayBuffer | Blob): Promise<A
         data: async () => new Uint8Array(await (await readZipEntryBlob(entry)).arrayBuffer()),
       }))),
   }
+}
+
+/** File entries under a `…/assets/` directory (package-rooted MIT / App Inventor AIX layout). */
+function isAixAssetFileEntry(filename: string): boolean {
+  if (filename.endsWith('/')) return false
+  return filename.includes('/assets/')
 }

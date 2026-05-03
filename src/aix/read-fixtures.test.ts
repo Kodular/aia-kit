@@ -26,6 +26,52 @@ const MIT_AIX_READ_FIXTURE_MATRIX: ReadonlyArray<readonly [filename: string, pac
 ]
 
 describe('readAix — fixture corpus (read-only)', () => {
+  it('LookExtension-20181124.aix — readAix exposes expected descriptor and manifest shape', async () => {
+    const bytes = readFileSync(join(AIX_FIXTURE_DIR, 'LookExtension-20181124.aix'))
+    const ext = await readAix(bytes)
+
+    expect(ext.packageName).toBe('edu.mit.appinventor.ai.look')
+    expect(ext.minSdk).toBe(7)
+    // component.json uses a string version stamp for this extension
+    expect(ext.version).toBe('20181124')
+
+    expect(ext.components).toHaveLength(1)
+    const c = ext.components[0]!
+    expect(c.type).toBe('edu.mit.appinventor.ai.look.Look')
+    expect(c.name).toBe('Look')
+    expect(c.categoryString).toBe('EXTENSION')
+    expect(c.iconName).toBe('aiwebres/glasses.png')
+    expect(c.methods.map(m => m.name)).toEqual([
+      'ClassifyImageData',
+      'ClassifyVideoData',
+      'ToggleCameraFacingMode',
+    ])
+    expect(c.events.map(e => e.name)).toEqual(['ClassifierReady', 'Error', 'GotClassification'])
+    expect(c.properties.map(p => p.name)).toEqual(['InputMode', 'WebViewer'])
+    expect(c.blockProperties.map(b => b.name)).toEqual(['InputMode', 'WebViewer'])
+
+    expect(ext.manifest.packageName).toBe('edu.mit.appinventor.ai.look')
+    expect(ext.manifest.version).toBe('20181124')
+
+    const jar = await ext.loadClasses()
+    expect(jar.byteLength).toBeGreaterThan(0)
+
+    const assets = await ext.loadAssets()
+    expect(assets.map(a => a.name).toSorted()).toEqual([
+      'group1-shard1of1',
+      'look.html',
+      'look.js',
+      'scavenger_classes.js',
+      'tfjs-0.12.4.js',
+      'web_model.pb',
+      'weights_manifest.json',
+    ])
+    for (const a of assets) {
+      await expect(a.data()).resolves.toBeInstanceOf(Uint8Array)
+      expect((await a.data()).byteLength).toBeGreaterThan(0)
+    }
+  })
+
   it.each(MIT_AIX_READ_FIXTURE_MATRIX)(
     'parses %s (package %s)',
     async (filename, packageName) => {

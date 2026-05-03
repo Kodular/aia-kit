@@ -22,8 +22,9 @@ describe('AIX domain API', () => {
 
 async function makeAix(): Promise<Uint8Array> {
   const writer = new ZipWriter(new BlobWriter('application/zip'))
+  const root = 'com.example'
   await writer.add(
-    'component.json',
+    `${root}/component.json`,
     new TextReader(JSON.stringify({
       type: 'com.example.ExtensionComponent',
       name: 'ExtensionComponent',
@@ -40,8 +41,8 @@ async function makeAix(): Promise<Uint8Array> {
       methods: [],
     })),
   )
-  await writer.add('classes.jar', new Uint8ArrayReader(new Uint8Array([1, 2, 3])))
-  await writer.add('assets/icon.png', new Uint8ArrayReader(new Uint8Array([4, 5, 6])))
+  await writer.add(`${root}/classes.jar`, new Uint8ArrayReader(new Uint8Array([1, 2, 3])))
+  await writer.add(`${root}/assets/icon.png`, new Uint8ArrayReader(new Uint8Array([4, 5, 6])))
   const blob = await writer.close()
   return new Uint8Array(await blob.arrayBuffer())
 }
