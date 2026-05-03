@@ -6,7 +6,7 @@ import {
 } from '#/analysis/cross-cutting.js'
 import type { AiaProject, AiaScreen } from '#/core/types.js'
 import { Platform, getEnvironmentFor } from '#/core/environment.js'
-import { resolve } from '#/resolve.js'
+import { buildModel } from '#/model.js'
 import { makeProjectProperties } from '../helpers.js'
 
 /** Valid MIT-style SCM block (`|#` required by `#/components/scm-parser.js`). */
@@ -47,7 +47,7 @@ function makeProject(screens: AiaScreen[]): AiaProject {
 describe('analyzeComplexity', () => {
   it('reports zeros for empty BKY', async () => {
     const env = await getEnvironmentFor(Platform.MitAppInventor)
-    const model = resolve(makeProject([makeScreen('S1')]), env)
+    const model = buildModel(makeProject([makeScreen('S1')]), env)
     const r = analyzeComplexity(model)
     expect(r.screens).toHaveLength(1)
     expect(r.screens[0]).toMatchObject({
@@ -60,7 +60,7 @@ describe('analyzeComplexity', () => {
 
   it('matches SIMPLE_BKY totals from bky-parser tests', async () => {
     const env = await getEnvironmentFor(Platform.MitAppInventor)
-    const model = resolve(makeProject([makeScreen('Main', scmForScreen('Main'), SIMPLE_BKY)]), env)
+    const model = buildModel(makeProject([makeScreen('Main', scmForScreen('Main'), SIMPLE_BKY)]), env)
     const r = analyzeComplexity(model)
     expect(r.screens[0].topLevelBlocks).toBe(1)
     expect(r.screens[0].totalBlocks).toBe(2)
@@ -69,7 +69,7 @@ describe('analyzeComplexity', () => {
 
   it('does not throw on malformed BKY — treats as empty workspace', async () => {
     const env = await getEnvironmentFor(Platform.MitAppInventor)
-    const model = resolve(
+    const model = buildModel(
       makeProject([
         makeScreen('Bad', scmForScreen('Bad'), '<<<'),
         makeScreen('Good', scmForScreen('Good'), SIMPLE_BKY),
@@ -115,7 +115,7 @@ const COMPONENT_CLICK_HAT_ORPHAN_BKY = `<xml xmlns="https://developers.google.co
 describe('findDeadBlocks', () => {
   it('flags top-level block not reachable from hat', async () => {
     const env = await getEnvironmentFor(Platform.MitAppInventor)
-    const model = resolve(
+    const model = buildModel(
       makeProject([makeScreen('Scr', scmForScreen('Scr'), HAT_AND_ORPHAN_BKY)]),
       env,
     )
@@ -128,7 +128,7 @@ describe('findDeadBlocks', () => {
 
   it('treats when_* top-level blocks as hats', async () => {
     const env = await getEnvironmentFor(Platform.MitAppInventor)
-    const model = resolve(
+    const model = buildModel(
       makeProject([makeScreen('S', scmForScreen('S'), WHEN_HAT_AND_ORPHAN_BKY)]),
       env,
     )
@@ -140,7 +140,7 @@ describe('findDeadBlocks', () => {
 
   it('treats component_*…*Click* blocks as hats', async () => {
     const env = await getEnvironmentFor(Platform.MitAppInventor)
-    const model = resolve(
+    const model = buildModel(
       makeProject([makeScreen('S', scmForScreen('S'), COMPONENT_CLICK_HAT_ORPHAN_BKY)]),
       env,
     )
@@ -152,7 +152,7 @@ describe('findDeadBlocks', () => {
 
   it('does not throw on malformed BKY', async () => {
     const env = await getEnvironmentFor(Platform.MitAppInventor)
-    const model = resolve(makeProject([makeScreen('X', scmForScreen('X'), 'not xml')]), env)
+    const model = buildModel(makeProject([makeScreen('X', scmForScreen('X'), 'not xml')]), env)
     expect(() => findDeadBlocks(model)).not.toThrow()
     expect(findDeadBlocks(model)).toEqual([])
   })
@@ -167,7 +167,7 @@ const OPEN_SCREEN_BKY = `<xml xmlns="https://developers.google.com/blockly/xml">
 describe('buildNavGraph', () => {
   it('captures OpenAnotherScreen edge and node set', async () => {
     const env = await getEnvironmentFor(Platform.MitAppInventor)
-    const model = resolve(
+    const model = buildModel(
       makeProject([
         makeScreen('Screen1', scmForScreen('Screen1'), OPEN_SCREEN_BKY),
         makeScreen('Screen2', scmForScreen('Screen2')),
@@ -181,7 +181,7 @@ describe('buildNavGraph', () => {
 
   it('does not throw on malformed BKY', async () => {
     const env = await getEnvironmentFor(Platform.MitAppInventor)
-    const model = resolve(makeProject([makeScreen('S1', scmForScreen('S1'), '<<<')]), env)
+    const model = buildModel(makeProject([makeScreen('S1', scmForScreen('S1'), '<<<')]), env)
     expect(() => buildNavGraph(model)).not.toThrow()
     expect(buildNavGraph(model)).toEqual({ nodes: ['S1'], edges: [] })
   })

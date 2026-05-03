@@ -554,6 +554,7 @@ All functions return `MutationResult` (`{ project: AiaProject, diagnostics: Diag
 |----------|-----------|
 | `addScreen` | `(project, screen: AiaScreen) → MutationResult` |
 | `removeScreen` | `(project, name) → MutationResult` |
+| `cloneScreen` | `(project, screenName, newName) → MutationResult` |
 | `getScreen` | `(project, name) → AiaScreen \| null` |
 | `replaceScreen` | `(project, screen) → MutationResult` |
 | `replaceScreenScm` | `(project, screenName, scm) → MutationResult` |
@@ -572,6 +573,12 @@ All functions return `MutationResult` (`{ project: AiaProject, diagnostics: Diag
 |----------|-----------|
 | `addExtension` | `(project, ext: AiaExtension) → MutationResult` |
 | `removeExtension` | `(project, packageName) → MutationResult` |
+
+### Projects
+
+| Function | Signature |
+|----------|-----------|
+| `mergeProjects` | `(target, source, options: MergeOptions) → MutationResult` |
 
 ---
 
@@ -724,14 +731,6 @@ Builds a navigation graph from `open_another_screen` blocks.
 
 Import from `aia-kit/yail`.
 
-### `createYailGenerator(model)`
-
-```typescript
-function createYailGenerator(model: ModelProject): (screen: ModelScreen) => string
-```
-
-Returns a per-screen YAIL emitter. The package prefix is derived from `model.source.properties.main`. Calling `writeAia(model, { withYail: true })` uses the same emitter for any screen whose `yail` is null.
-
 ### `YailEmitter`
 
 ```typescript
@@ -742,4 +741,4 @@ class YailEmitter {
 }
 ```
 
-Object-oriented wrapper around `createYailGenerator`.
+Emits per-screen YAIL for a model project. The package prefix is derived from `model.source.properties.main`. Calling `writeAia(model, { withYail: true })` uses `YailEmitter` for any screen whose `yail` is null.

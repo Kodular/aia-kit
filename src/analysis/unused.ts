@@ -15,7 +15,7 @@ export function findUnusedExtensions(model: ModelProject): AiaExtension[] {
       const root = parseScm(screen.source.scm)
       collectComponentTypes(root, used)
     } catch {
-      /* errors already surfaced via resolve diagnostics */
+      /* errors already surfaced via model diagnostics */
     }
   }
   return model.source.extensions.filter(ext => !ext.components.some(c => used.has(c.type)))

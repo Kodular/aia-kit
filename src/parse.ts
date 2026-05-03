@@ -3,8 +3,6 @@ import { getProperties } from 'properties-file'
 import type { AiaProject, AiaScreen, AiaAsset, AiaExtension, AixManifest, AixAsset, ProjectProperties } from '#/core/types.js'
 import type { ComponentDescriptor } from '#/core/descriptors.js'
 import { AiaZipError, AiaStructureError } from '#/core/errors.js'
-import type { Environment } from '#/environment.js'
-import type { ModelProject } from '#/core/model.js'
 import { extractClassName, extractPackageName } from '#/utils/package-names.js'
 
 export function parseProjectProperties(raw: Record<string, string>): ProjectProperties {
@@ -211,15 +209,6 @@ export async function parseAix(input: Uint8Array | ArrayBuffer | Blob): Promise<
         data: async () => new Uint8Array(await (await readBlob(entry)).arrayBuffer()),
       }))),
   }
-}
-
-export async function parseAndResolve(
-  input: Uint8Array | ArrayBuffer | Blob,
-  env: Environment
-): Promise<ModelProject> {
-  const { resolve } = await import('#/resolve.js')
-  const project = await parseAia(input)
-  return resolve(project, env)
 }
 
 function toBlob(input: Uint8Array | ArrayBuffer | Blob): Blob {

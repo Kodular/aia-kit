@@ -61,18 +61,15 @@ Extensions (`.aix`) can be loaded with `readAix`; project-bundled extension desc
 
 | Area | Functions |
 |------|-----------|
-| **AIA archives** | `readAia`, `writeAia`, `getScreen`, `replaceScreen`, `replaceScreenScm`, `replaceScreenBky` |
+| **AIA archives** | `readAia`, `writeAia`, `getScreen`, `addScreen`, `removeScreen`, `cloneScreen`, `replaceScreen`, `replaceScreenScm`, `replaceScreenBky`, `addAsset`, `removeAsset`, `addExtension`, `removeExtension`, `mergeProjects` |
 | **AIX archives** | `readAix` |
 | **Model building** | `buildModel` |
 | **Environments** | `getEnvironmentFor`, `createEnvironment`, `Platform` |
 | **Project properties** | `parseProjectProperties`, `serializeProjectProperties` |
 | **Blocks** | `parseBky`, `serializeBky`, `removeDisabledBlocks`, `renameComponentReferences` |
 | **SCM components** | `ScmDocument` |
-| **Screens** | `addScreen`, `removeScreen` |
-| **Assets** | `addAsset`, `removeAsset` |
-| **Extensions** | `addExtension`, `removeExtension` |
 | **Analysis** | `diagnose`, `diffProjects`, `findUnusedAssets`, `findUnusedExtensions`, `analyzeVariables`, `analyzeComplexity`, `findDeadBlocks`, `buildNavGraph` |
-| **YAIL** | `createYailGenerator`, `YailEmitter` |
+| **YAIL** | `YailEmitter` |
 
 ## Documentation
 

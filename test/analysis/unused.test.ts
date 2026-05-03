@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import type { AiaProject, AiaScreen, AiaAsset, AiaExtension } from '#/core/types.js'
 import type { ComponentDescriptor } from '#/core/descriptors.js'
 import { Platform, getEnvironmentFor } from '#/core/environment.js'
-import { resolve } from '#/resolve.js'
+import { buildModel } from '#/model.js'
 import { findUnusedExtensions, findUnusedAssets, findAssetReferences } from '#/analysis/unused.js'
 import { makeProjectProperties } from '../helpers.js'
 
@@ -74,7 +74,7 @@ describe('findUnusedExtensions', () => {
     const env = await getEnvironmentFor(Platform.MitAppInventor)
     const ext = makeExtension([fakeDescriptor('com.fake.Widget')])
     const project = makeProject({ extensions: [ext] })
-    const model = resolve(project, env)
+    const model = buildModel(project, env)
     const unused = findUnusedExtensions(model)
     expect(unused.map(e => e.packageName)).toEqual(['com.fake.ext'])
   })
@@ -92,7 +92,7 @@ $JSON
       extensions: [ext],
       screens: [makeScreen('Screen1', scmWithWidget)],
     })
-    const model = resolve(project, env)
+    const model = buildModel(project, env)
     expect(findUnusedExtensions(model)).toEqual([])
   })
 })
@@ -101,7 +101,7 @@ describe('findUnusedAssets', () => {
   it('treats asset as unused when absent from scm, bky, and project.properties', async () => {
     const env = await getEnvironmentFor(Platform.MitAppInventor)
     const project = makeProject({ assets: [makeAsset('x.png')] })
-    const model = resolve(project, env)
+    const model = buildModel(project, env)
     expect(findUnusedAssets(model).map(a => a.name)).toEqual(['x.png'])
   })
 
@@ -117,7 +117,7 @@ $JSON
       assets: [makeAsset('x.png')],
       screens: [makeScreen('Screen1', scmLabelPicture)],
     })
-    const model = resolve(project, env)
+    const model = buildModel(project, env)
     expect(findUnusedAssets(model)).toEqual([])
   })
 })
@@ -133,7 +133,7 @@ $JSON
       assets: [makeAsset('pic.png')],
       screens: [makeScreen('Screen1', scm)],
     })
-    const model = resolve(project, env)
+    const model = buildModel(project, env)
     expect(findAssetReferences(model)).toContainEqual({
       assetName: 'pic.png',
       kind: 'property',
@@ -148,7 +148,7 @@ $JSON
       assets: [makeAsset('pic.png')],
       screens: [makeScreen('Screen1', EMPTY_SCM, bky)],
     })
-    const model = resolve(project, env)
+    const model = buildModel(project, env)
     expect(findAssetReferences(model)).toContainEqual({
       assetName: 'pic.png',
       kind: 'block_xml',

@@ -262,23 +262,23 @@ YAIL is the Scheme-like intermediate language App Inventor uses at runtime. Most
 
 ```typescript
 import { readAia, writeAia } from 'aia-kit/aia'
-import { createYailGenerator } from 'aia-kit/yail'
+import { YailEmitter } from 'aia-kit/yail'
 import { getEnvironmentFor, Platform } from 'aia-kit/environment'
 import { buildModel } from 'aia-kit/model'
 
 const env = await getEnvironmentFor(Platform.KodularCreator)
 const raw = await readAia(blob)
 const model = buildModel(raw, env)
-const generateYail = createYailGenerator(model)
+const yail = YailEmitter.for(model)
 
 // Attach YAIL to each screen before writing
 const screensWithYail = model.source.screens.map(screen => ({
   ...screen,
-  yail: generateYail(model.screens.find(s => s.name === screen.name)!),
+  yail: yail.emitScreen(screen.name),
 }))
 ```
 
-`writeAia(model, { withYail: true })` uses the same generator internally, so manual generation is only needed if you want to inspect or override the output.
+`writeAia(model, { withYail: true })` uses `YailEmitter` internally, so manual generation is only needed if you want to inspect or override the output.
 
 ---
 

@@ -12,7 +12,7 @@ import {
   replaceScreenScm,
   writeAia,
 } from '#/aia.js'
-import { resolve } from '#/resolve.js'
+import { buildModel } from '#/model.js'
 import { makeMinimalProject, makeProjectProperties } from './helpers.js'
 
 const FIXTURES = join(import.meta.dirname, 'fixtures')
@@ -150,7 +150,7 @@ describe('AIA domain API', () => {
 
   it('writeAia accepts a ModelProject without generating missing YAIL by default', async () => {
     const env = await getEnvironmentFor(Platform.MitAppInventor)
-    const model = resolve(
+    const model = buildModel(
       minimalProjectWithNullYail([{ name: 'Screen1', scm: scmForScreen('Screen1') }]),
       env,
     )
@@ -174,7 +174,7 @@ describe('AIA domain API', () => {
 
   it('writeAia writes generated .yail for ModelProject when withYail is true', async () => {
     const env = await getEnvironmentFor(Platform.MitAppInventor)
-    const model = resolve(
+    const model = buildModel(
       minimalProjectWithNullYail([{ name: 'Screen1', scm: scmForScreen('Screen1') }]),
       env,
     )
