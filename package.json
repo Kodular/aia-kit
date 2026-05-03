@@ -22,6 +22,7 @@
     ".":           "./dist/src/index.js",
     "./aia":      "./dist/src/aia.js",
     "./analysis": "./dist/src/analysis/index.js",
+    "./bky":      "./dist/src/bky.js",
     "./component-descriptor": "./dist/src/component-descriptor.js",
     "./environment": "./dist/src/environment.js",
     "./model":       "./dist/src/model.js",
