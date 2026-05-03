@@ -23,6 +23,34 @@ const MIT_DEMO_AIA_MATRIX: ReadonlyArray<readonly [filename: string, extensionPa
 ]
 
 describe('readAia — MIT extension demo fixture corpus (read-only)', () => {
+  it('LookTest_20181124.aia — bundled Look extension and Screen1 project shape', async () => {
+    const bytes = readFileSync(join(MIT_DEMO_AIA_DIR, 'LookTest_20181124.aia'))
+    const project = await readAia(new Uint8Array(bytes))
+
+    expect(project._tag).toBe('AiaProject')
+    expect(project.name).toBe('Screen1')
+    expect(project.properties.name).toBe('LookTestUpdated')
+    expect(project.screens.map(s => s.name).sort()).toEqual(['Screen1'])
+
+    const ext = project.extensions.find(e => e.packageName === 'edu.mit.appinventor.ai.look')!
+    expect(ext.components).toHaveLength(1)
+    const c = ext.components[0]!
+    expect(c.type).toBe('edu.mit.appinventor.ai.look.Look')
+    expect(c.name).toBe('Look')
+    expect(c.categoryString).toBe('EXTENSION')
+    expect(c.iconName).toBe('aiwebres/glasses.png')
+    expect(c.version).toBe('20181124')
+    expect(c.methods.map(m => m.name)).toEqual([
+      'ClassifyImageData',
+      'ClassifyVideoData',
+      'ToggleCameraFacingMode',
+    ])
+    expect(c.events.map(e => e.name)).toEqual(['ClassifierReady', 'Error', 'GotClassification'])
+
+    const jar = await ext.loadClasses()
+    expect(jar.byteLength).toBeGreaterThan(0)
+  })
+
   it.each(MIT_DEMO_AIA_MATRIX)(
     'parses %s (bundled extension %s)',
     async (filename, extensionPackage) => {
