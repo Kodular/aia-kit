@@ -23,7 +23,7 @@ function proj(screens: AiaScreen[], assets: { name: string; type: string; sizeBy
       minSdk: 7,
       components: [],
       manifest: { packageName: pkg, version: 1, minSdk: 7, buildVersion: '1', permissions: [] },
-      loadClasses: async () => new Uint8Array(),
+      loadClassesJar: async () => new Uint8Array(),
       loadAssets: async () => [],
     })),
   }

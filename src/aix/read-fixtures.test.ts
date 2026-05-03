@@ -53,7 +53,7 @@ describe('readAix — fixture corpus (read-only)', () => {
     expect(ext.manifest.packageName).toBe('edu.mit.appinventor.ai.look')
     expect(ext.manifest.version).toBe('20181124')
 
-    const jar = await ext.loadClasses()
+    const jar = await ext.loadClassesJar()
     expect(jar.byteLength).toBeGreaterThan(0)
 
     const assets = await ext.loadAssets()
@@ -84,7 +84,7 @@ describe('readAix — fixture corpus (read-only)', () => {
       expect(type).toBeDefined()
       expect(type!.startsWith(`${packageName}.`)).toBe(true)
 
-      const jar = await ext.loadClasses()
+      const jar = await ext.loadClassesJar()
       expect(jar.byteLength).toBeGreaterThan(0)
 
       const assets = await ext.loadAssets()

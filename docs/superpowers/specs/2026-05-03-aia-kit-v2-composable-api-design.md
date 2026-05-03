@@ -135,7 +135,7 @@ export interface AiaExtension {
   minSdk: number
   components: ComponentDescriptor[]
   manifest: AixManifest
-  loadClasses(): Promise<Uint8Array>
+  loadClassesJar(): Promise<Uint8Array>
   loadAssets(): Promise<AixAsset[]>
 }
 ```

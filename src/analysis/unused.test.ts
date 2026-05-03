@@ -52,7 +52,7 @@ function makeExtension(components: ComponentDescriptor[]): AiaExtension {
       buildVersion: '1',
       permissions: [],
     },
-    loadClasses: async () => new Uint8Array(),
+    loadClassesJar: async () => new Uint8Array(),
     loadAssets: async () => [],
   }
 }

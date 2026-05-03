@@ -47,7 +47,7 @@ describe('readAia — MIT extension demo fixture corpus (read-only)', () => {
     ])
     expect(c.events.map(e => e.name)).toEqual(['ClassifierReady', 'Error', 'GotClassification'])
 
-    const jar = await ext.loadClasses()
+    const jar = await ext.loadClassesJar()
     expect(jar.byteLength).toBeGreaterThan(0)
   })
 
@@ -64,8 +64,8 @@ describe('readAia — MIT extension demo fixture corpus (read-only)', () => {
 
       const ext = project.extensions.find(e => e.packageName === extensionPackage)!
       expect(ext.components.length).toBeGreaterThanOrEqual(1)
-      expect(await ext.loadClasses()).toBeInstanceOf(Uint8Array)
-      expect((await ext.loadClasses()).byteLength).toBeGreaterThan(0)
+      expect(await ext.loadClassesJar()).toBeInstanceOf(Uint8Array)
+      expect((await ext.loadClassesJar()).byteLength).toBeGreaterThan(0)
     },
   )
 })

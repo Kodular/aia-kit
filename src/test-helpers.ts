@@ -80,7 +80,7 @@ export function makeExtension(overrides: Partial<AiaExtension> = {}): AiaExtensi
     minSdk: overrides.minSdk ?? 7,
     components: overrides.components ?? [makeDescriptor({ type: `${packageName}.ExtensionComponent`, name: 'ExtensionComponent', external: true })],
     manifest: overrides.manifest ?? { packageName, version, minSdk: 7, buildVersion: '1', permissions: [] },
-    loadClasses: overrides.loadClasses ?? (async () => new Uint8Array()),
+    loadClassesJar: overrides.loadClassesJar ?? (async () => new Uint8Array()),
     loadAssets: overrides.loadAssets ?? (async () => []),
   }
 }

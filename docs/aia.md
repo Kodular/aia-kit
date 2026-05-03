@@ -213,7 +213,7 @@ Extensions inside an AIA surface as **`AiaExtension`** (same shape as **`readAix
 
 ## Writer round-trip notes
 
-Older writer behaviour: only component descriptor JSON under `external_comps/` was guaranteed on write; **`classes.jar`**, **`AndroidRuntime.jar`**, **`AndroidManifest.xml`**, and extension assets had to remain from the source archive to survive round-trip. v2 models these via **`AiaExtension.loadClasses()`** and **`loadAssets()`** — see [AIX](aix.md).
+Older writer behaviour: only component descriptor JSON under `external_comps/` was guaranteed on write; **`classes.jar`**, **`AndroidRuntime.jar`**, **`AndroidManifest.xml`**, and extension assets had to remain from the source archive to survive round-trip. v2 models these via **`AiaExtension.loadClassesJar()`** and **`loadAssets()`** — see [AIX](aix.md).
 
 ---
 

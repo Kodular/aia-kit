@@ -11,7 +11,7 @@ describe('AIX domain API', () => {
     expect(extension.version).toBe(2)
     expect(extension.components).toHaveLength(1)
     expect(extension.components[0].name).toBe('ExtensionComponent')
-    expect(await extension.loadClasses()).toBeInstanceOf(Uint8Array)
+    expect(await extension.loadClassesJar()).toBeInstanceOf(Uint8Array)
 
     const assets = await extension.loadAssets()
     expect(assets).toHaveLength(1)

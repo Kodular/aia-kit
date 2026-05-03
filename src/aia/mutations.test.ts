@@ -39,7 +39,7 @@ function makeExtension(packageName: string, version = 1): AiaExtension {
     minSdk: 7,
     components: [],
     manifest: { packageName, version, minSdk: 7, buildVersion: '1', permissions: [] },
-    loadClasses: async () => new Uint8Array(),
+    loadClassesJar: async () => new Uint8Array(),
     loadAssets: async () => [],
   }
 }

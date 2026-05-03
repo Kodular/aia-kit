@@ -6,7 +6,7 @@ import { extractPackageName } from '#/utils/package-names.js'
 import { readZipEntryBlob, readZipEntryText, toBlob } from '#/utils/zip-io.js'
 
 // TODO: zip members present under test-fixtures/aix (MIT corpus) but not surfaced by readAix (<package>/ = first path segment in that tree)
-// <package>/files/AndroidRuntime.jar — not read (loadClasses only uses *classes.jar)
+// <package>/files/AndroidRuntime.jar — not read (loadClassesJar only uses *classes.jar)
 // <package>/files/component_build_info.json, <package>/files/component_build_infos.json — not read
 // <package>/extension.properties — not read (file exists in every corpus .aix here)
 // <package>/aiwebres/… — not read when present (BLE has no aiwebres/; others do); not read unless duplicated under …/assets/
@@ -59,7 +59,7 @@ export async function readAix(input: Uint8Array | ArrayBuffer | Blob): Promise<A
     minSdk: 7,
     components,
     manifest,
-    loadClasses: async () => jarEntry ? new Uint8Array(await (await readZipEntryBlob(jarEntry)).arrayBuffer()) : new Uint8Array(),
+    loadClassesJar: async () => jarEntry ? new Uint8Array(await (await readZipEntryBlob(jarEntry)).arrayBuffer()) : new Uint8Array(),
     loadAssets: async (): Promise<AixAsset[]> =>
       Promise.all(assetFileEntries.map(async entry => ({
         name: entry.filename.split('/').pop() ?? entry.filename,

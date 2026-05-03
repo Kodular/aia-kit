@@ -135,7 +135,7 @@ async function bundledExtensionFromPackageEntries(
     minSdk: 7,
     components,
     manifest,
-    loadClasses: async () =>
+    loadClassesJar: async () =>
       jarEntry ? new Uint8Array(await (await readZipEntryBlob(jarEntry)).arrayBuffer()) : new Uint8Array(),
     loadAssets: async (): Promise<AixAsset[]> =>
       Promise.all(
