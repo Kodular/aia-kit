@@ -143,6 +143,24 @@ export interface AiaExtension {
 
 `AiaProject` is the archive truth. SCM and BKY strings are preserved unless the caller explicitly edits them through SCM/BKY/mutation APIs. YAIL is treated as optional derived output.
 
+Several deeper domain types are intentionally left implementation-defined in this spec. Their names establish API boundaries, but their exact shape should be designed close to implementation:
+
+```ts
+ProjectProperties
+ComponentDescriptor
+BuiltinBlockDescriptor
+BuiltinBlockRegistry
+ComponentProperty
+BlockAst
+AixManifest
+AixAsset
+Diagnostic
+NavGraph
+ProjectDiff
+AssetReference
+ComplexityReport
+```
+
 ---
 
 ## Model Space
@@ -299,6 +317,11 @@ interface WriteAiaOptions {
   withYail?: boolean
 }
 
+interface MutationResult {
+  readonly project: AiaProject
+  readonly diagnostics: Diagnostic[]
+}
+
 getScreen(project: AiaProject, name: string): AiaScreen | null
 replaceScreen(project: AiaProject, screen: AiaScreen): MutationResult
 replaceScreenScm(project: AiaProject, screenName: string, scm: string): MutationResult
@@ -313,6 +336,8 @@ removeExtension(project: AiaProject, packageName: string): MutationResult
 ```
 
 `writeAia` writes archive truth. YAIL generation is controlled by domain intent, not a caller-provided callback. When `withYail` is true, the writer requires a `ModelProject` and uses the standard `YailEmitter` to embed compatible `.yail` files. When false or omitted, the writer preserves existing non-null YAIL and does not generate missing YAIL.
+
+The first overload intentionally constrains raw `AiaProject` writes to `{ withYail?: false }`, so TypeScript rejects `writeAia(project, { withYail: true })`. Generating YAIL requires model-space semantics and the effective component registry.
 
 ```ts
 const model = buildModel(project, environment)
@@ -451,7 +476,6 @@ buildModel(project: AiaProject, environment: Environment): ModelProject
 Convenience analysis functions. These are not core infrastructure.
 
 ```ts
-diagnoseProject(project: AiaProject, environment: Environment): Diagnostic[]
 diffProjects(a: AiaProject, b: AiaProject): ProjectDiff
 findUnusedAssets(model: ModelProject): AiaAsset[]
 findUnusedExtensions(model: ModelProject): AiaExtension[]
@@ -461,6 +485,8 @@ buildNavGraph(model: ModelProject): NavGraph
 ```
 
 Where analysis needs semantics, it takes `ModelProject`. Where it only needs archive structure, it takes `AiaProject`.
+
+Semantic projection diagnostics are read directly from `buildModel(project, environment).diagnostics`. The initial API should not add trivial wrapper functions for that expression. Additional analysis should be exposed as separate named functions only when it derives information beyond model construction.
 
 ---
 
@@ -638,9 +664,9 @@ const yail = emitter.emitScreen('Screen1')
 ### Run convenience analysis
 
 ```ts
-import { diagnoseProject, buildNavGraph } from 'aia-kit/analysis'
+import { buildNavGraph } from 'aia-kit/analysis'
 
-const diagnostics = diagnoseProject(project, env)
+const diagnostics = model.diagnostics
 const graph = buildNavGraph(model)
 ```
 
@@ -656,6 +682,8 @@ const graph = buildNavGraph(model)
 - No central `aia-kit/mutations` module as a canonical domain boundary.
 - No callback-style BKY lens API in the core surface.
 - No `BkyDocument` class in the initial API.
+- No greenfield project factory in the initial API. The v2 surface targets read, inspect, edit, analyse, and write workflows first; project templates can be specified later when concrete creation semantics are known.
+- No trivial public wrappers for `buildModel(project, environment).diagnostics`.
 - No requirement to use analysis or project-level helpers for low-level workflows.
 
 ---
