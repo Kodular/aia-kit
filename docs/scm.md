@@ -65,7 +65,7 @@ Recursive objects use MIT naming conventions:
 ## Resolution vs raw
 
 - **`parseScm`** → **`AiaComponent`** — unvalidated strings, no platform descriptors.
-- **`resolve(project, env)`** → **`ModelComponent`** — attaches **`ComponentDescriptor`**, typed **`ComponentProperty`**, and diagnostics for unknown types/properties.
+- **`buildModel(project, environment)`** → **`ModelComponent`** — attaches **`ComponentDescriptor`**, typed **`ComponentProperty`**, and diagnostics for unknown types/properties.
 
 Full Java class names used in **YAIL** come from the **environment**, not from SCM **`$Type`** alone.
 
@@ -75,12 +75,11 @@ Full Java class names used in **YAIL** come from the **environment**, not from S
 
 | Piece | Location |
 |-------|-----------|
-| Parse SCM string → tree | **`parseScm`** — [`src/components/scm-parser.ts`](../src/components/scm-parser.ts) |
-| Tree → SCM string | **`serializeScm`** — [`src/components/scm-serializer.ts`](../src/components/scm-serializer.ts) |
+| Public SCM editor | **`ScmDocument`** — [`src/scm.ts`](../src/scm.ts) |
 | Screen field | **`AiaScreen.scm`** (`string`) |
-| Component utilities | **`getParent`**, **`findComponent`**, … — [`src/components/tree.ts`](../src/components/tree.ts) |
+| Project fold-back | **`replaceScreenScm`** — [`src/aia.ts`](../src/aia.ts) |
 
-Mutations that edit the tree (**`addComponent`**, **`removeComponent`**, …) parse with **`parseScm`**, update **`AiaComponent`**, then **`serializeScm`** back while preserving envelope metadata from the original string.
+`ScmDocument` parses SCM text, updates the local `AiaComponent` tree, then serialises back while preserving envelope metadata from the original string. Use `replaceScreenScm` to fold the edited SCM string back into an `AiaProject`.
 
 ---
 

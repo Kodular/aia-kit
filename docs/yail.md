@@ -54,7 +54,7 @@ The macros in `runtime.scm` compile down to data structures (e.g. lists of compo
 - SCM **`$Type`** stores short names (`Button`, `Form`, …).
 - YAIL **`add-component`** uses the **runtime Java class** for that component, usually under **`com.google.appinventor.components.runtime.*`**.
 
-In **aia-kit**, resolved **`ComponentDescriptor.type`** values in environment JSON already carry those fully qualified names where applicable, which is what a generator should emit in YAIL.
+In **aia-kit**, model **`ComponentDescriptor.type`** values in environment JSON already carry those fully qualified names where applicable, which is what a generator should emit in YAIL.
 
 **Extensions** use their own qualified classes from the extension descriptor / AIX metadata (see [AIX](aix.md)).
 

@@ -1,12 +1,12 @@
 # aia-kit API reference
 
-All exports are from the `aia-kit` package. For a guided walkthrough see [usage.md](usage.md).
+The root `aia-kit` export is intentionally small and type-focused. Prefer domain subpaths such as `aia-kit/aia`, `aia-kit/scm`, `aia-kit/bky`, `aia-kit/model`, and `aia-kit/environment` for operational APIs. For a guided walkthrough see [usage.md](usage.md).
 
 ---
 
 ## Raw data types
 
-These types faithfully represent the AIA/AIX file format. They are what `parseAia` / `parseAix` return and what `writeAia` consumes.
+These types faithfully represent the AIA/AIX file format. They are what `readAia` / `readAix` return and what `writeAia` consumes.
 
 ### `AiaProject`
 
@@ -129,7 +129,7 @@ interface MutationResult {
 
 ## Model layer types
 
-Produced by `resolve()`. The model layer enriches raw data with component descriptors from the `Environment`.
+Produced by `buildModel()`. The model layer enriches raw data with component descriptors from the `Environment`.
 
 ### `ModelProject`
 
@@ -138,6 +138,8 @@ interface ModelProject {
   readonly _tag: 'ModelProject'
   source: AiaProject       // the underlying raw project
   environment: Environment
+  componentRegistry: ComponentRegistry
+  builtinBlockRegistry: BuiltinBlockRegistry
   screens: ModelScreen[]
   diagnostics: Diagnostic[]
 }
@@ -267,19 +269,20 @@ interface ComponentDescriptorParam {
 Holds component descriptors for a platform. Accessible via `Environment.componentRegistry`.
 
 ```typescript
-interface ComponentRegistry {
+class ComponentRegistry {
   readonly descriptors: ReadonlyArray<ComponentDescriptor>
   lookup(typeName: string): ComponentDescriptor | null
-  extend(descriptors: ComponentDescriptor[]): ComponentRegistry
+  has(typeName: string): boolean
+  toMutable(): MutableComponentRegistry
 }
 ```
 
-### `BlockRegistry`
+### `BuiltinBlockRegistry`
 
-Holds built-in Blockly block metadata. Accessible via `Environment.blockRegistry`.
+Holds built-in Blockly block metadata. Accessible via `Environment.builtinBlockRegistry`.
 
 ```typescript
-interface BlockRegistry {
+interface BuiltinBlockRegistry {
   readonly builtins: ReadonlyMap<string, BuiltinBlockDescriptor>
   lookup(type: string): BuiltinBlockDescriptor | null
 }
@@ -373,200 +376,175 @@ type DiagnosticCode =
 
 ---
 
-## Error types
-
-All extend `AiaKitError`.
-
-| Class | Thrown when |
-|-------|-------------|
-| `AiaKitError` | Base class for all aia-kit errors |
-| `AiaZipError` | Input is not a valid ZIP archive |
-| `AiaStructureError` | Valid ZIP but missing required AIA entries |
-| `AiaParseError` | Malformed SCM or BKY content inside the archive |
-| `AiaWriteError` | Failure during ZIP assembly in `writeAia` |
-
----
-
 ## Environment
+
+Import from `aia-kit/environment`.
 
 ### `Environment`
 
 ```typescript
-class Environment {
+interface Environment {
   readonly componentRegistry: ComponentRegistry
-  readonly blockRegistry: BlockRegistry
-
-  lookup(typeName: string): ComponentDescriptor | null
-
-  withExtension(ext: AiaExtension): Environment
-  withExtensions(exts: AiaExtension[]): Environment
-
-  static kodularCreator(): Promise<Environment>
-  static mitAppInventor(): Promise<Environment>
+  readonly builtinBlockRegistry: BuiltinBlockRegistry
+  readonly meta: EnvironmentMeta
 }
 ```
+
+### `Platform`
+
+```typescript
+const Platform: {
+  readonly MitAppInventor: 'mit-app-inventor'
+  readonly KodularCreator: 'kodular-creator'
+}
+```
+
+### `getEnvironmentFor(platform)`
+
+```typescript
+function getEnvironmentFor(platform: Platform): Promise<Environment>
+```
+
+Loads and memoizes a built-in platform environment.
+
+### `createEnvironment(input)`
+
+```typescript
+function createEnvironment(input: CreateEnvironmentInput): Environment
+```
+
+Creates a custom environment from platform metadata, component descriptors, and optional built-in block descriptors.
 
 ---
 
 ## Pipeline functions
 
-### `parseAia(input)`
+### `readAia(input)`
+
+Import from `aia-kit/aia`.
 
 ```typescript
-function parseAia(input: Uint8Array | ArrayBuffer | Blob): Promise<AiaProject>
+function readAia(input: Uint8Array | ArrayBuffer | Blob): Promise<AiaProject>
 ```
 
-Reads and parses an AIA archive. No `Environment` required.  
-Throws `AiaZipError` | `AiaStructureError` | `AiaParseError`.
+Reads and parses an AIA archive. No `Environment` required. Throws on invalid ZIP input, missing required archive entries, or malformed archive contents.
 
-### `parseAix(input)`
+### `readAix(input)`
+
+Import from `aia-kit/aix`.
 
 ```typescript
-function parseAix(input: Uint8Array | ArrayBuffer | Blob): Promise<AiaExtension>
+function readAix(input: Uint8Array | ArrayBuffer | Blob): Promise<AiaExtension>
 ```
 
-Reads and parses an AIX extension archive.  
-Throws `AiaZipError` | `AiaStructureError`.
+Reads and parses an AIX extension archive. Throws on invalid ZIP input or missing required archive entries.
 
-### `resolve(project, env)`
+### `buildModel(project, environment)`
+
+Import from `aia-kit/model`.
 
 ```typescript
-function resolve(project: AiaProject, env: Environment): ModelProject
+function buildModel(project: AiaProject, environment: Environment): ModelProject
 ```
 
-Pure function. Transforms a raw `AiaProject` into a `ModelProject` using the environment's component descriptors. Emits diagnostics for unknown components and invalid properties.
-
-### `parseAndResolve(input, env)`
-
-```typescript
-function parseAndResolve(
-  input: Uint8Array | ArrayBuffer | Blob,
-  env: Environment
-): Promise<ModelProject>
-```
-
-Convenience: `parseAia` + `resolve` in one call.
+Pure function. Transforms a raw `AiaProject` into a `ModelProject` using the environment's component descriptors and the project's bundled extension descriptors. Emits diagnostics for unknown components and invalid properties.
 
 ### `writeAia(project)`
 
+Import from `aia-kit/aia`.
+
 ```typescript
-function writeAia(project: AiaProject | ModelProject): Promise<Blob>
+function writeAia(project: AiaProject, options?: { withYail?: false }): Promise<Blob>
+function writeAia(model: ModelProject, options?: WriteAiaOptions): Promise<Blob>
 ```
 
-Serialises a project back to an AIA ZIP. Accepts either a raw or resolved project.  
-When given a `ModelProject` with screens whose `yail` is null, YAIL is generated automatically via `createYailGenerator`.
+Serialises a project back to an AIA ZIP. Accepts either a raw project or a model project.
+When given a `ModelProject` and `{ withYail: true }`, missing YAIL is generated via `YailEmitter`.
 
 ### `parseProjectProperties(raw)`
+
+Import from `aia-kit/project-properties`.
 
 ```typescript
 function parseProjectProperties(raw: Record<string, string>): ProjectProperties
 ```
 
-Parses a flat key-value map (as returned by the `properties-file` library) into a typed `ProjectProperties`.
+Parses a flat key-value map into a typed `ProjectProperties`.
 
-### `serializeProperties(props)`
+### `serializeProjectProperties(props)`
 
 ```typescript
-function serializeProperties(props: ProjectProperties): string
+function serializeProjectProperties(props: ProjectProperties): string
 ```
 
 Serialises a `ProjectProperties` back to a `key=value` string suitable for `project.properties`.
 
 ---
 
-## Block lens
+## BKY functions
 
-### `parseBlocks(bky)`
+Import from `aia-kit/bky`.
+
+### `parseBky(bky)`
 
 ```typescript
-function parseBlocks(bky: string): BlockAst
+function parseBky(bky: string): BlockAst
 ```
 
 Parses a BKY XML string to a `BlockAst`.
 
-### `serializeBlocks(ast)`
+### `serializeBky(ast)`
 
 ```typescript
-function serializeBlocks(ast: BlockAst): string
+function serializeBky(ast: BlockAst): string
 ```
 
 Serialises a `BlockAst` back to BKY XML.
 
-### `queryBlocks(screen, query)`
+### `removeDisabledBlocks(ast)`
 
 ```typescript
-function queryBlocks<T>(
-  screen: AiaScreen | ModelScreen,
-  query: (ast: BlockAst) => T
-): T
+function removeDisabledBlocks(ast: BlockAst): BlockAst
 ```
 
-Parses the screen's BKY and runs `query` over the AST. Returns whatever `query` returns.
+Returns a copy of the AST without disabled blocks.
 
-### `updateBlocks(project, screenName, astOrUpdater)`
+### `renameComponentReferences(ast, fromName, toName)`
 
 ```typescript
-function updateBlocks(
-  project: AiaProject,
-  screenName: string,
-  astOrUpdater: BlockAst | ((ast: BlockAst) => BlockAst)
-): { project: AiaProject; diagnostics: Diagnostic[] }
+function renameComponentReferences(ast: BlockAst, fromName: string, toName: string): BlockAst
 ```
 
-Applies an AST updater (or a pre-built `BlockAst`) to a named screen. Emits `MISSING_SCREEN_FILE` if the screen is not found.
-
-### `updateAllScreenBlocks(project, updater)`
-
-```typescript
-function updateAllScreenBlocks(
-  project: AiaProject,
-  updater: (ast: BlockAst, screenName: string) => BlockAst
-): { project: AiaProject; diagnostics: Diagnostic[] }
-```
-
-Applies the updater to every screen in the project.
+Returns a copy of the AST with component name references renamed in block fields and mutations.
 
 ---
 
-## Component tree utilities
+## SCM documents
 
-All functions operate on `ModelComponent` (resolved). Use `project.screens[n].form` as the root.
+Import from `aia-kit/scm`.
 
-### `findComponentByUid(root, uid)`
-
-```typescript
-function findComponentByUid(root: ModelComponent, uid: string): ModelComponent | null
-```
-
-Depth-first search for a component by UID.
-
-### `getComponentsByType(root, type)`
+### `ScmDocument`
 
 ```typescript
-function getComponentsByType(root: ModelComponent, type: string): ModelComponent[]
+class ScmDocument {
+  readonly diagnostics: Diagnostic[]
+  static parse(scm: string): ScmDocument
+  readonly root: AiaComponent
+  findComponentByUid(uid: string): AiaComponent | null
+  getComponentsByType(type: string): AiaComponent[]
+  addComponent(parentUid: string, component: AiaComponent): Diagnostic[]
+  removeComponent(uid: string): Diagnostic[]
+  serialize(): string
+}
 ```
 
-Returns all components (including root) whose `type` matches.
-
-### `getParentComponent(root, target)`
-
-```typescript
-function getParentComponent(root: ModelComponent, target: ModelComponent): ModelComponent | null
-```
-
-Returns the direct parent of `target`, or null if `target` is the root.
-
-### `getComponentPathByUid(root, uid)`
-
-```typescript
-function getComponentPathByUid(root: ModelComponent, uid: string): ModelComponent[]
-```
-
-Returns the path from root to the component with the given UID, inclusive. Returns `[]` if not found.
+Parses SCM text, preserves wrapper metadata, exposes raw component-tree queries and edits, and serialises the result back to SCM text.
 
 ---
 
 ## Structural mutations
+
+Import project-level mutations from `aia-kit/aia`.
 
 All functions return `MutationResult` (`{ project: AiaProject, diagnostics: Diagnostic[] }`). The input is never mutated.
 
@@ -574,23 +552,18 @@ All functions return `MutationResult` (`{ project: AiaProject, diagnostics: Diag
 
 | Function | Signature |
 |----------|-----------|
-| `addScreen` | `(project, name) → MutationResult` |
+| `addScreen` | `(project, screen: AiaScreen) → MutationResult` |
 | `removeScreen` | `(project, name) → MutationResult` |
-| `cloneScreen` | `(project, sourceName, newName) → MutationResult` |
-
-### Components
-
-| Function | Signature |
-|----------|-----------|
-| `addComponent` | `(project, screenName, parentName, component: AiaComponent) → MutationResult` |
-| `removeComponent` | `(project, screenName, componentName) → MutationResult` |
-| `updatePropertyWhere` | `(project, predicate, propertyName, value) → MutationResult` |
+| `getScreen` | `(project, name) → AiaScreen \| null` |
+| `replaceScreen` | `(project, screen) → MutationResult` |
+| `replaceScreenScm` | `(project, screenName, scm) → MutationResult` |
+| `replaceScreenBky` | `(project, screenName, bky) → MutationResult` |
 
 ### Assets
 
 | Function | Signature |
 |----------|-----------|
-| `addAsset` | `(project, data: Blob, name) → Promise<MutationResult>` |
+| `addAsset` | `(project, asset: AiaAsset) → MutationResult` |
 | `removeAsset` | `(project, name) → MutationResult` |
 
 ### Extensions
@@ -600,29 +573,11 @@ All functions return `MutationResult` (`{ project: AiaProject, diagnostics: Diag
 | `addExtension` | `(project, ext: AiaExtension) → MutationResult` |
 | `removeExtension` | `(project, packageName) → MutationResult` |
 
-### `mergeProjects(target, source, options)`
-
-```typescript
-function mergeProjects(
-  target: AiaProject,
-  source: AiaProject,
-  options: MergeOptions
-): MutationResult
-```
-
-```typescript
-interface MergeOptions {
-  screenConflict: 'skip' | 'overwrite' | 'rename'
-  assetConflict: 'skip' | 'overwrite'
-  includeExtensions: boolean
-}
-```
-
-Merges screens, assets, and (optionally) extensions from `source` into `target`. `'rename'` appends `_2`, `_3`, etc. to resolve screen name conflicts.
-
 ---
 
 ## Analysis functions
+
+Import from `aia-kit/analysis`.
 
 ### `diagnose(project, env)`
 
@@ -630,7 +585,7 @@ Merges screens, assets, and (optionally) extensions from `source` into `target`.
 function diagnose(project: AiaProject, env: Environment): Diagnostic[]
 ```
 
-Runs resolve and BKY parse validation; returns all diagnostics.
+Builds a semantic model and validates BKY; returns all diagnostics.
 
 ### `diffProjects(a, b)`
 
@@ -651,26 +606,26 @@ interface ProjectDiff {
 }
 ```
 
-### `findUnusedAssets(project)`
+### `findUnusedAssets(model)`
 
 ```typescript
-function findUnusedAssets(project: AiaProject): string[]
+function findUnusedAssets(model: ModelProject): AiaAsset[]
 ```
 
-Returns asset names not referenced by any component property or block.
+Returns assets not referenced by any component property or block.
 
-### `findUnusedExtensions(project)`
+### `findUnusedExtensions(model)`
 
 ```typescript
-function findUnusedExtensions(project: AiaProject): string[]
+function findUnusedExtensions(model: ModelProject): AiaExtension[]
 ```
 
-Returns extension package names not used by any component in any screen.
+Returns extension records not used by any component in any screen.
 
-### `findAssetReferences(project)`
+### `findAssetReferences(model)`
 
 ```typescript
-function findAssetReferences(project: AiaProject): AssetReference[]
+function findAssetReferences(model: ModelProject): AssetReference[]
 ```
 
 ```typescript
@@ -681,10 +636,10 @@ interface AssetReference {
 }
 ```
 
-### `analyzeVariables(project)`
+### `analyzeVariables(ast)`
 
 ```typescript
-function analyzeVariables(project: AiaProject): VariableReport
+function analyzeVariables(ast: BlockAst): VariableReport
 ```
 
 ```typescript
@@ -694,10 +649,10 @@ interface VariableReport {
 }
 ```
 
-### `exportBlockSummary(project)`
+### `exportBlockSummary(ast)`
 
 ```typescript
-function exportBlockSummary(project: AiaProject): BlockSummary
+function exportBlockSummary(ast: BlockAst): BlockSummary
 ```
 
 ```typescript
@@ -708,10 +663,10 @@ interface BlockSummary {
 }
 ```
 
-### `analyzeComplexity(project)`
+### `analyzeComplexity(model)`
 
 ```typescript
-function analyzeComplexity(project: AiaProject): ComplexityReport
+function analyzeComplexity(model: ModelProject): ComplexityReport
 ```
 
 ```typescript
@@ -727,10 +682,10 @@ interface ScreenComplexity {
 }
 ```
 
-### `findDeadBlocks(project)`
+### `findDeadBlocks(model)`
 
 ```typescript
-function findDeadBlocks(project: AiaProject): DeadBlock[]
+function findDeadBlocks(model: ModelProject): DeadBlock[]
 ```
 
 ```typescript
@@ -743,10 +698,10 @@ interface DeadBlock {
 
 Returns top-level blocks that are disabled or otherwise unreachable.
 
-### `buildNavGraph(project)`
+### `buildNavGraph(model)`
 
 ```typescript
-function buildNavGraph(project: AiaProject): NavGraph
+function buildNavGraph(model: ModelProject): NavGraph
 ```
 
 ```typescript
@@ -767,22 +722,24 @@ Builds a navigation graph from `open_another_screen` blocks.
 
 ## YAIL generation
 
+Import from `aia-kit/yail`.
+
 ### `createYailGenerator(model)`
 
 ```typescript
 function createYailGenerator(model: ModelProject): (screen: ModelScreen) => string
 ```
 
-Returns a per-screen YAIL emitter. The package prefix is derived from `model.source.properties.main`. Calling `writeAia` with a `ModelProject` invokes this automatically for any screen whose `yail` is null.
+Returns a per-screen YAIL emitter. The package prefix is derived from `model.source.properties.main`. Calling `writeAia(model, { withYail: true })` uses the same emitter for any screen whose `yail` is null.
 
----
-
-## Diagnostics utility
-
-### `mergeReports(...reports)`
+### `YailEmitter`
 
 ```typescript
-function mergeReports(...reports: Diagnostic[][]): Diagnostic[]
+class YailEmitter {
+  static for(model: ModelProject): YailEmitter
+  emit(screen: ModelScreen): string
+  emitScreen(screenName: string): string
+}
 ```
 
-Flattens multiple `Diagnostic[]` arrays into one.
+Object-oriented wrapper around `createYailGenerator`.

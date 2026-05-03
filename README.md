@@ -13,24 +13,28 @@ pnpm add aia-kit
 ## Quick start
 
 ```typescript
-import { Environment, parseAndResolve, updateBlocks, writeAia } from 'aia-kit'
+import { readAia, replaceScreenBky, writeAia } from 'aia-kit/aia'
+import { removeDisabledBlocks, parseBky, serializeBky } from 'aia-kit/bky'
+import { getEnvironmentFor, Platform } from 'aia-kit/environment'
+import { buildModel } from 'aia-kit/model'
 
 // 1. Load a platform environment (Kodular or MIT App Inventor)
-const env = await Environment.kodularCreator()
+const env = await getEnvironmentFor(Platform.KodularCreator)
 
-// 2. Parse and resolve an AIA file
+// 2. Read and model an AIA file
 const blob = /* Blob from file input, fetch, or fs.readFile */
-const { project, diagnostics } = await parseAndResolve(blob, env)
+const raw = await readAia(blob)
+const project = buildModel(raw, env)
+const { diagnostics } = project
 
 // 3. Inspect
 console.log(project.source.name)             // project name
 console.log(project.screens.map(s => s.name)) // screen names
 
 // 4. Mutate (returns a new AiaProject — nothing is mutated in place)
-const { project: updated } = updateBlocks(project.source, 'Screen1', ast => ({
-  ...ast,
-  blocks: ast.blocks.filter(b => !b.disabled),
-}))
+const screen = project.source.screens.find(s => s.name === 'Screen1')!
+const nextBky = serializeBky(removeDisabledBlocks(parseBky(screen.bky)))
+const { project: updated } = replaceScreenBky(project.source, 'Screen1', nextBky)
 
 // 5. Write back to AIA
 const output = await writeAia(updated)
@@ -38,7 +42,7 @@ const output = await writeAia(updated)
 
 ## Core concepts
 
-**Two-stage pipeline** — `parseAia` reads the ZIP and produces a raw `AiaProject`; `resolve` enriches it into a `ModelProject` using a platform `Environment`. You can stop at the raw layer if you only need properties, screen names, or assets.
+**Two-stage pipeline** — `readAia` reads the ZIP and produces a raw `AiaProject`; `buildModel` enriches it into a `ModelProject` using a platform `Environment`. You can stop at the raw layer if you only need properties, screen names, or assets.
 
 **Immutable data** — every mutation function returns a new object. The original is never modified.
 
@@ -48,27 +52,27 @@ const output = await writeAia(updated)
 
 | Platform | Factory |
 |----------|---------|
-| Kodular Creator | `Environment.kodularCreator()` |
-| MIT App Inventor | `Environment.mitAppInventor()` |
+| Kodular Creator | `getEnvironmentFor(Platform.KodularCreator)` |
+| MIT App Inventor | `getEnvironmentFor(Platform.MitAppInventor)` |
 
-Extensions (`.aix`) can be loaded with `parseAix` and added to an environment via `env.withExtension(aix)`.
+Extensions (`.aix`) can be loaded with `readAix`; project-bundled extension descriptors are folded into the effective model registry by `buildModel`.
 
 ## What you can do
 
 | Area | Functions |
 |------|-----------|
-| **Parse** | `parseAia`, `parseAix`, `parseAndResolve`, `parseProjectProperties` |
-| **Resolve** | `resolve` |
-| **Write** | `writeAia`, `serializeProperties` |
-| **Blocks** | `queryBlocks`, `updateBlocks`, `updateAllScreenBlocks`, `parseBlocks`, `serializeBlocks` |
-| **Component tree** | `findComponentByUid`, `getComponentsByType`, `getParentComponent`, `getComponentPathByUid` |
-| **Screens** | `addScreen`, `removeScreen`, `cloneScreen` |
-| **Components** | `addComponent`, `removeComponent`, `updatePropertyWhere` |
+| **AIA archives** | `readAia`, `writeAia`, `getScreen`, `replaceScreen`, `replaceScreenScm`, `replaceScreenBky` |
+| **AIX archives** | `readAix` |
+| **Model building** | `buildModel` |
+| **Environments** | `getEnvironmentFor`, `createEnvironment`, `Platform` |
+| **Project properties** | `parseProjectProperties`, `serializeProjectProperties` |
+| **Blocks** | `parseBky`, `serializeBky`, `removeDisabledBlocks`, `renameComponentReferences` |
+| **SCM components** | `ScmDocument` |
+| **Screens** | `addScreen`, `removeScreen` |
 | **Assets** | `addAsset`, `removeAsset` |
 | **Extensions** | `addExtension`, `removeExtension` |
-| **Projects** | `mergeProjects` |
 | **Analysis** | `diagnose`, `diffProjects`, `findUnusedAssets`, `findUnusedExtensions`, `analyzeVariables`, `analyzeComplexity`, `findDeadBlocks`, `buildNavGraph` |
-| **YAIL** | `createYailGenerator` |
+| **YAIL** | `createYailGenerator`, `YailEmitter` |
 
 ## Documentation
 

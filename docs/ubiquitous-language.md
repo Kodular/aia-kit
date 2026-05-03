@@ -58,10 +58,10 @@ An `AiaProject` enriched with platform and project-extension knowledge. Componen
 The immutable `ComponentRegistry` exposed on `ModelProject`. It is built from the base `Environment.componentRegistry` plus descriptors from project-installed `AiaExtension` values.
 
 **ModelScreen**
-A screen within a `ModelProject`. Contains the resolved component tree (`form`) and a `source` back-reference to the originating `AiaScreen`.
+A screen within a `ModelProject`. Contains the model component tree (`form`) and a `source` back-reference to the originating `AiaScreen`.
 
 **ModelComponent**
-A single component node in the resolved tree. Carries its `ComponentDescriptor`, typed `properties`, `children`, name, type, and UID. No `parent` reference — use `getParent()` or `getComponentPath()` for upward traversal.
+A single component node in the model tree. Carries its `ComponentDescriptor`, typed `properties`, `children`, name, type, and UID.
 
 ---
 
@@ -85,7 +85,7 @@ An immutable/read-only class containing component descriptors and lookup behavio
 A mutable subclass of `ComponentRegistry` for project-scoped registry assembly and extension add/remove workflows. It supports adding/removing descriptors and returns an immutable snapshot with `snapshot()`. `Environment` and `ModelProject` expose immutable `ComponentRegistry` snapshots.
 
 **ComponentProperty**
-A resolved property on a `ModelComponent` — a name, value, and associated `ComponentPropertyDescriptor` from the `ComponentDescriptor`.
+A model property on a `ModelComponent` — a name, value, and associated `ComponentPropertyDescriptor` from the `ComponentDescriptor`.
 
 ---
 
@@ -133,7 +133,7 @@ The compiler-style output stage for derived text such as YAIL. "Emit" means prod
 The return type of all mutation functions. Contains a new `AiaProject` (immutably derived) and a `Diagnostic[]` slice listing issues introduced or detected by that mutation.
 
 **Project-Level Operation**
-An operation that changes `AiaProject` data and returns a `MutationResult`, such as adding/removing screens, assets, or extensions, or replacing one screen's SCM/BKY text. These operations live in the owning domain module, primarily `aia-kit/aia`, not in a central `aia-kit/mutations` module.
+An operation that changes `AiaProject` data and returns a `MutationResult`, such as adding/removing screens, assets, or extensions, or replacing one screen's SCM/BKY text. These operations live in the owning domain module, primarily `aia-kit/aia`.
 
 **SCM Edit**
 A local edit to a single `ScmDocument`, such as adding/removing components or updating component properties. SCM edits mutate only the local document instance and then serialise back to SCM text for project fold-back.
@@ -150,9 +150,6 @@ A single issue entry. Has a `code` (typed discriminant), `severity` (`error`, `w
 
 **DiagnosticCode**
 A string literal union discriminating each known issue type. Examples: `UNRESOLVABLE_COMPONENT`, `ORPHANED_BLOCK`, `MISSING_ASSET_REF`, `PLATFORM_INCOMPATIBLE_COMPONENT`.
-
-**mergeReports**
-Combines multiple `Diagnostic[]` arrays into one. Used when chaining sequential mutations to accumulate a unified report.
 
 ---
 

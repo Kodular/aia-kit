@@ -64,9 +64,9 @@ actionbar=true
 | Operation | Function | Source |
 |-----------|----------|--------|
 | Parse raw key-value map → `ProjectProperties` | `parseProjectProperties()` | [`src/parse.ts`](../src/parse.ts) |
-| Serialize `ProjectProperties` → file text | `serializeProperties()` | [`src/write.ts`](../src/write.ts) |
+| Serialize `ProjectProperties` → file text | `serializeProjectProperties()` | [`src/project-properties.ts`](../src/project-properties.ts) |
 
-The raw file text is parsed with the `properties-file` npm package before being passed to `parseProjectProperties`. On write, `serializeProperties` emits known keys first (in a fixed order), then appends all `unknown` entries.
+The raw file text is parsed with the `properties-file` npm package before being passed to `parseProjectProperties`. On write, `serializeProjectProperties` emits known keys first (in a fixed order), then appends all `unknown` entries.
 
 ---
 

@@ -203,11 +203,11 @@ Binaries under `assets/` — **only top-level files** count as project assets; `
 
 | Stage | Entry |
 |-------|--------|
-| Read ZIP → raw model | **`parseAia`** — [`src/parse.ts`](../src/parse.ts) |
-| Enrich with descriptors | **`resolve`**, **`parseAndResolve`** |
+| Read ZIP → raw model | **`readAia`** — [`src/aia.ts`](../src/aia.ts) |
+| Enrich with descriptors | **`buildModel`** — [`src/model.ts`](../src/model.ts) |
 | Write ZIP | **`writeAia`** — [`src/write.ts`](../src/write.ts) |
 
-Extensions inside an AIA surface as **`AiaExtension`** (same shape as **`parseAix`**).
+Extensions inside an AIA surface as **`AiaExtension`** (same shape as **`readAix`**).
 
 ---
 

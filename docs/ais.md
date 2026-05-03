@@ -31,7 +31,7 @@ A conforming AIS can often be **merged** into an AIA (for example by copying fil
 
 ## aia-kit
 
-The library’s **`parseAia`** pipeline targets the **same ZIP conventions** as multi-screen AIAs. A minimal AIS that follows those conventions can be read as an **`AiaProject`** with a single screen entry.
+The library’s **`readAia`** pipeline targets the **same ZIP conventions** as multi-screen AIAs. A minimal AIS that follows those conventions can be read as an **`AiaProject`** with a single screen entry.
 
 There is **no separate `parseAis` entry point** in the current API surface; treat AIS as **AIA-shaped** unless/until a dedicated helper is added.
 

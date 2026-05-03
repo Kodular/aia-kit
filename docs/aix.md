@@ -2,7 +2,7 @@
 
 An **AIX** file is a standard **ZIP** archive packaging a **compiled Android extension** (component descriptors + bytecode + manifest + optional assets).
 
-**Relationship to AIA:** AIX is **not** embedded as ZIP-in-ZIP inside an AIA. When bundled, the same directory layout is unpacked to `assets/external_comps/<package-name>/` inside the project archive. **`parseAix(blob)`** reads a standalone AIX; **`parseAia`** reads each bundled subdirectory — both yield **`AiaExtension`**.
+**Relationship to AIA:** AIX is **not** embedded as ZIP-in-ZIP inside an AIA. When bundled, the same directory layout is unpacked to `assets/external_comps/<package-name>/` inside the project archive. **`readAix(blob)`** reads a standalone AIX; **`readAia`** reads each bundled subdirectory — both yield **`AiaExtension`**.
 
 ---
 
@@ -114,7 +114,7 @@ Used by the App Inventor build server. Not required for descriptor resolution in
 | `AndroidRuntime.jar` | Runtime API stubs — compile-time |
 | `AndroidManifest.xml` | Permissions / components — merged into host manifest |
 
-**aia-kit** does not inspect these for **`resolve()`**. Large payloads are exposed lazily via **`AiaExtension.loadClasses()`** and **`AiaExtension.loadAssets()`**.
+**aia-kit** does not inspect these during **`buildModel()`**. Large payloads are exposed lazily via **`AiaExtension.loadClasses()`** and **`AiaExtension.loadAssets()`**.
 
 ---
 
@@ -153,9 +153,9 @@ Array entries in **`components.json`** and **`component_build_infos.json`** are 
 
 | API | Role |
 |-----|------|
-| **`parseAix`** | Standalone `.aix` blob → **`AiaExtension`** |
-| **`parseAia`** | Reads each `assets/external_comps/<pkg>/` tree |
-| **`Environment.withExtension`** | Merge extension descriptors for **`resolve()`** |
+| **`readAix`** | Standalone `.aix` blob → **`AiaExtension`** |
+| **`readAia`** | Reads each `assets/external_comps/<pkg>/` tree |
+| **`buildModel`** | Folds project extension descriptors into the effective component registry |
 
 ---
 

@@ -19,14 +19,16 @@ Extensions contribute their own descriptors using the same schema. An AIX packag
 
 ```typescript
 // Built-in platform registry
-const env = await Environment.kodularCreator()   // or Environment.mitAppInventor()
+import { getEnvironmentFor, Platform } from 'aia-kit/environment'
+import { readAix } from 'aia-kit/aix'
 
-// Extend with an AIX
-const ext = await parseAix(aixBlob)
-const envWithExt = env.withExtension(ext)
+const env = await getEnvironmentFor(Platform.KodularCreator)
+
+// Read a standalone AIX descriptor bundle
+const ext = await readAix(aixBlob)
 ```
 
-Internally the JSON array is consumed by `ComponentRegistry`, which is held on the `Environment` object. Lookups by short name or fully-qualified type resolve to `ComponentDescriptor` objects at resolve time.
+Internally the JSON array is consumed by `ComponentRegistry`, which is held on the `Environment` object. Project-bundled extension descriptors are folded into the effective `ModelProject.componentRegistry` by `buildModel`.
 
 ---
 
@@ -169,7 +171,7 @@ An extension AIX may ship either:
 - **`component.json`** — a single JSON object (one component).
 - **`components.json`** — a JSON array (multiple components from the same extension package).
 
-aia-kit normalises both to an array in `parseAix` and `buildExtensions` (see [`src/parse.ts`](../src/parse.ts)):
+aia-kit normalises both to an array in `readAix` and while reading bundled AIA extensions (see [`src/parse.ts`](../src/parse.ts)):
 
 ```typescript
 const components: ComponentDescriptor[] = Array.isArray(parsed) ? parsed : [parsed]

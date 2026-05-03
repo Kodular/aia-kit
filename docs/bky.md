@@ -79,7 +79,8 @@ Block mutations and fields reference **component instance names** (`Button1`, `S
 | In-memory AST | **`BlockAst`**, **`BlockNode`** — [`src/blocks/ast.ts`](../src/blocks/ast.ts) |
 | Parse XML → AST | **`parseBky`** — [`src/blocks/bky-parser.ts`](../src/blocks/bky-parser.ts) |
 | AST → XML | **`serializeBky`** — [`src/blocks/bky-serializer.ts`](../src/blocks/bky-serializer.ts) |
-| Read/mutate via project | **Block lens** — **`queryBlocks`**, **`updateBlocks`**, **`updateAllScreenBlocks`**, **`parseBlocks`**, **`serializeBlocks`**, **`updateScreenBky`** — [`src/blocks/lens.ts`](../src/blocks/lens.ts) |
+| Project fold-back | **`replaceScreenBky`** — [`src/aia.ts`](../src/aia.ts) |
+| BKY helpers | **`removeDisabledBlocks`**, **`renameComponentReferences`** — [`src/bky.ts`](../src/bky.ts) |
 | Raw screen field | **`AiaScreen.bky`** (`string`) |
 
 Parsing failures surface as **`MALFORMED_BKY`** when using **`diagnose()`** ([`src/analysis/diagnose.ts`](../src/analysis/diagnose.ts)); **`parseBky`** itself throws on invalid XML.
