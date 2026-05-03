@@ -17,36 +17,34 @@
     "url": "git+https://github.com/Kodular/aia-kit.git"
   },
   "type": "module",
-  "module": "./dist/src/index.js",
+  "module": "./dist/index.mjs",
   "exports": {
-    ".": "./dist/src/index.js",
-    "./aia": "./dist/src/aia/index.js",
-    "./ais": "./dist/src/ais/index.js",
-    "./aix": "./dist/src/aix/index.js",
-    "./analysis": "./dist/src/analysis/index.js",
-    "./bky": "./dist/src/bky/index.js",
-    "./component-descriptor": "./dist/src/component-descriptor/index.js",
-    "./environment": "./dist/src/environment/index.js",
-    "./model": "./dist/src/model/index.js",
-    "./project-properties": "./dist/src/project-properties/index.js",
-    "./scm": "./dist/src/scm/index.js",
-    "./yail": "./dist/src/yail/index.js"
+    ".":                        "./dist/index.mjs",
+    "./aia":                    "./dist/aia/index.mjs",
+    "./ais":                    "./dist/ais/index.mjs",
+    "./aix":                    "./dist/aix/index.mjs",
+    "./analysis":               "./dist/analysis/index.mjs",
+    "./bky":                    "./dist/bky/index.mjs",
+    "./component-descriptor":   "./dist/component-descriptor/index.mjs",
+    "./environment":            "./dist/environment/index.mjs",
+    "./model":                  "./dist/model/index.mjs",
+    "./project-properties":     "./dist/project-properties/index.mjs",
+    "./scm":                    "./dist/scm/index.mjs",
+    "./yail":                   "./dist/yail/index.mjs"
   },
   "imports": {
     "#/*": {
       "types": "./src/*",
-      "development": "./src/*",
-      "default": "./dist/src/*"
+      "default": "./src/*"
     }
   },
-  "types": "./dist/src/index.d.ts",
+  "types": "./dist/index.d.mts",
   "files": [
-    "dist/src",
-    "dist/environments"
+    "dist"
   ],
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "build": "tsc && cp -r environments dist/",
+    "build": "tsdown",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"
