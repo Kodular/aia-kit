@@ -1,9 +1,9 @@
-import { parseBky } from "#/blocks/bky-parser.js";
-import type { ModelProject, ModelScreen } from "#/core/model.js";
-import { AiaWriteError } from "#/core/errors.js";
-import { getDotPackagePrefix } from "#/utils/package-names.js";
-import { emitBlockSection } from "#/yail/block-emit.js";
-import { emitComponentSection } from "#/yail/component-emit.js";
+import { parseBky } from '#/bky/parse.js'
+import type { ModelProject, ModelScreen } from '#/model/types.js'
+import { AiaWriteError } from '#/errors.js'
+import { getDotPackagePrefix } from '#/utils/package-names.js'
+import { emitBlockSection } from './block-emit.js'
+import { emitComponentSection } from './component-emit.js'
 
 export class YailEmitter {
   private readonly model: ModelProject;

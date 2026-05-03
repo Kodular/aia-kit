@@ -1,8 +1,8 @@
-export { diffProjects } from '#/analysis/project-diff.js'
-export { diagnose } from '#/analysis/diagnose.js'
-export { findUnusedExtensions, findUnusedAssets, findAssetReferences } from '#/analysis/unused.js'
-export { analyzeVariables, exportBlockSummary } from '#/analysis/block-reports.js'
-export { analyzeComplexity, findDeadBlocks, buildNavGraph } from '#/analysis/cross-cutting.js'
+export { diffProjects } from './project-diff.js'
+export { diagnose } from './diagnose.js'
+export { findUnusedExtensions, findUnusedAssets, findAssetReferences } from './unused.js'
+export { analyzeVariables, exportBlockSummary } from './block-reports.js'
+export { analyzeComplexity, findDeadBlocks, buildNavGraph } from './cross-cutting.js'
 
 export type {
   ProjectDiff,
@@ -15,4 +15,4 @@ export type {
   NavGraph,
   AssetReference,
   AssetReferenceKind,
-} from '#/analysis/types.js'
+} from './types.js'

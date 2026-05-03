@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is `aia-kit`, a TypeScript toolkit for reading, inspecting, editing, analysing, and writing App Inventor-family project formats: AIA, AIS, AIX, SCM, BKY, YAIL, project properties, and component descriptor registries.
 
-**Status:** Currently on the `v2-rewrite` branch, undergoing a complete architectural redesign. The authoritative target API design is [Composable API Design Spec](docs/superpowers/specs/2026-05-03-aia-kit-v2-composable-api-design.md). The older [v2 Design Spec](docs/superpowers/specs/2026-05-01-aia-kit-v2-design.md) is superseded and retained only for historical milestone context.
+**Status:** On the `v2-rewrite` branch. The adopted API contract is [Composable API Design Spec](docs/superpowers/specs/2026-05-03-aia-kit-v2-composable-api-design.md) (**Status: Adopted**). The older [v2 Design Spec](docs/superpowers/specs/2026-05-01-aia-kit-v2-design.md) is superseded and retained only for historical milestone context.
 
 ## Library documentation
 
@@ -14,7 +14,7 @@ This is `aia-kit`, a TypeScript toolkit for reading, inspecting, editing, analys
 |-----|---------|
 | [docs/usage.md](docs/usage.md) | Usage guide — core pipeline, examples for every API area |
 | [docs/api.md](docs/api.md) | Full API reference — all exported types and functions |
-| [docs/superpowers/specs/2026-05-03-aia-kit-v2-composable-api-design.md](docs/superpowers/specs/2026-05-03-aia-kit-v2-composable-api-design.md) | Target v2 composable API design |
+| [docs/superpowers/specs/2026-05-03-aia-kit-v2-composable-api-design.md](docs/superpowers/specs/2026-05-03-aia-kit-v2-composable-api-design.md) | Adopted v2 composable API contract |
 
 ## File format documentation
 
@@ -40,7 +40,7 @@ Start at the hub [**docs/file-formats.md**](docs/file-formats.md) — it links t
 - `pnpm typecheck` - Type-checks the TypeScript code without emitting files
 
 ### Testing
-- Tests are located in `test/` directory
+- Tests are located in `test/` directory, organized to mirror `src/` (e.g. `test/aia/`, `test/model/`); shared primitives (`diagnostics`, `errors`) tests live at `test/diagnostics.test.ts`, `test/errors.test.ts`
 - Test files use the `.test.ts` extension
 - Uses Vitest as the testing framework
 - Test fixtures are in `test/fixtures/`
@@ -59,12 +59,12 @@ v2 is built as a composable toolkit, not a framework:
 
 ### Core Modules
 
-**Raw Data Layer** (`src/core/types.ts`):
-- `AiaProject`, `AiaScreen`, `AiaAsset` — faithful file-format representation
+**Raw Data Layer** (`src/types.ts`):
+- `AiaProject`, `AiaScreen`, `AiaAsset` — faithful file-format representation (`AiaProject.properties` is typed as `ProjectProperties` from `aia-kit/project-properties`)
 - `AiaComponent` — raw SCM component tree, properties unvalidated
 - `AiaExtension` — extension metadata + lazy asset/binary loading
 
-**Model Layer** (`src/core/model.ts`):
+**Model Layer** (`src/model/types.ts`, `buildModel` in `src/model/index.ts`):
 - `ModelProject`, `ModelScreen`, `ModelComponent` — environment-enriched semantic model built by `buildModel`
 - `ModelProject.componentRegistry` — effective immutable registry: base platform descriptors + project-installed extension descriptors
 - `ComponentDescriptor` — metadata from environment (properties, events, methods)
@@ -73,8 +73,8 @@ v2 is built as a composable toolkit, not a framework:
 **Core Infrastructure**:
 - **Environment**: Plain base-platform value object loaded via `getEnvironmentFor(Platform.KodularCreator | Platform.MitAppInventor)` or `createEnvironment`
 - **ComponentRegistry**: Class-based immutable registry with `ComponentRegistry.of(...)`; use `MutableComponentRegistry` only for project-scoped extension add/remove assembly
-- **Diagnostics** (`src/core/diagnostics.ts`): `Diagnostic` type, severity levels, diagnostic codes, `mergeReports` utility
-- **Errors** (`src/core/errors.ts`): Error hierarchy — `AiaKitError`, `AiaParseError`, `AiaZipError`, `AiaStructureError`, `AiaWriteError`
+- **Diagnostics** (`src/diagnostics.ts`): `Diagnostic` type, severity levels, diagnostic codes, `mergeReports` utility — exported from the small root `aia-kit` entry only (no dedicated subpath)
+- **Errors** (`src/errors.ts`): Error hierarchy — `AiaKitError`, `AiaParseError`, `AiaZipError`, `AiaStructureError`, `AiaWriteError`
 
 **Domain Modules (target API):**
 - **AIA** (`aia-kit/aia`): `readAia`, `writeAia`, screen/asset/extension project-level operations
@@ -85,6 +85,7 @@ v2 is built as a composable toolkit, not a framework:
 - **Model** (`aia-kit/model`): `buildModel(project, environment)`
 - **Environment** (`aia-kit/environment`): `getEnvironmentFor`, `createEnvironment`, `Platform`
 - **Component Descriptor** (`aia-kit/component-descriptor`): descriptor normalization and registry classes
+- **Project properties** (`aia-kit/project-properties`): `ProjectProperties` type, `parseProjectProperties`, `serializeProjectProperties`
 
 Do not add callback-style BKY lens APIs (`queryBlocks`, `updateBlocks`) to the target core surface. Prefer explicit parse-transform-serialize composition.
 
@@ -97,7 +98,7 @@ Do not add callback-style BKY lens APIs (`queryBlocks`, `updateBlocks`) to the t
 - `aia-kit/aia` — `readAia()`, `writeAia()`
 - `aia-kit/aix` — `readAix()`
 - `aia-kit/model` — `buildModel()` (renames/supersedes `resolve()`)
-- `src/write.ts` — `writeAia()`
+- `src/aia/write-archive.ts` — `writeAia()`
 
 **Component definitions:**
 - `environments/kodular-creator/simple_components.json` — Kodular components

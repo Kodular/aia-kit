@@ -1,5 +1,5 @@
-import type { ComponentPropertyDescriptor } from "#/core/descriptors.js";
-import type { ComponentProperty, ModelComponent } from "#/core/model.js";
+import type { ComponentPropertyDescriptor } from '#/component-descriptor/descriptors.js'
+import type { ComponentProperty, ModelComponent } from '#/model/types.js'
 import { emitLiteral, lines } from "./emit.js";
 
 type Coercion = "text" | "number" | "boolean";

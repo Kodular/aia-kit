@@ -1,5 +1,5 @@
-import type { BlockAst, BlockNode } from "#/blocks/ast.js";
-import type { BuiltinBlockRegistry } from "#/core/registries.js";
+import type { BlockAst, BlockNode } from "#/bky/ast.js";
+import type { BuiltinBlockRegistry } from '#/environment/builtin-blocks.js'
 import { isEventHandlerBlock } from "#/utils/block-types.js";
 import { emitLiteral, lines } from "./emit.js";
 

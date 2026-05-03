@@ -4,12 +4,12 @@ import type {
   AiaExtension,
   AiaProject,
   AiaScreen,
-  ProjectProperties,
-} from '#/core/types.js'
-import type { ComponentDescriptor } from '#/core/descriptors.js'
-import { createEnvironment } from '#/core/environment.js'
-import { buildModel } from '#/model.js'
-import type { ModelProject } from '#/core/model.js'
+} from '#/types.js'
+import type { ProjectProperties } from '#/project-properties/index.js'
+import type { ComponentDescriptor } from '#/component-descriptor/descriptors.js'
+import { createEnvironment } from '#/environment/index.js'
+import { buildModel } from '#/model/index.js'
+import type { ModelProject } from '#/model/types.js'
 
 export const EMPTY_BKY = '<xml xmlns="https://developers.google.com/blockly/xml"></xml>'
 

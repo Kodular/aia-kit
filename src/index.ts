@@ -4,8 +4,9 @@ export type {
   AiaAsset,
   AiaExtension,
   AiaComponent,
-  ProjectProperties,
   MutationResult,
-} from '#/core/types.js'
-export type { Diagnostic, DiagnosticSeverity, DiagnosticCode } from '#/core/diagnostics.js'
-export type { ModelProject, ModelScreen, ModelComponent, ComponentProperty } from '#/core/model.js'
+} from '#/types.js'
+export type { ProjectProperties } from '#/project-properties/index.js'
+export type { Diagnostic, DiagnosticSeverity, DiagnosticCode } from '#/diagnostics.js'
+export { mergeReports } from '#/diagnostics.js'
+export type { ModelProject, ModelScreen, ModelComponent, ComponentProperty } from '#/model/types.js'

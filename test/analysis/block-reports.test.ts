@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseBky } from '#/blocks/bky-parser.js'
+import { parseBky } from '#/bky/parse.js'
 import { analyzeVariables, exportBlockSummary } from '#/analysis/block-reports.js'
 
 const SIMPLE_BKY = `<xml xmlns="https://developers.google.com/blockly/xml">

@@ -1,9 +1,9 @@
 // test/yail/component-emit.test.ts
 import { describe, expect, it } from "vitest";
-import type { Diagnostic } from "#/core/diagnostics.js";
-import { Platform, getEnvironmentFor } from "#/core/environment.js";
-import type { AiaProject, AiaScreen } from "#/core/types.js";
-import { buildModel } from "#/model.js";
+import type { Diagnostic } from '#/diagnostics.js'
+import { Platform, getEnvironmentFor } from '#/environment/index.js'
+import type { AiaProject, AiaScreen } from "#/types.js";
+import { buildModel } from "#/model/index.js";
 import { emitComponentSection } from "#/yail/component-emit.js";
 import { makeProjectProperties } from "../helpers.js";
 

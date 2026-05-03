@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { readAia, writeAia } from '#/aia.js'
-import { readAix } from '#/aix.js'
-import { parseBky, serializeBky } from '#/bky.js'
-import { ComponentRegistry, normalizeComponentDescriptor } from '#/component-descriptor.js'
-import { getEnvironmentFor, Platform } from '#/environment.js'
-import { buildModel } from '#/model.js'
-import { parseProjectProperties, serializeProjectProperties } from '#/project-properties.js'
-import { ScmDocument } from '#/scm.js'
+import { readAia, writeAia } from '#/aia/index.js'
+import { readAix } from '#/aix/index.js'
+import { exportScreenAsAis, readAis } from '#/ais/index.js'
+import { parseBky, serializeBky } from '#/bky/index.js'
+import { ComponentRegistry, normalizeComponentDescriptor } from '#/component-descriptor/index.js'
+import { getEnvironmentFor, Platform } from '#/environment/index.js'
+import { buildModel } from '#/model/index.js'
+import { parseProjectProperties, serializeProjectProperties } from '#/project-properties/index.js'
+import { ScmDocument } from '#/scm/index.js'
 import { YailEmitter } from '#/yail/index.js'
 
 describe('public domain subpaths', () => {
@@ -14,6 +15,8 @@ describe('public domain subpaths', () => {
     expect(readAia).toBeTypeOf('function')
     expect(writeAia).toBeTypeOf('function')
     expect(readAix).toBeTypeOf('function')
+    expect(readAis).toBeTypeOf('function')
+    expect(exportScreenAsAis).toBeTypeOf('function')
     expect(parseBky).toBeTypeOf('function')
     expect(serializeBky).toBeTypeOf('function')
     expect(ComponentRegistry.of).toBeTypeOf('function')

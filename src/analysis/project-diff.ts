@@ -1,5 +1,5 @@
-import type { AiaProject } from '#/core/types.js'
-import type { ProjectDiff } from '#/analysis/types.js'
+import type { AiaProject } from '#/types.js'
+import type { ProjectDiff } from './types.js'
 
 export function diffProjects(a: AiaProject, b: AiaProject): ProjectDiff {
   const namesA = new Set(a.screens.map(s => s.name))

@@ -1,4 +1,4 @@
-import type { AiaComponent } from '#/core/types.js'
+import type { AiaComponent } from '#/types.js'
 
 export function findRawComponentByUid(root: AiaComponent, uid: string): AiaComponent | null {
   if (root.uid === uid) return root

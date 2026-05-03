@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
-import type { Diagnostic } from "#/core/diagnostics.js";
-import { AiaWriteError } from "#/core/errors.js";
-import { Platform, getEnvironmentFor } from "#/core/environment.js";
-import type { AiaProject, AiaScreen, ProjectProperties } from "#/core/types.js";
-import { buildModel } from "#/model.js";
+import type { Diagnostic } from '#/diagnostics.js'
+import { AiaWriteError } from "#/errors.js";
+import { Platform, getEnvironmentFor } from '#/environment/index.js'
+import type { AiaProject, AiaScreen } from "#/types.js";
+import type { ProjectProperties } from "#/project-properties/index.js";
+import { buildModel } from "#/model/index.js";
 import { YailEmitter } from "#/yail/index.js";
 import { makeMinimalModelProject, makeProjectProperties } from "../helpers.js";
 

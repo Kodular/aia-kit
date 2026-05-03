@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { parseBky } from "#/blocks/bky-parser.js";
-import type { BlockAst } from "#/blocks/ast.js";
-import { defaultBlockRegistry } from "#/core/registries.js";
+import { parseBky } from "#/bky/parse.js";
+import type { BlockAst } from "#/bky/ast.js";
+import { defaultBlockRegistry } from '#/environment/builtin-blocks.js'
 import {
   emitBlockSection,
   forEachBlock,

@@ -4,12 +4,12 @@ import {
   findDeadBlocks,
   buildNavGraph,
 } from '#/analysis/cross-cutting.js'
-import type { AiaProject, AiaScreen } from '#/core/types.js'
-import { Platform, getEnvironmentFor } from '#/core/environment.js'
-import { buildModel } from '#/model.js'
+import type { AiaProject, AiaScreen } from '#/types.js'
+import { Platform, getEnvironmentFor } from '#/environment/index.js'
+import { buildModel } from '#/model/index.js'
 import { makeProjectProperties } from '../helpers.js'
 
-/** Valid MIT-style SCM block (`|#` required by `#/components/scm-parser.js`). */
+/** Valid MIT-style SCM block (`|#` required by `#/scm/parse.js`). */
 function scmForScreen(name: string): string {
   return `#|
 $JSON

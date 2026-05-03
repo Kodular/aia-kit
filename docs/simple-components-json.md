@@ -181,7 +181,7 @@ const components: ComponentDescriptor[] = Array.isArray(parsed) ? parsed : [pars
 
 ## TypeScript interfaces
 
-Defined in [`src/core/descriptors.ts`](../src/core/descriptors.ts):
+Defined in [`src/component-descriptor/descriptors.ts`](../src/component-descriptor/descriptors.ts):
 
 ```typescript
 interface ComponentDescriptor {

@@ -1,8 +1,8 @@
-import { parseBky } from '#/blocks/bky-parser.js'
-import { buildModel } from '#/model.js'
-import type { AiaProject } from '#/core/types.js'
-import type { Environment } from '#/core/environment.js'
-import type { Diagnostic } from '#/core/diagnostics.js'
+import { parseBky } from '#/bky/parse.js'
+import { buildModel } from '#/model/index.js'
+import type { AiaProject } from '#/types.js'
+import type { Environment } from '#/environment/index.js'
+import type { Diagnostic } from '#/diagnostics.js'
 
 export function diagnose(project: AiaProject, env: Environment): Diagnostic[] {
   const model = buildModel(project, env)

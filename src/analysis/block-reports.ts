@@ -1,5 +1,5 @@
-import type { BlockAst, BlockNode } from '#/blocks/ast.js'
-import type { BlockSummary, VariableReport } from '#/analysis/types.js'
+import type { BlockAst, BlockNode } from '#/bky/ast.js'
+import type { BlockSummary, VariableReport } from './types.js'
 
 export function exportBlockSummary(ast: BlockAst): BlockSummary {
   let total = 0

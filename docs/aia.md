@@ -70,7 +70,7 @@ $JSON
 |#
 ```
 
-Extract JSON with `/#\|\s*\$JSON\s*(.*?)\s*\|#/s` (see [`parseScm`](../src/components/scm-parser.ts)).
+Extract JSON with `/#\|\s*\$JSON\s*(.*?)\s*\|#/s` (see [`parseScm`](../src/scm/parse.ts)).
 
 **Envelope fields:**
 
@@ -203,9 +203,9 @@ Binaries under `assets/` — **only top-level files** count as project assets; `
 
 | Stage | Entry |
 |-------|--------|
-| Read ZIP → raw model | **`readAia`** — [`src/aia.ts`](../src/aia.ts) |
-| Enrich with descriptors | **`buildModel`** — [`src/model.ts`](../src/model.ts) |
-| Write ZIP | **`writeAia`** — [`src/write.ts`](../src/write.ts) |
+| Read ZIP → raw model | **`readAia`** — [`src/aia/read-archive.ts`](../src/aia/read-archive.ts) |
+| Enrich with descriptors | **`buildModel`** — [`src/model/index.ts`](../src/model/index.ts) |
+| Write ZIP | **`writeAia`** — [`src/aia/write-archive.ts`](../src/aia/write-archive.ts) |
 
 Extensions inside an AIA surface as **`AiaExtension`** (same shape as **`readAix`**).
 

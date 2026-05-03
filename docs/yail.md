@@ -92,6 +92,6 @@ For **aia-kit**, parity with every fork-specific block is explicitly non-goals f
 ## aia-kit usage
 
 - **Parse:** `*.yail` is optional in the ZIP; when present it is stored on `AiaScreen.yail`.
-- **Write:** See [write pipeline](../src/write.ts); optional regeneration when `yail` is missing is planned in [M2c](superpowers/plans/2026-05-02-aia-kit-v2-m2c-yail-generation.md).
+- **Write:** See [AIA write pipeline](../src/aia/write-archive.ts); optional regeneration when `yail` is missing is planned in [M2c](superpowers/plans/2026-05-02-aia-kit-v2-m2c-yail-generation.md).
 
 Canonical glossary entry: [Ubiquitous language — YAIL](ubiquitous-language.md#file-formats).

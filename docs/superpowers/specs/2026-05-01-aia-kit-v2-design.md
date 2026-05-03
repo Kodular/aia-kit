@@ -3,7 +3,7 @@
 **Date:** 2026-05-01
 **Status:** Superseded
 
-> Superseded by [aia-kit v2 — Composable API Design Spec](2026-05-03-aia-kit-v2-composable-api-design.md).
+> Superseded by [aia-kit v2 — Composable API Design Spec](2026-05-03-aia-kit-v2-composable-api-design.md) (adopted).
 > This document is retained as historical context for the original v2 rewrite direction and milestone detail.
 
 ---

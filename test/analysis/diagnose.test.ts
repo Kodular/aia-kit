@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { diagnose } from '#/analysis/diagnose.js'
-import type { AiaProject, AiaScreen } from '#/core/types.js'
-import { Platform, getEnvironmentFor } from '#/core/environment.js'
+import type { AiaProject, AiaScreen } from '#/types.js'
+import { Platform, getEnvironmentFor } from '#/environment/index.js'
 import { makeProjectProperties } from '../helpers.js'
 
 const EMPTY_SCM = `#|

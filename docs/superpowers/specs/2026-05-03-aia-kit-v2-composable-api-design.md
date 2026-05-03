@@ -1,7 +1,7 @@
 # aia-kit v2 — Composable API Design Spec
 
-**Date:** 2026-05-03
-**Status:** Draft
+**Date:** 2026-05-03  
+**Status:** Adopted — this document is the normative v2 composable public API contract for `aia-kit`.
 
 ---
 
@@ -19,7 +19,7 @@ The core design goal is:
 
 ## Design Principles
 
-1. **Domain boundaries first.** Public modules should follow format and domain boundaries: AIA, AIX, SCM, BKY, YAIL, project properties, environment, model, diagnostics, and analysis.
+1. **Domain boundaries first.** Public modules should follow format and domain boundaries: AIA, AIX, SCM, BKY, YAIL, project properties, environment, model, and analysis. Cross-cutting diagnostic types (`Diagnostic`, codes, `mergeReports`) live in core and are exported from the small root `aia-kit` entry rather than a dedicated subpath.
 2. **AIA data is archive truth.** `AiaProject` represents the persisted project contents. It is the data space.
 3. **Model space is derived.** `ModelProject` is an environment-enriched semantic projection of `AiaProject`. It is built, not mutated independently.
 4. **No god object.** Avoid a large behavior-heavy `AiaProject` class. Core APIs should stay lean and composable.
@@ -57,7 +57,6 @@ aia-kit/model
 aia-kit/environment
 aia-kit/project-properties
 aia-kit/component-descriptor
-aia-kit/diagnostics
 aia-kit/analysis
 ```
 

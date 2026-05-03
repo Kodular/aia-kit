@@ -1,12 +1,12 @@
-import { parseBky } from '#/blocks/bky-parser.js'
-import type { BlockAst, BlockNode } from '#/blocks/ast.js'
+import { parseBky } from '#/bky/parse.js'
+import type { BlockAst, BlockNode } from '#/bky/ast.js'
 import type {
   ComplexityReport,
   DeadBlock,
   NavGraph,
   ScreenComplexity,
-} from '#/analysis/types.js'
-import type { ModelProject } from '#/core/model.js'
+} from './types.js'
+import type { ModelProject } from '#/model/types.js'
 import { isEventHandlerBlock } from '#/utils/block-types.js'
 
 function forEachBlock(

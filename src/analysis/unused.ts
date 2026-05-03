@@ -1,7 +1,7 @@
-import { parseScm } from '#/components/scm-parser.js'
-import type { AiaAsset, AiaComponent, AiaExtension } from '#/core/types.js'
-import type { AssetReference } from '#/analysis/types.js'
-import type { ModelComponent, ModelProject } from '#/core/model.js'
+import { parseScm } from '#/scm/parse.js'
+import type { AiaAsset, AiaComponent, AiaExtension } from '#/types.js'
+import type { AssetReference } from './types.js'
+import type { ModelComponent, ModelProject } from '#/model/types.js'
 
 function collectComponentTypes(root: AiaComponent, out: Set<string>): void {
   out.add(root.type)

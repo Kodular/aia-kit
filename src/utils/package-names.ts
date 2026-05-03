@@ -1,4 +1,4 @@
-import type { ProjectProperties } from '#/core/types.js'
+import type { ProjectProperties } from '#/project-properties/index.js'
 
 const FALLBACK_PACKAGE_PREFIX = 'appinventor.ai_user.Project'
 

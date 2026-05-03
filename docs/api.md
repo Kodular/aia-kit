@@ -114,6 +114,8 @@ interface ProjectProperties {
 }
 ```
 
+The interface is defined in `aia-kit/project-properties` (along with `parseProjectProperties` / `serializeProjectProperties`). The root `aia-kit` and `aia-kit/aia` barrels re-export the type for convenience.
+
 ### `MutationResult`
 
 Returned by all mutation functions.

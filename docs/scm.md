@@ -26,7 +26,7 @@ SCM does **not** contain blocks logic — only structure and property bags for t
 
 The file looks like a **Scheme block comment** enclosing a **`$JSON`** payload. That mirrors **Young Android** history: designer data was embedded in a textual pipeline related to Scheme/YAIL tooling. Today it is effectively **JSON-in-comment**; creators ignore the Scheme angle for most practical edits.
 
-**aia-kit** extracts JSON with a regex matching the `$JSON` region (see [`parseScm`](../src/components/scm-parser.ts)).
+**aia-kit** extracts JSON with a regex matching the `$JSON` region (see [`parseScm`](../src/scm/parse.ts)).
 
 ---
 
@@ -41,7 +41,7 @@ Typical top-level keys (see [aia.md § SCM](aia.md#scm-files-scm)):
 | **`Properties`** | Root **RawComponent** — the Form node with nested **`$Components`**. |
 | **`authURL`** | Optional tag array (platform/creator). Preserved on round-trip even when not interpreted. |
 
-Additional keys may appear in real AIAs. **`serializeScm`** parses the full wrapper JSON, replaces only **`Properties`** with the updated tree, and re-stringifies — so **`YaVersion`**, **`Source`**, **`authURL`**, and other top-level keys round-trip together with the wrapper (property value fidelity inside components follows **`parseScm`** string rules; see comment in [`scm-serializer.ts`](../src/components/scm-serializer.ts)).
+Additional keys may appear in real AIAs. **`serializeScm`** parses the full wrapper JSON, replaces only **`Properties`** with the updated tree, and re-stringifies — so **`YaVersion`**, **`Source`**, **`authURL`**, and other top-level keys round-trip together with the wrapper (property value fidelity inside components follows **`parseScm`** string rules; see comment in [`serialize.ts`](../src/scm/serialize.ts)).
 
 ---
 
@@ -75,9 +75,9 @@ Full Java class names used in **YAIL** come from the **environment**, not from S
 
 | Piece | Location |
 |-------|-----------|
-| Public SCM editor | **`ScmDocument`** — [`src/scm.ts`](../src/scm.ts) |
+| Public SCM editor | **`ScmDocument`** — [`src/scm/index.ts`](../src/scm/index.ts) |
 | Screen field | **`AiaScreen.scm`** (`string`) |
-| Project fold-back | **`replaceScreenScm`** — [`src/aia.ts`](../src/aia.ts) |
+| Project fold-back | **`replaceScreenScm`** — [`src/aia/screens.ts`](../src/aia/screens.ts) |
 
 `ScmDocument` parses SCM text, updates the local `AiaComponent` tree, then serialises back while preserving envelope metadata from the original string. Use `replaceScreenScm` to fold the edited SCM string back into an `AiaProject`.
 

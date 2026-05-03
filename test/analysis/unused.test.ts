@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import type { AiaProject, AiaScreen, AiaAsset, AiaExtension } from '#/core/types.js'
-import type { ComponentDescriptor } from '#/core/descriptors.js'
-import { Platform, getEnvironmentFor } from '#/core/environment.js'
-import { buildModel } from '#/model.js'
+import type { AiaProject, AiaScreen, AiaAsset, AiaExtension } from '#/types.js'
+import type { ComponentDescriptor } from '#/component-descriptor/descriptors.js'
+import { Platform, getEnvironmentFor } from '#/environment/index.js'
+import { buildModel } from '#/model/index.js'
 import { findUnusedExtensions, findUnusedAssets, findAssetReferences } from '#/analysis/unused.js'
 import { makeProjectProperties } from '../helpers.js'
 
