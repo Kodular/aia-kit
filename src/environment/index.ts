@@ -1,19 +1,15 @@
-import { readFile } from 'node:fs/promises'
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
 import type { ComponentDescriptor } from '#/component-descriptor/descriptors.js'
 import {
   ComponentRegistry,
   MutableComponentRegistry,
 } from '#/component-descriptor/registries.js'
 import { EnvironmentConstructionError } from '#/errors.js'
+import { createAsyncMemoByKey } from '#/utils/memo-async.js'
 import {
   BuiltinBlockRegistry,
   defaultBlockRegistry,
   type BuiltinBlockDescriptor,
 } from './builtin-blocks.js'
-
-const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export const Platform = {
   MitAppInventor: 'mit-app-inventor',
@@ -27,7 +23,6 @@ export interface EnvironmentMeta {
   name: string
   version?: string
   website?: string
-  source?: string
 }
 
 export interface Environment {
@@ -46,8 +41,6 @@ const platformNames: Record<Platform, string> = {
   [Platform.MitAppInventor]: 'MIT App Inventor',
   [Platform.KodularCreator]: 'Kodular Creator',
 }
-
-const environmentCache = new Map<Platform, Promise<Environment>>()
 
 export function createEnvironment(input: CreateEnvironmentInput): Environment {
   const meta = validateMeta(input.meta)
@@ -69,34 +62,37 @@ export function createEnvironment(input: CreateEnvironmentInput): Environment {
   })
 }
 
-export function getEnvironmentFor(platform: Platform): Promise<Environment> {
-  const cached = environmentCache.get(platform)
-  if (cached) return cached
-
-  const promise = loadEnvironment(platform).catch((error: unknown) => {
-    environmentCache.delete(platform)
-    throw error
-  })
-  environmentCache.set(platform, promise)
-  return promise
+async function importBundledSimpleComponents(
+  platform: Platform,
+): Promise<ComponentDescriptor[]> {
+  switch (platform) {
+    case Platform.MitAppInventor: {
+      const m = await import('../../environments/mit-app-inventor/simple_components.json', {
+        with: { type: 'json' },
+      })
+      return m.default as unknown as ComponentDescriptor[]
+    }
+    case Platform.KodularCreator: {
+      const m = await import('../../environments/kodular-creator/simple_components.json', {
+        with: { type: 'json' },
+      })
+      return m.default as unknown as ComponentDescriptor[]
+    }
+  }
 }
 
-async function loadEnvironment(platform: Platform): Promise<Environment> {
-  const source = `environments/${platform}/simple_components.json`
-  const path = join(__dirname, '../..', source)
-  const text = await readFile(path, 'utf-8')
-  const components = JSON.parse(text) as ComponentDescriptor[]
+export const getEnvironmentFor = createAsyncMemoByKey(async (platform: Platform) => {
+  const components = await importBundledSimpleComponents(platform)
 
   return createEnvironment({
     meta: {
       id: platform,
       name: platformNames[platform],
-      source,
     },
     components,
     builtinBlocks: defaultBlockRegistry(),
   })
-}
+})
 
 function validateMeta(meta: EnvironmentMeta): EnvironmentMeta {
   if (!hasNonBlankString(meta, 'id')) {

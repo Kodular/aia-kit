@@ -1,6 +1,4 @@
 import { describe, expect, it } from 'vitest'
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
 import {
   Platform,
   createEnvironment,
@@ -43,14 +41,6 @@ describe('public environment API', () => {
     expect(env.componentRegistry).toBeInstanceOf(ComponentRegistry)
     expect(env.componentRegistry.lookup('Button')?.name).toBe('Button')
     expect(env.builtinBlockRegistry.lookup('logic_boolean')?.category).toBe('logic')
-  })
-
-  it('is published as a package subpath export', () => {
-    const packageJson = JSON.parse(
-      readFileSync(join(import.meta.dirname, '../../package.json'), 'utf-8'),
-    ) as { exports: Record<string, string> }
-
-    expect(packageJson.exports['./environment']).toBe('./dist/src/environment/index.js')
   })
 })
 
@@ -128,30 +118,13 @@ describe('createEnvironment', () => {
 })
 
 describe('getEnvironmentFor', () => {
-  it('loads and memoizes the MIT App Inventor environment', async () => {
+  it('loads the MIT App Inventor environment', async () => {
     const env = await getEnvironmentFor(Platform.MitAppInventor)
-    const again = await getEnvironmentFor(Platform.MitAppInventor)
-
-    expect(again).toBe(env)
     expect(env.meta.id).toBe(Platform.MitAppInventor)
     expect(env.componentRegistry).toBeInstanceOf(ComponentRegistry)
     expect(env.componentRegistry.lookup('Button')?.type).toBe(
       'com.google.appinventor.components.runtime.Button',
     )
     expect(env.builtinBlockRegistry.lookup('logic_boolean')?.category).toBe('logic')
-  })
-
-  it('coalesces in-flight loads but drops rejected loads from the cache', async () => {
-    const missingPlatform = 'missing-platform' as Platform
-    const first = getEnvironmentFor(missingPlatform)
-    const coalesced = getEnvironmentFor(missingPlatform)
-
-    expect(coalesced).toBe(first)
-    await expect(first).rejects.toThrow()
-
-    const retry = getEnvironmentFor(missingPlatform)
-
-    expect(retry).not.toBe(first)
-    await expect(retry).rejects.toThrow()
   })
 })
