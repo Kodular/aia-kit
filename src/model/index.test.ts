@@ -4,11 +4,11 @@ import { join } from 'node:path'
 import { readAia } from '#/aia/index.js'
 import { buildModel } from '#/model/index.js'
 import { Platform, createEnvironment, getEnvironmentFor } from '#/environment/index.js'
-import { FIXTURES, makeDescriptor, makeExtension, makeProjectProperties } from '#/test-helpers.js'
+import { FIXTURES_DIR, makeDescriptor, makeExtension, makeProjectProperties } from '#/test-helpers.js'
 
 describe('buildModel', () => {
   it('returns a ModelProject with _tag', async () => {
-    const bytes = readFileSync(join(FIXTURES, 'HelloPurr.aia'))
+    const bytes = readFileSync(join(FIXTURES_DIR, 'HelloPurr.aia'))
     const raw = await readAia(new Uint8Array(bytes))
     const env = await getEnvironmentFor(Platform.KodularCreator)
     const model = buildModel(raw, env)
@@ -16,7 +16,7 @@ describe('buildModel', () => {
   })
 
   it('model.screens has same count as raw screens', async () => {
-    const bytes = readFileSync(join(FIXTURES, 'HelloPurr.aia'))
+    const bytes = readFileSync(join(FIXTURES_DIR, 'HelloPurr.aia'))
     const raw = await readAia(new Uint8Array(bytes))
     const env = await getEnvironmentFor(Platform.KodularCreator)
     const model = buildModel(raw, env)
@@ -24,7 +24,7 @@ describe('buildModel', () => {
   })
 
   it('resolves root form component', async () => {
-    const bytes = readFileSync(join(FIXTURES, 'HelloPurr.aia'))
+    const bytes = readFileSync(join(FIXTURES_DIR, 'HelloPurr.aia'))
     const raw = await readAia(new Uint8Array(bytes))
     const env = await getEnvironmentFor(Platform.KodularCreator)
     const model = buildModel(raw, env)

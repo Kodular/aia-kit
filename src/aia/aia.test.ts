@@ -14,7 +14,7 @@ import {
   writeAia,
 } from '#/aia/index.js'
 import { buildModel } from '#/model/index.js'
-import { FIXTURES, makeMinimalProject, makeProjectProperties } from '#/test-helpers.js'
+import { FIXTURES_DIR, makeMinimalProject, makeProjectProperties } from '#/test-helpers.js'
 
 const EMPTY_BKY = `<xml xmlns="https://developers.google.com/blockly/xml"></xml>`
 
@@ -47,14 +47,14 @@ function minimalProjectWithNullYail(
 
 describe('AIA domain API', () => {
   it('readAia parses HelloPurr.aia without throwing', async () => {
-    const bytes = readFileSync(join(FIXTURES, 'HelloPurr.aia'))
+    const bytes = readFileSync(join(FIXTURES_DIR, 'HelloPurr.aia'))
     const project = await readAia(new Uint8Array(bytes).buffer as ArrayBuffer)
     expect(project._tag).toBe('AiaProject')
     expect(project.name).toBeTruthy()
   })
 
   it('readAia returns screens with raw SCM and BKY content', async () => {
-    const bytes = readFileSync(join(FIXTURES, 'HelloPurr.aia'))
+    const bytes = readFileSync(join(FIXTURES_DIR, 'HelloPurr.aia'))
     const project = await readAia(new Uint8Array(bytes))
     expect(project.screens.length).toBeGreaterThan(0)
     expect(project.screens[0].name).toBeTruthy()
@@ -63,7 +63,7 @@ describe('AIA domain API', () => {
   })
 
   it('asset data() returns Uint8Array', async () => {
-    const bytes = readFileSync(join(FIXTURES, 'HelloPurr.aia'))
+    const bytes = readFileSync(join(FIXTURES_DIR, 'HelloPurr.aia'))
     const project = await readAia(new Uint8Array(bytes))
     if (project.assets.length > 0) {
       const data = await project.assets[0].data()
@@ -133,7 +133,7 @@ describe('AIA domain API', () => {
   })
 
   it('writeAia returns a valid ZIP that re-parses with same screen names', async () => {
-    const bytes = readFileSync(join(FIXTURES, 'HelloPurr.aia'))
+    const bytes = readFileSync(join(FIXTURES_DIR, 'HelloPurr.aia'))
     const project = await readAia(new Uint8Array(bytes))
     const out = await writeAia(project)
     const ab = await out.arrayBuffer()

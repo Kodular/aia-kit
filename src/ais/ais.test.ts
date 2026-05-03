@@ -3,11 +3,11 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { exportScreenAsAis, readAis } from '#/ais/index.js'
 import { readAia } from '#/aia/read-archive.js'
-import { FIXTURES } from '#/test-helpers.js'
+import { FIXTURES_DIR } from '#/test-helpers.js'
 
 describe('aia-kit/ais', () => {
   it('readAis matches readAia for HelloPurr.aia', async () => {
-    const bytes = readFileSync(join(FIXTURES, 'HelloPurr.aia'))
+    const bytes = readFileSync(join(FIXTURES_DIR, 'HelloPurr.aia'))
     const viaAis = await readAis(new Uint8Array(bytes))
     const viaAia = await readAia(new Uint8Array(bytes))
     expect(viaAis.screens.map(s => s.name)).toEqual(viaAia.screens.map(s => s.name))
@@ -15,7 +15,7 @@ describe('aia-kit/ais', () => {
   })
 
   it('exportScreenAsAis yields one screen and round-trips readable', async () => {
-    const bytes = readFileSync(join(FIXTURES, 'HelloPurr.aia'))
+    const bytes = readFileSync(join(FIXTURES_DIR, 'HelloPurr.aia'))
     const project = await readAia(new Uint8Array(bytes))
     const firstName = project.screens[0]?.name
     expect(firstName).toBeTruthy()

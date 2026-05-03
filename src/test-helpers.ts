@@ -1,6 +1,6 @@
 import { join } from 'node:path'
 
-export const FIXTURES = join(import.meta.dirname, '../test-fixtures')
+export const FIXTURES_DIR = join(import.meta.dirname, '../test-fixtures')
 
 import type {
   AiaAsset,

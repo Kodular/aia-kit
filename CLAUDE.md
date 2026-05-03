@@ -14,7 +14,7 @@ pnpm test        # Vitest
 pnpm typecheck   # tsc --noEmit only
 ```
 
-Tests are colocated with source in `src/` (e.g. `src/aia/aia.test.ts`). Shared test utilities: `src/test-helpers.ts` (exports `FIXTURES` path + factory helpers). Real AIA fixtures: `test-fixtures/`.
+Tests are colocated with source in `src/` (e.g. `src/aia/aia.test.ts`). Shared test utilities: `src/test-helpers.ts` (exports `FIXTURES_DIR` path + factory helpers). Real AIA fixtures: `test-fixtures/`.
 
 ## Documentation
 
