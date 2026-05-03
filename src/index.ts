@@ -69,6 +69,7 @@ export { parseAia, parseAix, parseAndResolve, parseProjectProperties } from '#/p
 export { buildModel } from '#/model.js'
 export { resolve } from '#/resolve.js'
 export { writeAia, serializeProperties } from '#/write.js'
+export { readAia, getScreen, replaceScreen, replaceScreenScm, replaceScreenBky } from '#/aia.js'
 
 // YAIL generation
 export { createYailGenerator } from '#/yail/index.js'

@@ -20,6 +20,7 @@
   "module": "./dist/src/index.js",
   "exports": {
     ".":           "./dist/src/index.js",
+    "./aia":      "./dist/src/aia.js",
     "./analysis": "./dist/src/analysis/index.js",
     "./component-descriptor": "./dist/src/component-descriptor.js",
     "./environment": "./dist/src/environment.js",

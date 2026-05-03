@@ -59,8 +59,9 @@ export function updatePropertyWhere(
 ): MutationResult {
   const screens = project.screens.map(screen => {
     const root = parseScm(screen.scm)
-    const updated = applyPropertyUpdate(root, predicate, property, value)
-    return { ...screen, scm: serializeScm(updated, screen.scm) }
+    const { node: updated, changed } = applyPropertyUpdate(root, predicate, property, value)
+    if (!changed) return screen
+    return { ...screen, scm: serializeScm(updated, screen.scm), yail: null }
   })
   return { project: { ...project, screens }, diagnostics: [] }
 }
@@ -108,10 +109,28 @@ function applyPropertyUpdate(
   predicate: (c: AiaComponent) => boolean,
   property: string,
   value: string,
-): AiaComponent {
-  const properties = predicate(node) ? { ...node.properties, [property]: value } : node.properties
-  const children = node.children.map(c => applyPropertyUpdate(c, predicate, property, value))
-  return { ...node, properties, children }
+): { node: AiaComponent; changed: boolean } {
+  const shouldUpdate = predicate(node) && node.properties[property] !== value
+  const properties = shouldUpdate ? { ...node.properties, [property]: value } : node.properties
+  let childrenChanged = false
+  const children = node.children.map(child => {
+    const updated = applyPropertyUpdate(child, predicate, property, value)
+    if (updated.changed) childrenChanged = true
+    return updated.node
+  })
+
+  if (!shouldUpdate && !childrenChanged) {
+    return { node, changed: false }
+  }
+
+  return {
+    node: {
+      ...node,
+      properties,
+      children: childrenChanged ? children : node.children,
+    },
+    changed: true,
+  }
 }
 
 function replaceScreenScm(
@@ -123,7 +142,7 @@ function replaceScreenScm(
   // originalScm provides the top-level metadata wrapper (authURL, YaVersion, Source).
   const newScm = serializeScm(newRoot, screen.scm)
   const screens = [...project.screens]
-  screens[idx] = { ...screen, scm: newScm }
+  screens[idx] = { ...screen, scm: newScm, yail: null }
   return { project: { ...project, screens }, diagnostics: [] }
 }
 

@@ -2,16 +2,28 @@ import { BlobWriter, ZipWriter, TextReader, BlobReader } from '@zip.js/zip.js'
 import type { AiaProject, ProjectProperties } from '#/core/types.js'
 import type { ModelProject } from '#/core/model.js'
 import { AiaWriteError } from '#/core/errors.js'
-import { createYailGenerator } from '#/yail/index.js'
+import { YailEmitter } from '#/yail/index.js'
 import { getPackagePath } from '#/utils/package-names.js'
 
-export async function writeAia(project: AiaProject | ModelProject): Promise<Blob> {
-  const isModel = '_tag' in project && project._tag === 'ModelProject'
+export interface WriteAiaOptions {
+  withYail?: boolean
+}
+
+export function writeAia(project: AiaProject, options?: { withYail?: false }): Promise<Blob>
+export function writeAia(model: ModelProject, options?: WriteAiaOptions): Promise<Blob>
+export async function writeAia(
+  project: AiaProject | ModelProject,
+  options: WriteAiaOptions = {},
+): Promise<Blob> {
+  const isModel = isModelProject(project)
+  if (options.withYail === true && !isModel) {
+    throw new AiaWriteError('Cannot write generated YAIL from raw AiaProject; pass a ModelProject')
+  }
+
   const raw: AiaProject = isModel
-    ? (project as ModelProject).source
+    ? project.source
     : project as AiaProject
-  const yailGen = isModel ? createYailGenerator(project as ModelProject) : null
-  const modelScreens = isModel ? (project as ModelProject).screens : null
+  const yailEmitter = options.withYail === true && isModel ? YailEmitter.for(project) : null
 
   try {
     const zw = new ZipWriter(new BlobWriter('application/zip'))
@@ -28,9 +40,8 @@ export async function writeAia(project: AiaProject | ModelProject): Promise<Blob
       await zw.add(`${dir}/${screen.name}.scm`, new TextReader(screen.scm))
       await zw.add(`${dir}/${screen.name}.bky`, new TextReader(screen.bky))
       let yailOut = screen.yail
-      if (yailOut == null && yailGen && modelScreens) {
-        const ms = modelScreens.find(s => s.name === screen.name)
-        if (ms) yailOut = yailGen(ms)
+      if (yailEmitter) {
+        yailOut = yailEmitter.emitScreen(screen.name)
       }
       if (yailOut) {
         await zw.add(`${dir}/${screen.name}.yail`, new TextReader(yailOut))
@@ -57,6 +68,10 @@ export async function writeAia(project: AiaProject | ModelProject): Promise<Blob
     if (e instanceof AiaWriteError) throw e
     throw new AiaWriteError(`Failed to write AIA: ${e}`)
   }
+}
+
+function isModelProject(project: AiaProject | ModelProject): project is ModelProject {
+  return '_tag' in project && project._tag === 'ModelProject'
 }
 
 export function serializeProperties(props: ProjectProperties): string {

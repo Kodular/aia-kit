@@ -58,6 +58,14 @@ describe('addComponent', () => {
     expect(root.children).toHaveLength(2)
   })
 
+  it('invalidates existing YAIL after changing screen SCM', () => {
+    const project = makeProject(EMPTY_SCM)
+    project.screens[0].yail = 'existing yail'
+    const result = addComponent(project, 'Screen1', NEW_LABEL, 'root-uid')
+    expect(result.diagnostics).toEqual([])
+    expect(result.project.screens[0].yail).toBeNull()
+  })
+
   it('emits MISSING_SCREEN_FILE for unknown screen', () => {
     const project = makeProject(EMPTY_SCM)
     const result = addComponent(project, 'NoSuch', NEW_LABEL, 'root-uid')
@@ -98,6 +106,14 @@ describe('removeComponent', () => {
     expect(result.diagnostics[0].code).toBe('UNRESOLVABLE_COMPONENT')
     expect(result.diagnostics[0].message).toMatch(/root form/)
   })
+
+  it('invalidates existing YAIL after removing a component', () => {
+    const project = makeProject(SCM_WITH_BUTTON)
+    project.screens[0].yail = 'existing yail'
+    const result = removeComponent(project, 'Screen1', 'btn-uid')
+    expect(result.diagnostics).toEqual([])
+    expect(result.project.screens[0].yail).toBeNull()
+  })
 })
 
 describe('updatePropertyWhere', () => {
@@ -116,6 +132,7 @@ describe('updatePropertyWhere', () => {
 
   it('does not modify non-matching components', () => {
     const project = makeProject(SCM_WITH_BUTTON)
+    project.screens[0].yail = 'existing yail'
     const result = updatePropertyWhere(
       project,
       c => c.type === 'Label',
@@ -124,6 +141,7 @@ describe('updatePropertyWhere', () => {
     )
     const root = parseScm(result.project.screens[0].scm)
     expect(root.children[0].properties['Text']).toBe('Click')
+    expect(result.project.screens[0].yail).toBe('existing yail')
   })
 
   it('applies to all screens', () => {
@@ -147,5 +165,34 @@ describe('updatePropertyWhere', () => {
       const root = parseScm(screen.scm)
       expect(root.children[0].properties['Text']).toBe('X')
     }
+  })
+
+  it('invalidates existing YAIL on updated screens', () => {
+    const project = makeProject(SCM_WITH_BUTTON)
+    project.screens[0].yail = 'existing yail'
+    const result = updatePropertyWhere(project, c => c.type === 'Button', 'Text', 'X')
+    expect(result.diagnostics).toEqual([])
+    expect(result.project.screens[0].yail).toBeNull()
+  })
+
+  it('preserves existing YAIL on screens without matching components', () => {
+    const screen2: AiaScreen = {
+      name: 'Screen2',
+      scm: EMPTY_SCM.replace(/Screen1/g, 'Screen2'),
+      bky: EMPTY_BKY,
+      yail: 'screen2 yail',
+    }
+    const project: AiaProject = {
+      _tag: 'AiaProject', name: 'Test', properties: makeProjectProperties(),
+      screens: [
+        { name: 'Screen1', scm: SCM_WITH_BUTTON, bky: EMPTY_BKY, yail: 'screen1 yail' },
+        screen2,
+      ],
+      assets: [], extensions: [],
+    }
+    const result = updatePropertyWhere(project, c => c.type === 'Button', 'Text', 'X')
+    expect(result.diagnostics).toEqual([])
+    expect(result.project.screens[0].yail).toBeNull()
+    expect(result.project.screens[1].yail).toBe('screen2 yail')
   })
 })

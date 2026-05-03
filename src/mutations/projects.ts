@@ -27,7 +27,7 @@ export function mergeProjects(
         const uniqueName = findUniqueName(screen.name, screens.map(s => s.name))
         const root = parseScm(screen.scm)
         const newScm = serializeScm({ ...root, name: uniqueName }, screen.scm)
-        screens.push({ ...screen, name: uniqueName, scm: newScm })
+        screens.push({ ...screen, name: uniqueName, scm: newScm, yail: null })
       }
       // 'skip' — do nothing
     } else {

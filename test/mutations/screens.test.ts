@@ -39,6 +39,13 @@ describe('addScreen', () => {
     addScreen(project, makeScreen('Screen2'))
     expect(project.screens).toHaveLength(1)
   })
+
+  it('preserves provided YAIL for the new screen', () => {
+    const project = makeProject('Screen1')
+    const result = addScreen(project, { ...makeScreen('Screen2'), yail: 'provided yail' })
+    expect(result.diagnostics).toEqual([])
+    expect(result.project.screens[1].yail).toBe('provided yail')
+  })
 })
 
 describe('removeScreen', () => {
@@ -79,6 +86,13 @@ describe('cloneScreen', () => {
     const project = makeProject('Screen1')
     const result = cloneScreen(project, 'Screen1', 'Screen2')
     expect(result.project.screens[1].bky).toBe(EMPTY_BKY)
+  })
+
+  it('does not clone existing YAIL', () => {
+    const project = makeProject('Screen1')
+    project.screens[0].yail = 'existing yail'
+    const result = cloneScreen(project, 'Screen1', 'Screen2')
+    expect(result.project.screens[1].yail).toBeNull()
   })
 
   it('emits MISSING_SCREEN_FILE for unknown source screen', () => {

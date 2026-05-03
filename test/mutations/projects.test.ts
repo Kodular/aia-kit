@@ -73,6 +73,15 @@ describe('mergeProjects — screens', () => {
     expect(root.name).toBe('Screen1_2')
   })
 
+  it('rename — invalidates YAIL when rewriting screen name and SCM', () => {
+    const target = makeProject(['Screen1'])
+    const source = makeProject(['Screen1'])
+    source.screens[0] = { ...source.screens[0], yail: 'existing yail' }
+    const result = mergeProjects(target, source, { screenConflict: 'rename', assetConflict: 'skip', includeExtensions: false })
+    expect(result.project.screens[1].name).toBe('Screen1_2')
+    expect(result.project.screens[1].yail).toBeNull()
+  })
+
   it('rename — increments suffix until unique', () => {
     const target = makeProject(['Screen1', 'Screen1_2'])
     const source = makeProject(['Screen1'])
