@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is `aia-kit`, a TypeScript library for reading, parsing, editing, and writing AIA/AIX/AIS files (App Inventor project files). The library is designed to work with App Inventor-based platforms, particularly Kodular Creator.
+This is `aia-kit`, a TypeScript toolkit for reading, inspecting, editing, analysing, and writing App Inventor-family project formats: AIA, AIS, AIX, SCM, BKY, YAIL, project properties, and component descriptor registries.
 
-**Status:** Currently on the `v2-rewrite` branch, undergoing a complete architectural redesign. See [v2 Design Spec](docs/superpowers/specs/2026-05-01-aia-kit-v2-design.md), [M1 Plan](docs/superpowers/plans/2026-05-02-aia-kit-v2-m1-core-pipeline.md), and [M2a Plan](docs/superpowers/plans/2026-05-02-aia-kit-v2-m2a-structural-mutations.md) for details.
+**Status:** Currently on the `v2-rewrite` branch, undergoing a complete architectural redesign. The authoritative target API design is [Composable API Design Spec](docs/superpowers/specs/2026-05-03-aia-kit-v2-composable-api-design.md). The older [v2 Design Spec](docs/superpowers/specs/2026-05-01-aia-kit-v2-design.md) is superseded and retained only for historical milestone context.
 
 ## Library documentation
 
@@ -14,6 +14,7 @@ This is `aia-kit`, a TypeScript library for reading, parsing, editing, and writi
 |-----|---------|
 | [docs/usage.md](docs/usage.md) | Usage guide — core pipeline, examples for every API area |
 | [docs/api.md](docs/api.md) | Full API reference — all exported types and functions |
+| [docs/superpowers/specs/2026-05-03-aia-kit-v2-composable-api-design.md](docs/superpowers/specs/2026-05-03-aia-kit-v2-composable-api-design.md) | Target v2 composable API design |
 
 ## File format documentation
 
@@ -48,11 +49,13 @@ Start at the hub [**docs/file-formats.md**](docs/file-formats.md) — it links t
 
 ### Design Philosophy
 
-v2 is built on three core principles:
+v2 is built as a composable toolkit, not a framework:
 
-1. **Plain immutable data types + pure functions** — No behaviour buried in classes. Structural operations use raw types; platform-aware operations take an explicit `Environment`.
-2. **Two-layer type system** — Raw layer (`Aia*` / `Aix*`) faithful to file format, model layer (`Model*`) enriched with descriptors and diagnostics.
-3. **First-class diagnostics** — All data-level problems surface as `Diagnostic[]`; throws reserved for hard IO failures. Every mutation returns `MutationResult`.
+1. **Domain subpaths over root barrels** — Public imports should expose the boundary: `aia-kit/aia`, `aia-kit/scm`, `aia-kit/bky`, `aia-kit/model`, `aia-kit/environment`, etc. Avoid broad root-barrel APIs.
+2. **Two-layer type system** — `AiaProject` is the data space/archive truth. `ModelProject` is the semantic model space built from `AiaProject + Environment`.
+3. **No hidden environment or extension state** — `Environment` represents the base platform only. Project-installed extensions are composed into the effective `ModelProject.componentRegistry` during `buildModel`.
+4. **Small classes only where they clarify a domain object** — `ScmDocument`, `YailEmitter`, and `ComponentRegistry` are accepted. Do not introduce a god `AiaProject` class or `BkyDocument`.
+5. **First-class diagnostics** — Data-level problems surface as `Diagnostic[]`; throws are reserved for hard IO/construction failures.
 
 ### Core Modules
 
@@ -62,31 +65,38 @@ v2 is built on three core principles:
 - `AiaExtension` — extension metadata + lazy asset/binary loading
 
 **Model Layer** (`src/core/model.ts`):
-- `ModelProject`, `ModelScreen`, `ModelComponent` — environment-enriched object model
+- `ModelProject`, `ModelScreen`, `ModelComponent` — environment-enriched semantic model built by `buildModel`
+- `ModelProject.componentRegistry` — effective immutable registry: base platform descriptors + project-installed extension descriptors
 - `ComponentDescriptor` — metadata from environment (properties, events, methods)
 - `ComponentProperty` — typed property with validation state
 
 **Core Infrastructure**:
-- **Environment** (`src/core/environment.ts`): Represents target platform (Kodular, MIT AI2), holds component descriptors
+- **Environment**: Plain base-platform value object loaded via `getEnvironmentFor(Platform.KodularCreator | Platform.MitAppInventor)` or `createEnvironment`
+- **ComponentRegistry**: Class-based immutable registry with `ComponentRegistry.of(...)`; use `MutableComponentRegistry` only for project-scoped extension add/remove assembly
 - **Diagnostics** (`src/core/diagnostics.ts`): `Diagnostic` type, severity levels, diagnostic codes, `mergeReports` utility
 - **Errors** (`src/core/errors.ts`): Error hierarchy — `AiaKitError`, `AiaParseError`, `AiaZipError`, `AiaStructureError`, `AiaWriteError`
 
-**Specialised Parsers** (internal, not exported):
-- **BKY** (`src/blocks/bky-parser.ts`, `src/blocks/bky-serializer.ts`): `parseBky` / `serializeBky` — XML ↔ BlockAst
-- **SCM** (`src/components/scm-parser.ts`, `src/components/scm-serializer.ts`): `parseScm` / `serializeScm` — SCM ↔ component tree
+**Domain Modules (target API):**
+- **AIA** (`aia-kit/aia`): `readAia`, `writeAia`, screen/asset/extension project-level operations
+- **AIX/AIS** (`aia-kit/aix`, `aia-kit/ais`): archive/package helpers
+- **SCM** (`aia-kit/scm`): `ScmDocument` is the public SCM editing API; low-level parse/serialize helpers may remain internal
+- **BKY** (`aia-kit/bky`): function-first `parseBky` / `serializeBky` and independent AST transforms; no `BkyDocument`
+- **YAIL** (`aia-kit/yail`): `YailEmitter.for(model).emitScreen(...)`
+- **Model** (`aia-kit/model`): `buildModel(project, environment)`
+- **Environment** (`aia-kit/environment`): `getEnvironmentFor`, `createEnvironment`, `Platform`
+- **Component Descriptor** (`aia-kit/component-descriptor`): descriptor normalization and registry classes
 
-**Public Lens APIs**:
-- **Block Lens** (`src/blocks/lens.ts`): `queryBlocks`, `updateBlocks`, `updateAllScreenBlocks`, `parseBlocks`, `serializeBlocks`
-- **Component Tree** (`src/components/tree.ts`): `getParent`, `findComponent`, `getComponentsByType`, `getComponentPath`
+Do not add callback-style BKY lens APIs (`queryBlocks`, `updateBlocks`) to the target core surface. Prefer explicit parse-transform-serialize composition.
 
 ### Key Files
 
 **Entry point:**
-- `src/index.ts` — Public v2 API exports
+- Domain subpath barrels are the target public API. Keep the root `aia-kit` export absent or intentionally small; do not make it a broad barrel.
 
 **Core pipeline:**
-- `src/parse.ts` — `parseAia()`, `parseAix()`, `parseAndResolve()`
-- `src/resolve.ts` — Pure `resolve()` function (raw → model)
+- `aia-kit/aia` — `readAia()`, `writeAia()`
+- `aia-kit/aix` — `readAix()`
+- `aia-kit/model` — `buildModel()` (renames/supersedes `resolve()`)
 - `src/write.ts` — `writeAia()`
 
 **Component definitions:**
@@ -95,26 +105,29 @@ v2 is built on three core principles:
 
 ### Pipeline Flow
 
-1. **Parse** (`parseAia`): Extract ZIP, deserialise raw `AiaProject` — no environment needed
-2. **Resolve** (`resolve`): Transform raw → model using `Environment`; emit diagnostics
-3. **Query/Mutate**: Use block lens and component tree utilities on model layer
-4. **Write** (`writeAia`): Serialise model back to AIA ZIP
-
-Or use `parseAndResolve` for single-step parse + resolve.
+1. **Read** (`readAia`): Extract ZIP, deserialise raw `AiaProject` — no environment needed
+2. **Build model** (`buildModel`): Transform raw project + base `Environment` into `ModelProject`; project extensions are folded into the effective component registry
+3. **Edit/analyse by domain**: Use `ScmDocument` for SCM, function-first BKY transforms for BKY, `analysis` helpers for convenience reports
+4. **Write** (`writeAia`): Serialise `AiaProject`; use `writeAia(model, { withYail: true })` to emit and embed YAIL
 
 ### Example Usage
 
 ```typescript
-const environment = await Environment.kodularCreator();
-const aiaBlob = /* ... */;
-const { project, diagnostics } = await parseAndResolve(aiaBlob, environment);
+import { readAia, writeAia, replaceScreenScm } from 'aia-kit/aia'
+import { getEnvironmentFor, Platform } from 'aia-kit/environment'
+import { buildModel } from 'aia-kit/model'
+import { ScmDocument } from 'aia-kit/scm'
 
-// Query blocks
-const blocks = queryBlocks(project.screens[0].form);
+const project = await readAia(aiaBlob)
+const env = await getEnvironmentFor(Platform.KodularCreator)
 
-// Update and write back
-const updated = { ...project, screens: [...project.screens] };
-const aiaOut = await writeAia(updated);
+const screen = project.screens.find(s => s.name === 'Screen1')!
+const scm = ScmDocument.parse(screen.scm)
+scm.addComponent(parentUid, component)
+
+const { project: updated } = replaceScreenScm(project, 'Screen1', scm.serialize())
+const model = buildModel(updated, env)
+const aiaOut = await writeAia(model, { withYail: true })
 ```
 
 ## Development Notes

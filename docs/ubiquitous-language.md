@@ -28,7 +28,7 @@ The intermediate textual format (Scheme-like, typically interpreted by **Kawa** 
 
 ## Raw Layer
 
-The raw layer represents file-format-faithful data. Types in this layer carry the `Aia*` or `Aix*` prefix. Raw types can always round-trip back to an identical file.
+The raw layer is the **data space**. It represents file-format-faithful archive data. Types in this layer carry the `Aia*` or `Aix*` prefix. Raw types can round-trip back to AIA/AIX-shaped files.
 
 **AiaProject**
 The structured representation of an AIA file's contents. Contains screens, assets, extensions, and project properties. Does not interpret component types or validate property values — faithful to the ZIP.
@@ -40,7 +40,7 @@ A single screen's raw data: the SCM string, BKY string, and optional YAIL string
 A media file or resource bundled in the AIA. Name, type, size, and lazily-loadable binary data.
 
 **AiaExtension**
-Represents an extension — both as bundled inside an AIA and as a standalone AIX file (`parseAix` returns this same type). Metadata and component descriptors are eagerly available (needed for `resolve()`). Binary files (`classes.jar`, assets) are lazy-loaded on demand. Merges what might have been called `AixProject` — there is no separate type for the AIX file representation.
+Represents an extension — both as bundled inside an AIA and as a standalone AIX file (`readAix` returns this same type). Metadata and component descriptors are eagerly available for model-building. Binary files (`classes.jar`, assets) are lazy-loaded on demand. Merges what might have been called `AixProject` — there is no separate type for the AIX file representation.
 
 **AixProject** *(removed — merged into `AiaExtension`)*
 Previously a separate type for AIX file contents. Merged into `AiaExtension` in v2 — see below.
@@ -49,10 +49,13 @@ Previously a separate type for AIX file contents. Merged into `AiaExtension` in 
 
 ## Model Layer
 
-The model layer is the environment-enriched object model derived from the raw layer. Types carry the `Model*` prefix. Conceptually parallel to the DOM (Document Object Model) or Maven's POM (Project Object Model).
+The model layer is the **model space**: an environment-enriched semantic projection derived from the raw layer. Types carry the `Model*` prefix. Model objects are snapshots built from `AiaProject + Environment` by `buildModel`.
 
 **ModelProject**
-An `AiaProject` enriched with environment knowledge. Component types are resolved against descriptors, properties are typed, and the component tree is built. Carries a `source` back-reference to the originating `AiaProject`. Produced by `resolve()`.
+An `AiaProject` enriched with platform and project-extension knowledge. Component types are matched against an effective component registry, properties are typed, and component trees are built. Carries a `source` back-reference to the originating `AiaProject`. Produced by `buildModel(project, environment)`.
+
+**Effective Component Registry**
+The immutable `ComponentRegistry` exposed on `ModelProject`. It is built from the base `Environment.componentRegistry` plus descriptors from project-installed `AiaExtension` values.
 
 **ModelScreen**
 A screen within a `ModelProject`. Contains the resolved component tree (`form`) and a `source` back-reference to the originating `AiaScreen`.
@@ -65,12 +68,21 @@ A single component node in the resolved tree. Carries its `ComponentDescriptor`,
 ## Environment
 
 **Environment**
-Represents a target App Inventor platform — the set of built-in components and their descriptors available on that platform. Used during `resolve()` to attach descriptors to component nodes. Can be extended with AIX extensions via `withExtension()`.
+Represents a base App Inventor platform — the built-in component registry, built-in block registry, and platform metadata for MIT App Inventor, Kodular Creator, or a custom compatible platform. Used during `buildModel()` to attach descriptors to component nodes. Extensions do not modify `Environment`; they belong to `AiaProject`.
 
-Built-in environments: `Environment.kodularCreator()`, `Environment.mitAppInventor()`.
+Built-in environments are loaded with `getEnvironmentFor(Platform.KodularCreator)` and `getEnvironmentFor(Platform.MitAppInventor)`.
+
+**Platform**
+A string-literal platform identifier exposed through a const object. Current built-ins: `Platform.MitAppInventor` (`"mit-app-inventor"`) and `Platform.KodularCreator` (`"kodular-creator"`).
 
 **ComponentDescriptor**
 The definition of a component type as declared by the environment or an extension. Specifies available properties, events, methods, property editors, SDK requirements, and permissions.
+
+**ComponentRegistry**
+An immutable/read-only class containing component descriptors and lookup behavior. Use `ComponentRegistry.of(descriptors)` to construct one from descriptors.
+
+**MutableComponentRegistry**
+A mutable subclass of `ComponentRegistry` for project-scoped registry assembly and extension add/remove workflows. It supports adding/removing descriptors and returns an immutable snapshot with `snapshot()`. `Environment` and `ModelProject` expose immutable `ComponentRegistry` snapshots.
 
 **ComponentProperty**
 A resolved property on a `ModelComponent` — a name, value, and associated `ComponentPropertyDescriptor` from the `ComponentDescriptor`.
@@ -80,10 +92,16 @@ A resolved property on a `ModelComponent` — a name, value, and associated `Com
 ## Blocks
 
 **BlockAst**
-The parsed in-memory representation of a BKY file. A typed tree of block nodes. Accessed via the block lens (`queryBlocks`) or directly via `parseBlocks(bky)` for multi-pass use.
+The parsed in-memory representation of a BKY file. A typed tree of block nodes. Built from BKY text with `parseBky(bky)` and converted back to text with `serializeBky(ast)`.
 
-**Block Lens**
-The functional API for reading and mutating blocks. Callers provide a query or updater function that receives a `BlockAst`; the library handles parsing and serialisation internally. Functions: `queryBlocks`, `updateBlocks`, `updateAllScreenBlocks`. For multi-pass scenarios, use `parseBlocks`/`serializeBlocks` directly and fold back via `updateBlocks(project, screenName, ast)` (value overload) or `updateScreenBky`.
+**BKY Transform**
+A function that accepts a `BlockAst` and returns a new `BlockAst`. BKY remains function-first because block programs have many possible transformations. Avoid callback-style lens APIs in the core surface.
+
+**ScmDocument**
+The public SCM editing abstraction. It parses SCM text, preserves wrapper metadata, exposes component-tree queries/edits, and serialises back to SCM text. Use `ScmDocument.parse(scm).serialize()` for public SCM workflows.
+
+**YailEmitter**
+The YAIL emitter scoped to a `ModelProject`. Use `YailEmitter.for(model).emitScreen(screenName)` when callers need to inspect or materialise YAIL directly. `writeAia(model, { withYail: true })` uses the same domain behavior for ordinary archive writing.
 
 **Orphaned Block**
 A block that references a component that no longer exists — typically left behind after `removeExtension` or `removeComponent`. Orphaned blocks are surfaced as `Diagnostic` entries with code `ORPHANED_BLOCK`. Callers decide whether to strip them.
@@ -92,17 +110,20 @@ A block that references a component that no longer exists — typically left beh
 
 ## Pipeline
 
-**Parse**
-The IO stage. Reads a `Uint8Array` or `Blob`, decompresses the ZIP, and produces an `AiaProject` or `AixProject`. Throws on hard IO failure (`AiaZipError`, `AiaStructureError`). Does not interpret component types.
+**Read**
+The archive IO stage. Reads a `Uint8Array`, `ArrayBuffer`, or `Blob`, decompresses the ZIP, and produces an `AiaProject` or `AiaExtension`. Throws on hard IO failure (`AiaZipError`, `AiaStructureError`). Does not interpret component types. Public archive APIs use `readAia`, `readAix`, and optionally `readAis`.
 
-**Resolve**
-The enrichment stage. Takes an `AiaProject` and an `Environment`, builds the component tree with descriptors attached, and produces a `ModelProject`. Sync and pure. Never throws — populates `diagnostics` for partial failures instead.
+**Parse**
+The text-format stage. Converts structured text formats into in-memory data, e.g. `parseBky` and `parseProjectProperties`. SCM is the exception in public API: use `ScmDocument.parse()` rather than exposing low-level SCM parse/serialise details.
+
+**Build Model**
+The enrichment stage. Takes an `AiaProject` and an `Environment`, builds component trees with descriptors attached, folds project-installed extension descriptors into the effective component registry, and produces a `ModelProject`. Sync and pure. Never throws for data-level project issues — populates `diagnostics` for partial failures instead.
 
 **Write**
-The serialisation stage. Packages an `AiaProject` (or `ModelProject`, using its `source`) back into a ZIP and returns a `Blob`. Throws `AiaWriteError` on failure.
+The archive serialisation stage. Packages an `AiaProject` or `ModelProject` back into a ZIP and returns a `Blob`. `writeAia(model, { withYail: true })` emits and embeds YAIL. Throws `AiaWriteError` on failure.
 
-**parseAndResolve**
-A convenience function that combines Parse and Resolve in one async call. Suitable for the common case where both steps are always performed together.
+**Emit**
+The compiler-style output stage for derived text such as YAIL. "Emit" means producing target text from an already-built semantic model and block ASTs.
 
 ---
 
@@ -111,11 +132,14 @@ A convenience function that combines Parse and Resolve in one async call. Suitab
 **MutationResult**
 The return type of all mutation functions. Contains a new `AiaProject` (immutably derived) and a `Diagnostic[]` slice listing issues introduced or detected by that mutation.
 
-**Structural Mutation**
-A mutation that operates on the shape of an `AiaProject` without environment knowledge — adding/removing screens, components, assets, or extensions; merging projects; updating property values by predicate.
+**Project-Level Operation**
+An operation that changes `AiaProject` data and returns a `MutationResult`, such as adding/removing screens, assets, or extensions, or replacing one screen's SCM/BKY text. These operations live in the owning domain module, primarily `aia-kit/aia`, not in a central `aia-kit/mutations` module.
 
-**Platform-Aware Mutation**
-A mutation that requires `Environment` knowledge — migrating a component type, migrating a project between platforms.
+**SCM Edit**
+A local edit to a single `ScmDocument`, such as adding/removing components or updating component properties. SCM edits mutate only the local document instance and then serialise back to SCM text for project fold-back.
+
+**Derived Output Invalidation**
+When SCM or BKY changes, existing YAIL for the affected screen may be stale. Project-level operations such as `replaceScreenScm` and `replaceScreenBky` should set that screen's `yail` to `null` unless the operation explicitly preserves caller-supplied YAIL.
 
 ---
 
@@ -134,6 +158,8 @@ Combines multiple `Diagnostic[]` arrays into one. Used when chaining sequential 
 
 ## Migration
 
+Migration APIs are not part of the current composable v2 target surface. This section is historical vocabulary retained for older design notes.
+
 **ExtensionMigrationPlan**
 A plain data type describing how to map one extension's components and properties to another's. Produced by `planExtensionMigration`. Callers can spread-and-override before passing to `migrateExtension`.
 
@@ -151,7 +177,7 @@ Updating an existing extension to a newer version of the same package where the 
 ## Analysis
 
 **diagnose**
-A comprehensive read-only validator. Takes an `AiaProject` and `Environment`, returns a full `Diagnostic[]` covering all known issue types. Lighter than `resolve` — does not build the full model tree.
+A comprehensive read-only validator. Takes an `AiaProject` and `Environment`, returns a full `Diagnostic[]` covering all known issue types. Analysis helpers are convenience APIs over lower-level domain modules.
 
 **NavGraph**
 A directed graph of screen-to-screen navigation edges. Each edge carries the triggering component, event, and whether navigation is conditional or always executed.
@@ -176,4 +202,4 @@ The root component of every screen's component tree. Corresponds to the `Form` t
 A unique identifier assigned to each component instance within a project. Used for stable references across SCM and BKY files.
 
 **Round-trip**
-The property of `AiaProject` that ensures `writeAia(parseAia(bytes))` produces a byte-identical output. The raw layer preserves SCM and BKY strings exactly, enabling this guarantee.
+The property of `AiaProject` that ensures `writeAia(await readAia(bytes))` preserves archive content and structure as faithfully as possible. The raw layer preserves SCM and BKY strings unless explicitly edited.
