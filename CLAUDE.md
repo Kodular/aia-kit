@@ -40,10 +40,11 @@ Start at the hub [**docs/file-formats.md**](docs/file-formats.md) — it links t
 - `pnpm typecheck` - Type-checks the TypeScript code without emitting files
 
 ### Testing
-- Tests are located in `test/` directory, organized to mirror `src/` (e.g. `test/aia/`, `test/model/`); shared primitives (`diagnostics`, `errors`) tests live at `test/diagnostics.test.ts`, `test/errors.test.ts`
+- Tests are colocated with source files in `src/` (e.g. `src/aia/aia.test.ts` beside `src/aia/index.ts`)
+- Shared test utilities live in `src/test-helpers.ts`
 - Test files use the `.test.ts` extension
 - Uses Vitest as the testing framework
-- Test fixtures are in `test/fixtures/`
+- Test fixtures (real AIA files) are in `test-fixtures/`
 
 ## Architecture
 
@@ -144,5 +145,5 @@ const aiaOut = await writeAia(model, { withYail: true })
 
 ## Testing
 
-- Test fixtures in `test/fixtures/` (real AIA files)
-- Unit tests in `test/` organized by module
+- Test fixtures in `test-fixtures/` (real AIA files)
+- Unit tests colocated in `src/` beside their source modules
