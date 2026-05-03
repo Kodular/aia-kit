@@ -1,6 +1,6 @@
 import { BlobReader, ZipReader, type Entry } from '@zip.js/zip.js'
 import { getProperties } from 'properties-file'
-import type { AiaProject, AiaScreen, AiaAsset, AiaExtension, AixManifest } from '#/types.js'
+import type { AiaProject, AiaScreen, AiaAsset, AiaExtension, AixManifest, AixAsset } from '#/types.js'
 import type { ComponentDescriptor } from '#/component-descriptor/descriptors.js'
 import { AiaZipError, AiaStructureError } from '#/errors.js'
 import { extractClassName } from '#/utils/package-names.js'
@@ -29,7 +29,7 @@ export async function readAia(input: Uint8Array | ArrayBuffer | Blob): Promise<A
 
   const screenMap = new Map<string, { scm?: string; bky?: string; yail?: string }>()
   const assetEntries: Entry[] = []
-  const extEntries = new Map<string, Entry[]>()
+  const extEntriesMap = new Map<string, Entry[]>()
 
   for (const entry of entries) {
     const parts = entry.filename.split('/')
@@ -42,8 +42,8 @@ export async function readAia(input: Uint8Array | ArrayBuffer | Blob): Promise<A
 
     if (parts[0] === 'assets' && parts[1] === 'external_comps' && parts[2]) {
       const pkg = parts[2]
-      if (!extEntries.has(pkg)) extEntries.set(pkg, [])
-      extEntries.get(pkg)!.push(entry)
+      if (!extEntriesMap.has(pkg)) extEntriesMap.set(pkg, [])
+      extEntriesMap.get(pkg)!.push(entry)
       continue
     }
 
@@ -73,7 +73,7 @@ export async function readAia(input: Uint8Array | ArrayBuffer | Blob): Promise<A
 
   const assets: AiaAsset[] = await Promise.all(assetEntries.map(entry => aiaAssetFromZipEntry(entry)))
 
-  const extensions: AiaExtension[] = await buildExtensions(extEntries, entries)
+  const extensions = await readBundledExtensionsFromMap(extEntriesMap)
 
   return { _tag: 'AiaProject', name, properties, screens, assets, extensions }
 }
@@ -90,43 +90,59 @@ async function aiaAssetFromZipEntry(entry: Entry): Promise<AiaAsset> {
   }
 }
 
-async function buildExtensions(
-  extEntries: Map<string, Entry[]>,
-  allEntries: Entry[]
-): Promise<AiaExtension[]> {
-  const extensions: AiaExtension[] = []
-  for (const [pkg, pkgEntries] of extEntries) {
-    const componentEntry = pkgEntries.find(e => {
-      const f = e.filename.split('/').pop()
-      return f === 'component.json' || f === 'components.json'
-    })
-    if (!componentEntry) continue
-    let components: ComponentDescriptor[]
-    try {
-      const text = await readZipEntryText(componentEntry)
-      const parsed = JSON.parse(text)
-      components = Array.isArray(parsed) ? parsed : [parsed]
-    } catch {
-      continue
-    }
-    const first = components[0]
-    const manifest: AixManifest = {
-      packageName: pkg,
-      version: first?.version ?? 1,
-      minSdk: 7,
-      buildVersion: '1',
-      permissions: [],
-    }
-    const jarEntry = allEntries.find(e => e.filename.includes(pkg) && e.filename.endsWith('classes.jar'))
-    extensions.push({
-      packageName: pkg,
-      version: first?.version ?? 1,
-      minSdk: 7,
-      components,
-      manifest,
-      loadClasses: async () => jarEntry ? new Uint8Array(await (await readZipEntryBlob(jarEntry)).arrayBuffer()) : new Uint8Array(),
-      loadAssets: async () => [],
-    })
+/** Bundled extension zip members: everything under `assets/external_comps/<packageName>/`. */
+async function readBundledExtensionsFromMap(extEntriesMap: Map<string, Entry[]>): Promise<AiaExtension[]> {
+  const pairs = [...extEntriesMap.entries()]
+  const parsed = await Promise.all(
+    pairs.map(([packageName, pkgEntries]) => bundledExtensionFromPackageEntries(packageName, pkgEntries)),
+  )
+  return parsed.filter((e): e is AiaExtension => e !== null)
+}
+
+async function bundledExtensionFromPackageEntries(
+  packageName: string,
+  entries: Entry[],
+): Promise<AiaExtension | null> {
+  const componentEntry = entries.find(e => {
+    const f = e.filename.split('/').pop()
+    return f === 'component.json' || f === 'components.json'
+  })
+  if (!componentEntry) return null
+  let components: ComponentDescriptor[]
+  try {
+    const text = await readZipEntryText(componentEntry)
+    const parsed = JSON.parse(text)
+    components = Array.isArray(parsed) ? parsed : [parsed]
+  } catch {
+    return null
   }
-  return extensions
+  const first = components[0]
+  const manifest: AixManifest = {
+    packageName,
+    version: first?.version ?? 1,
+    minSdk: 7,
+    buildVersion: '1',
+    permissions: [],
+  }
+  const jarEntry = entries.find(e => !e.filename.endsWith('/') && e.filename.endsWith('classes.jar'))
+  const assetFileEntries = entries
+    .filter(e => !e.filename.endsWith('/') && e.filename.includes('/assets/'))
+    .toSorted((a, b) => a.filename.localeCompare(b.filename))
+
+  return {
+    packageName,
+    version: first?.version ?? 1,
+    minSdk: 7,
+    components,
+    manifest,
+    loadClasses: async () =>
+      jarEntry ? new Uint8Array(await (await readZipEntryBlob(jarEntry)).arrayBuffer()) : new Uint8Array(),
+    loadAssets: async (): Promise<AixAsset[]> =>
+      Promise.all(
+        assetFileEntries.map(async entry => ({
+          name: entry.filename.split('/').pop() ?? entry.filename,
+          data: async () => new Uint8Array(await (await readZipEntryBlob(entry)).arrayBuffer()),
+        })),
+      ),
+  }
 }
