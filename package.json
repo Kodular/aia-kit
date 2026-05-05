@@ -43,6 +43,8 @@
     "dist"
   ],
   "scripts": {
+    "lint": "biome lint",
+    "format": "biome format --write",
     "typecheck": "tsc --noEmit",
     "build": "tsdown",
     "test": "vitest run",
