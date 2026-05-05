@@ -103,3 +103,6 @@ dist
 # TernJS port file
 .tern-port
 *.DS_Store
+
+# pnpm v11 may use a project-local store when the global store path differs
+.pnpm-store/
