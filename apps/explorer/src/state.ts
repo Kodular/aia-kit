@@ -50,6 +50,7 @@ export interface AppState {
   /** Object URLs for the project's assets, for previews. */
   readonly assetUrls: Accessor<ReadonlyMap<string, string>>;
   readonly screen: Accessor<Screen | undefined>;
+  /** The component being inspected; `undefined` while only a screen is selected. */
   readonly component: Accessor<Component | undefined>;
 
   open(file: Blob, name: string): Promise<void>;
@@ -112,8 +113,8 @@ export function createAppState(): AppState {
   const component = createMemo(() => {
     const s = selection();
     const current = screen();
-    if (!current || s?.kind !== "screen") return undefined;
-    return findComponent(current, s.component ?? current.name);
+    if (!current || s?.kind !== "screen" || s.component === undefined) return undefined;
+    return findComponent(current, s.component);
   });
 
   return {

@@ -28,7 +28,7 @@ export function LayoutPreview(props: { screen: Screen }): JSX.Element {
       <div
         class="mx-auto flex min-h-80 max-w-sm flex-col overflow-hidden rounded-lg border border-zinc-300 bg-white text-zinc-900"
         style={{ "background-color": cssColor(form().properties["BackgroundColor"] ?? "") }}
-        onClick={() => app.selectComponent(props.screen.name)}
+        onClick={() => app.selectComponent(props.screen.name, props.screen.name)}
       >
         <Show when={form().properties["TitleVisible"] !== "False"}>
           <div class="border-b border-zinc-200 bg-zinc-100 px-3 py-2 text-sm font-medium">

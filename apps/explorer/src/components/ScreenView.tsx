@@ -9,7 +9,6 @@ import { indentXml } from "../lib/highlight.ts";
 import { useApp, type Tab } from "../state.ts";
 import { BlockStack } from "./BlockOutline.tsx";
 import { Code } from "./Code.tsx";
-import { ComponentTree } from "./ComponentTree.tsx";
 import { LayoutPreview } from "./LayoutPreview.tsx";
 import { Card, Empty } from "./ui.tsx";
 
@@ -82,12 +81,7 @@ function Designer(props: { screen: Screen }): JSX.Element {
 
   return (
     <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
-      <div class="flex flex-col gap-4">
-        <LayoutPreview screen={props.screen} />
-        <Card title="Component tree">
-          <ComponentTree screen={props.screen.name} component={props.screen.form} />
-        </Card>
-      </div>
+      <LayoutPreview screen={props.screen} />
       <Card title={`Blocks that use ${selected()}`}>
         <div class="flex flex-col gap-4 overflow-x-auto">
           <For each={related()} fallback={<Empty>No blocks refer to this component.</Empty>}>

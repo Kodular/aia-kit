@@ -1,22 +1,58 @@
 import type { JSX } from "@solidjs/web";
-import { componentReference, walkBlocks, type Component, type Problem } from "aia-kit";
+import {
+  componentReference,
+  walkBlocks,
+  walkComponents,
+  type Component,
+  type Problem,
+} from "aia-kit";
 import { lookupComponent } from "aia-kit/platforms";
 import { For, Show, createMemo } from "solid-js";
 import { cssColor, plainText, plural, simpleName } from "../lib/format.ts";
 import { useApp } from "../state.ts";
+import { ComponentTree } from "./ComponentTree.tsx";
 import { Badge, Empty } from "./ui.tsx";
 
+/**
+ * The right-hand pane. For a screen it starts as the component tree; choosing a
+ * component (here or in the layout preview) swaps in its details, and Back
+ * returns to the tree.
+ */
 export function Inspector(): JSX.Element {
   const app = useApp();
 
   return (
     <aside class="flex min-h-0 flex-col overflow-auto border-l border-zinc-200 dark:border-zinc-800">
       <div class="border-b border-zinc-200 p-4 dark:border-zinc-800">
-        <Show
-          when={app.component()}
-          fallback={<Empty>Select a screen and a component to see its properties.</Empty>}
-        >
-          {(component) => <ComponentDetails component={component()} />}
+        <Show when={app.screen()} fallback={<Empty>Select a screen to see its components.</Empty>}>
+          {(screen) => (
+            <Show
+              when={app.component()}
+              fallback={
+                <>
+                  <h2 class="mb-2 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                    Components · {Array.from(walkComponents(screen())).length}
+                  </h2>
+                  <div class="-mx-2">
+                    <ComponentTree screen={screen().name} component={screen().form} />
+                  </div>
+                </>
+              }
+            >
+              {(component) => (
+                <>
+                  <button
+                    type="button"
+                    class="mb-3 -ml-1 flex items-center gap-1 rounded-md px-1 text-xs text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+                    onClick={() => app.selectComponent(screen().name)}
+                  >
+                    <span aria-hidden="true">←</span> Components
+                  </button>
+                  <ComponentDetails component={component()} />
+                </>
+              )}
+            </Show>
+          )}
         </Show>
       </div>
       <Problems />
