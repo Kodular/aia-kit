@@ -11,4 +11,5 @@ export {
   PageHeader,
   SectionLabel,
 } from "./primitives.tsx";
+export { SegmentedControl } from "./SegmentedControl.tsx";
 export { Tabs, type TabItem } from "./Tabs.tsx";

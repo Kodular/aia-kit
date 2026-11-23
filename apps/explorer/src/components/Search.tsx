@@ -85,7 +85,7 @@ export function Search(): JSX.Element {
   });
 
   return (
-    <div class="relative w-full max-w-md">
+    <div class="relative w-full">
       <Icon
         icon={SearchIcon}
         size={14}

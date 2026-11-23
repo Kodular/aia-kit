@@ -3,31 +3,41 @@ import type { BuiltinPlatformId } from "aia-kit/platforms";
 import { FolderOpen, Package } from "lucide";
 import { useApp } from "../state.ts";
 import { Search } from "./Search.tsx";
-import { Button, Icon } from "./ui/index.ts";
+import { Button, Icon, SegmentedControl } from "./ui/index.ts";
+
+const PLATFORMS: readonly { readonly id: BuiltinPlatformId; readonly label: string }[] = [
+  { id: "app-inventor", label: "App Inventor" },
+  { id: "kodular", label: "Kodular" },
+];
 
 export function TopBar(): JSX.Element {
   const app = useApp();
   return (
-    <header class="flex items-center gap-3 border-b border-zinc-200 bg-white px-4 py-2 dark:border-zinc-800 dark:bg-zinc-900">
-      <Icon icon={Package} size={18} class="text-zinc-500 dark:text-zinc-400" />
-      <span class="text-sm font-medium">{app.fileName()}</span>
-      <div class="flex flex-1 justify-center px-4">
-        <Search />
+    // Equal side columns keep the search box centred in the window. When the window is too
+    // narrow for that, the search box shrinks first and the sides keep their content.
+    <header class="grid grid-cols-[1fr_minmax(12rem,28rem)_1fr] items-center gap-4 border-b border-zinc-200 bg-white px-4 py-2 dark:border-zinc-800 dark:bg-zinc-900">
+      <div class="flex items-center gap-2.5">
+        <Icon icon={Package} size={18} class="text-zinc-500 dark:text-zinc-400" />
+        <span class="max-w-48 truncate text-sm font-medium" title={app.fileName()}>
+          {app.fileName()}
+        </span>
       </div>
-      <label class="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
-        Check against
-        <select
-          class="rounded-md border border-zinc-300 bg-transparent px-2 py-1 text-sm text-zinc-900 dark:border-zinc-700 dark:text-zinc-100"
+      <Search />
+      <div class="flex items-center justify-end gap-2">
+        <SegmentedControl
+          label="Platform to check the project against"
           value={app.platformId()}
-          onChange={(event) => app.choosePlatform(event.currentTarget.value as BuiltinPlatformId)}
-        >
-          <option value="app-inventor">MIT App Inventor</option>
-          <option value="kodular">Kodular</option>
-        </select>
-      </label>
-      <Button icon={FolderOpen} class="py-1!" onClick={() => app.close()}>
-        Open another
-      </Button>
+          onChange={(id) => app.choosePlatform(id)}
+          items={PLATFORMS}
+        />
+        <Button
+          variant="ghost"
+          icon={FolderOpen}
+          title="Open another project"
+          class="py-1.5!"
+          onClick={() => app.close()}
+        />
+      </div>
     </header>
   );
 }
