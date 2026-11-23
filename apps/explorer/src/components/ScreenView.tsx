@@ -1,7 +1,7 @@
 import type { JSX } from "@solidjs/web";
-import { walkBlocks, type Block, type Screen } from "aia-kit";
-import { summarizeBlocks } from "aia-kit/analysis";
+import { mainScreenName, walkBlocks, walkComponents, type Block, type Screen } from "aia-kit";
 import { serializeBky, serializeScm } from "aia-kit/formats";
+import { Blocks as BlocksIcon, Braces, LayoutPanelTop, Smartphone } from "lucide";
 import { For, Match, Show, Switch, createMemo, createSignal } from "solid-js";
 import { groupOf, type Group } from "../lib/blocks.ts";
 import { plural } from "../lib/format.ts";
@@ -10,55 +10,48 @@ import { useApp, type Tab } from "../state.ts";
 import { BlockStack } from "./BlockOutline.tsx";
 import { Code } from "./Code.tsx";
 import { LayoutPreview } from "./LayoutPreview.tsx";
-import { Card, Empty } from "./ui.tsx";
+import { Badge, Card, Empty, PageHeader, Tabs, type TabItem } from "./ui/index.ts";
 
-const TABS: readonly (readonly [Tab, string])[] = [
-  ["designer", "Designer"],
-  ["blocks", "Blocks"],
-  ["raw", "Raw files"],
+const TABS: readonly TabItem<Tab>[] = [
+  { id: "designer", label: "Designer", icon: LayoutPanelTop },
+  { id: "blocks", label: "Blocks", icon: BlocksIcon },
+  { id: "raw", label: "Raw files", icon: Braces },
 ];
 
 export function ScreenView(): JSX.Element {
   const app = useApp();
+  const isMain = (screen: Screen) => {
+    const project = app.project();
+    return project !== undefined && mainScreenName(project) === screen.name;
+  };
 
   return (
     <Show when={app.screen()} fallback={<Empty>This screen no longer exists.</Empty>}>
       {(screen) => (
-        <div class="flex flex-col gap-4">
-          <div class="flex items-center gap-1">
-            <For each={TABS}>
-              {([id, label]) => (
-                <button
-                  type="button"
-                  onClick={() => app.setTab(id)}
-                  class={[
-                    "rounded-md px-3 py-1 text-sm",
-                    app.tab() === id
-                      ? "bg-zinc-200 font-medium dark:bg-zinc-700"
-                      : "text-zinc-600 hover:bg-zinc-200/60 dark:text-zinc-400 dark:hover:bg-zinc-800",
-                  ]}
-                >
-                  {label}
-                </button>
-              )}
-            </For>
-            <span class="flex-1" />
-            <span class="text-xs text-zinc-500 dark:text-zinc-400">
-              {plural(summarizeBlocks(screen()).total, "block")}
-            </span>
-          </div>
+        <>
+          <PageHeader
+            icon={Smartphone}
+            title={screen().name}
+            actions={<Tabs value={app.tab()} onChange={(tab) => app.setTab(tab)} items={TABS} />}
+          >
+            <Show when={isMain(screen())}>
+              <Badge tone="accent">start</Badge>
+            </Show>
+            <Badge>{plural(Array.from(walkComponents(screen())).length, "component")}</Badge>
+            <Badge>{plural(Array.from(walkBlocks(screen())).length, "block")}</Badge>
+          </PageHeader>
           <Switch>
             <Match when={app.tab() === "designer"}>
               <Designer screen={screen()} />
             </Match>
             <Match when={app.tab() === "blocks"}>
-              <Blocks screen={screen()} />
+              <BlocksTab screen={screen()} />
             </Match>
             <Match when={app.tab() === "raw"}>
               <Raw screen={screen()} />
             </Match>
           </Switch>
-        </div>
+        </>
       )}
     </Show>
   );
@@ -80,7 +73,7 @@ function Designer(props: { screen: Screen }): JSX.Element {
   });
 
   return (
-    <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
+    <div class="grid grid-cols-1 items-start gap-4 xl:grid-cols-2">
       <LayoutPreview screen={props.screen} />
       <Card title={`Blocks that use ${selected()}`}>
         <div class="flex flex-col gap-4 overflow-x-auto">
@@ -100,7 +93,7 @@ const GROUPS: readonly (readonly [Group, string])[] = [
   ["loose", "Loose blocks (never run)"],
 ];
 
-function Blocks(props: { screen: Screen }): JSX.Element {
+function BlocksTab(props: { screen: Screen }): JSX.Element {
   const grouped = createMemo(() => {
     const groups: Record<Group, Block[]> = { events: [], procedures: [], globals: [], loose: [] };
     for (const block of props.screen.blocks) groups[groupOf(block)].push(block);
@@ -112,24 +105,30 @@ function Blocks(props: { screen: Screen }): JSX.Element {
       when={props.screen.blocks.length > 0}
       fallback={<Empty>This screen has no blocks.</Empty>}
     >
-      <div class="flex flex-col gap-4">
-        <For each={GROUPS}>
-          {([group, title]) => (
-            <Show when={grouped()[group].length > 0}>
-              <Card title={`${title} · ${grouped()[group].length}`}>
-                <div class="flex flex-col gap-4 overflow-x-auto">
-                  <For each={grouped()[group]}>{(block) => <BlockStack block={block} />}</For>
-                </div>
-              </Card>
-            </Show>
-          )}
-        </For>
-      </div>
+      <For each={GROUPS}>
+        {([group, title]) => (
+          <Show when={grouped()[group].length > 0}>
+            <Card title={title} actions={<Badge>{grouped()[group].length}</Badge>}>
+              <div class="flex flex-col gap-4 overflow-x-auto">
+                <For each={grouped()[group]}>{(block) => <BlockStack block={block} />}</For>
+              </div>
+            </Card>
+          </Show>
+        )}
+      </For>
     </Show>
   );
 }
 
+type RawFile = "scm" | "bky";
+
 function Raw(props: { screen: Screen }): JSX.Element {
+  const [file, setFile] = createSignal<RawFile>("scm");
+  const files = (): TabItem<RawFile>[] => [
+    { id: "scm", label: `${props.screen.name}.scm` },
+    { id: "bky", label: `${props.screen.name}.bky` },
+  ];
+
   const scm = () => serializeScm({ form: props.screen.form, meta: props.screen.meta.form });
   const bky = () => serializeBky({ blocks: props.screen.blocks, meta: props.screen.meta.blocks });
   /** The SCM payload is one long JSON line; indent it for reading. */
@@ -146,27 +145,10 @@ function Raw(props: { screen: Screen }): JSX.Element {
     }
   };
 
-  const [file, setFile] = createSignal<"scm" | "bky">("scm");
-
   return (
     <Card>
-      <div class="mb-3 flex items-center gap-1 border-b border-zinc-200 pb-3 dark:border-zinc-800">
-        <For each={["scm", "bky"] as const}>
-          {(extension) => (
-            <button
-              type="button"
-              onClick={() => setFile(extension)}
-              class={[
-                "rounded-md px-2.5 py-1 font-mono text-xs",
-                file() === extension
-                  ? "bg-zinc-200 font-medium dark:bg-zinc-700"
-                  : "text-zinc-600 hover:bg-zinc-200/60 dark:text-zinc-400 dark:hover:bg-zinc-800",
-              ]}
-            >
-              {props.screen.name}.{extension}
-            </button>
-          )}
-        </For>
+      <div class="mb-3 border-b border-zinc-200 pb-3 dark:border-zinc-800">
+        <Tabs mono value={file()} onChange={setFile} items={files()} />
       </div>
       <Switch>
         <Match when={file() === "scm"}>

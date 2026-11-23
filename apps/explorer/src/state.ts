@@ -21,6 +21,7 @@ import {
   createMemo,
   createSignal,
   onCleanup,
+  onSettled,
   useContext,
   type Accessor,
 } from "solid-js";
@@ -33,6 +34,13 @@ export type Selection =
   | { readonly kind: "navigation" };
 
 export type Tab = "designer" | "blocks" | "raw";
+
+interface Place {
+  readonly selection: Selection;
+  readonly tab: Tab;
+}
+
+const HISTORY_KEY = "aiaExplorer";
 
 interface Loaded {
   readonly fileName: string;
@@ -64,8 +72,10 @@ export interface AppState {
   open(file: Blob, name: string): Promise<void>;
   close(): void;
   choosePlatform(id: BuiltinPlatformId): void;
-  select(selection: Selection): void;
-  selectComponent(screen: string, component?: string): void;
+  /** Goes to a place in the project, optionally switching the screen tab. Recorded in browser history. */
+  select(selection: Selection, tab?: Tab): void;
+  /** Goes to a screen, or to one of its components. */
+  selectComponent(screen: string, component?: string, tab?: Tab): void;
   setTab(tab: Tab): void;
 }
 
@@ -82,6 +92,36 @@ export function createAppState(): AppState {
   const [tab, setTab] = createSignal<Tab>("designer");
 
   const project = () => loaded()?.project;
+
+  // Where the user is. Kept outside the signals too, because a signal read
+  // right after its setter still returns the previous value.
+  let here: Place | undefined;
+
+  /** Moves to a place and records it, so the browser's Back and Forward buttons work. */
+  const goTo = (
+    next: Selection,
+    nextTab: Tab = here?.tab ?? "designer",
+    mode: "push" | "replace" = "push",
+  ) => {
+    const place: Place = { selection: next, tab: nextTab };
+    if (JSON.stringify(place) === JSON.stringify(here)) return;
+    here = place;
+    setSelection(next);
+    setTab(nextTab);
+    history[mode === "push" ? "pushState" : "replaceState"]({ [HISTORY_KEY]: place }, "");
+  };
+
+  onSettled(() => {
+    const onPopState = (event: PopStateEvent) => {
+      const place = (event.state as { [HISTORY_KEY]?: Place } | null)?.[HISTORY_KEY];
+      if (!place || !loaded()) return;
+      here = place;
+      setSelection(place.selection);
+      setTab(place.tab);
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  });
 
   const choosePlatform = (id: BuiltinPlatformId) => {
     setPlatformId(id);
@@ -151,8 +191,7 @@ export function createAppState(): AppState {
       try {
         const result = await readAia(file);
         setLoaded({ fileName: name, project: result.project, readProblems: result.problems });
-        setSelection({ kind: "screen", screen: mainScreenName(result.project) });
-        setTab("designer");
+        goTo({ kind: "screen", screen: mainScreenName(result.project) }, "designer", "replace");
         setError(undefined);
         choosePlatform(guessPlatform(result.project));
       } catch (cause) {
@@ -162,19 +201,25 @@ export function createAppState(): AppState {
       }
     },
     close() {
+      here = undefined;
       setLoaded(undefined);
       setSelection(undefined);
       setError(undefined);
     },
     choosePlatform,
-    select: (next) => setSelection(next),
-    selectComponent: (screenName, componentName) =>
-      setSelection({
-        kind: "screen",
-        screen: screenName,
-        ...(componentName !== undefined && { component: componentName }),
-      }),
-    setTab: (next) => setTab(next),
+    select: (next, nextTab) => goTo(next, nextTab),
+    selectComponent: (screenName, componentName, nextTab) =>
+      goTo(
+        {
+          kind: "screen",
+          screen: screenName,
+          ...(componentName !== undefined && { component: componentName }),
+        },
+        nextTab,
+      ),
+    setTab: (next) => {
+      if (here?.selection) goTo(here.selection, next);
+    },
   };
 }
 

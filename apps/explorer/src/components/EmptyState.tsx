@@ -1,7 +1,9 @@
 import type { JSX } from "@solidjs/web";
+import { FolderOpen, Upload } from "lucide";
 import { Show } from "solid-js";
 import { useApp } from "../state.ts";
 import sampleUrl from "../../../../test-fixtures/MoodRing.aia?url";
+import { Button, Icon } from "./ui/index.ts";
 
 export function EmptyState(): JSX.Element {
   const app = useApp();
@@ -15,25 +17,16 @@ export function EmptyState(): JSX.Element {
   return (
     <div class="flex h-full items-center justify-center p-6">
       <div class="w-full max-w-md rounded-xl border border-dashed border-zinc-300 bg-white p-8 text-center dark:border-zinc-700 dark:bg-zinc-900">
+        <Icon icon={Upload} size={28} class="mx-auto mb-4 text-zinc-400" />
         <h1 class="text-lg font-medium">Explore an App Inventor project</h1>
         <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
           Drop an .aia file anywhere, or choose one. It is read in your browser and never uploaded.
         </p>
         <div class="mt-6 flex justify-center gap-2">
-          <button
-            type="button"
-            class="rounded-md bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
-            onClick={() => input?.click()}
-          >
+          <Button variant="primary" icon={FolderOpen} onClick={() => input?.click()}>
             Choose file
-          </button>
-          <button
-            type="button"
-            class="rounded-md border border-zinc-300 px-3 py-1.5 text-sm hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
-            onClick={() => void openSample()}
-          >
-            Open sample project
-          </button>
+          </Button>
+          <Button onClick={() => void openSample()}>Open sample project</Button>
         </div>
         <input
           ref={(el) => (input = el)}

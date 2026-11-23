@@ -7,42 +7,44 @@ import {
   type Screen,
 } from "aia-kit";
 import { lookupComponent } from "aia-kit/platforms";
+import { ArrowLeft } from "lucide";
 import { For, Show, createMemo } from "solid-js";
 import { cssColor, plainText, plural, simpleName } from "../lib/format.ts";
+import { componentIcon } from "../lib/icons.ts";
 import { useApp } from "../state.ts";
-import { ComponentTree } from "./ComponentTree.tsx";
-import { Badge, Empty } from "./ui.tsx";
+import { ComponentRow, ComponentTree } from "./ComponentTree.tsx";
+import { Badge, Button, Empty, Icon, KeyValue, KeyValueList, SectionLabel } from "./ui/index.ts";
 
 /**
- * The right-hand pane. For a screen it starts as the component tree; choosing a
- * component (here or in the layout preview) swaps in its details, and Back
- * returns to the tree.
+ * The right-hand pane, shown for screens. It starts as the component list;
+ * choosing a component (here or in the layout preview) swaps in its details,
+ * and Back returns to the list.
  */
 export function Inspector(): JSX.Element {
   const app = useApp();
 
   return (
-    <aside class="min-h-0 overflow-auto border-l border-zinc-200 dark:border-zinc-800">
-      <div class="p-4">
-        <Show when={app.screen()} fallback={<Empty>Select a screen to see its components.</Empty>}>
-          {(screen) => (
-            <Show when={app.component()} fallback={<ComponentList screen={screen()} />}>
-              {(component) => (
-                <>
-                  <button
-                    type="button"
-                    class="mb-3 -ml-1 flex items-center gap-1 rounded-md px-1 text-xs text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-                    onClick={() => app.selectComponent(screen().name)}
-                  >
-                    <span aria-hidden="true">←</span> Components
-                  </button>
-                  <ComponentDetails component={component()} />
-                </>
-              )}
-            </Show>
-          )}
-        </Show>
-      </div>
+    <aside class="min-h-0 overflow-auto border-l border-zinc-200 p-3 dark:border-zinc-800">
+      <Show when={app.screen()}>
+        {(screen) => (
+          <Show when={app.component()} fallback={<ComponentList screen={screen()} />}>
+            {(component) => (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  icon={ArrowLeft}
+                  class="mb-3 -ml-1 py-1!"
+                  onClick={() => app.selectComponent(screen().name)}
+                >
+                  Components
+                </Button>
+                <ComponentDetails component={component()} />
+              </>
+            )}
+          </Show>
+        )}
+      </Show>
     </aside>
   );
 }
@@ -54,35 +56,24 @@ function ComponentList(props: { screen: Screen }): JSX.Element {
   const nonVisible = () => all().filter((component) => app.isNonVisible(component));
 
   return (
-    <>
-      <h2 class="mb-2 text-xs font-medium text-zinc-500 dark:text-zinc-400">
-        Components · {all().length - nonVisible().length}
-      </h2>
-      <div class="-mx-2">
+    <div class="flex flex-col gap-4">
+      <div>
+        <SectionLabel count={all().length - nonVisible().length} class="px-2 pb-1">
+          Components
+        </SectionLabel>
         <ComponentTree screen={props.screen.name} component={props.screen.form} />
       </div>
       <Show when={nonVisible().length > 0}>
-        <h2 class="mt-4 mb-2 text-xs font-medium text-zinc-500 dark:text-zinc-400">
-          Non-visible · {nonVisible().length}
-        </h2>
-        <div class="-mx-2">
+        <div>
+          <SectionLabel count={nonVisible().length} class="px-2 pb-1">
+            Non-visible
+          </SectionLabel>
           <For each={nonVisible()}>
-            {(component) => (
-              <button
-                type="button"
-                onClick={() => app.selectComponent(props.screen.name, component.name)}
-                class="flex w-full items-baseline gap-2 rounded-md px-2 py-0.5 text-left text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800"
-              >
-                <span class="truncate">{component.name}</span>
-                <span class="truncate text-xs text-zinc-500 dark:text-zinc-400">
-                  {simpleName(component.type)}
-                </span>
-              </button>
-            )}
+            {(component) => <ComponentRow screen={props.screen.name} component={component} />}
           </For>
         </div>
       </Show>
-    </>
+    </div>
   );
 }
 
@@ -111,14 +102,27 @@ function ComponentDetails(props: { component: Component }): JSX.Element {
   });
 
   return (
-    <div class="flex flex-col gap-4">
+    <div class="flex flex-col gap-4 px-2">
       <div>
-        <h2 class="text-base font-medium break-words">{props.component.name}</h2>
-        <p class="text-xs text-zinc-500 dark:text-zinc-400">
-          {simpleName(props.component.type)}
-          <Show when={props.component.version !== undefined}> · v{props.component.version}</Show>
-          <Show when={descriptor()?.external}> · extension</Show>
-        </p>
+        <div class="flex items-center gap-2">
+          <Icon
+            icon={componentIcon(props.component.type)}
+            class="text-zinc-500 dark:text-zinc-400"
+          />
+          <h2 class="min-w-0 text-base font-medium break-words">{props.component.name}</h2>
+        </div>
+        <div class="mt-1.5 flex flex-wrap gap-1">
+          <Badge>{simpleName(props.component.type)}</Badge>
+          <Show when={props.component.version !== undefined}>
+            <Badge>v{props.component.version}</Badge>
+          </Show>
+          <Show when={descriptor()?.external}>
+            <Badge tone="accent">extension</Badge>
+          </Show>
+          <Show when={descriptor()?.nonVisible}>
+            <Badge>non-visible</Badge>
+          </Show>
+        </div>
         <Show when={help() !== ""}>
           <p class="mt-2 line-clamp-4 text-xs text-zinc-600 dark:text-zinc-400" title={help()}>
             {help()}
@@ -127,19 +131,24 @@ function ComponentDetails(props: { component: Component }): JSX.Element {
       </div>
 
       <div>
-        <h3 class="mb-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">Properties</h3>
-        <For each={properties()} fallback={<Empty>All defaults.</Empty>}>
-          {([name, value]) => (
-            <div class="flex items-baseline justify-between gap-3 border-b border-zinc-100 py-1 text-sm last:border-0 dark:border-zinc-800">
-              <span class="shrink-0 text-zinc-600 dark:text-zinc-400">{name}</span>
-              <PropertyValue value={value} />
-            </div>
-          )}
-        </For>
+        <SectionLabel count={properties().length} class="pb-1">
+          Properties
+        </SectionLabel>
+        <Show when={properties().length > 0} fallback={<Empty>All defaults.</Empty>}>
+          <KeyValueList>
+            <For each={properties()}>
+              {([name, value]) => (
+                <KeyValue label={name}>
+                  <PropertyValue value={value} />
+                </KeyValue>
+              )}
+            </For>
+          </KeyValueList>
+        </Show>
       </div>
 
       <div>
-        <h3 class="mb-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">Used in blocks</h3>
+        <SectionLabel class="pb-1">Used in blocks</SectionLabel>
         <Show
           when={usage().events.length + usage().others > 0}
           fallback={<Empty>No blocks refer to this component.</Empty>}
@@ -156,13 +165,14 @@ function ComponentDetails(props: { component: Component }): JSX.Element {
   );
 }
 
+/** A property value: colours get a swatch, and asset names link to the asset. */
 function PropertyValue(props: { value: string }): JSX.Element {
   const app = useApp();
   const color = () => cssColor(props.value);
   const isAsset = () => app.project()?.assets.some((asset) => asset.name === props.value) ?? false;
 
   return (
-    <span class="min-w-0 text-right break-words">
+    <>
       <Show when={color()}>
         <span
           class="mr-1.5 inline-block size-3 rounded-sm border border-zinc-300 align-[-1px] dark:border-zinc-600"
@@ -170,14 +180,10 @@ function PropertyValue(props: { value: string }): JSX.Element {
         />
       </Show>
       <Show when={isAsset()} fallback={color() ? props.value.slice(2) : props.value}>
-        <button
-          type="button"
-          class="text-blue-600 hover:underline dark:text-blue-400"
-          onClick={() => app.select({ kind: "asset", name: props.value })}
-        >
+        <Button variant="link" onClick={() => app.select({ kind: "asset", name: props.value })}>
           {props.value}
-        </button>
+        </Button>
       </Show>
-    </span>
+    </>
   );
 }

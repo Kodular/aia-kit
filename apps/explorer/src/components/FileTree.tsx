@@ -1,7 +1,10 @@
 import type { JSX } from "@solidjs/web";
 import type { ArchiveFile } from "aia-kit";
+import { Folder as FolderIcon } from "lucide";
 import { For, Show, createMemo } from "solid-js";
 import { formatBytes, plural } from "../lib/format.ts";
+import { assetIcon } from "../lib/icons.ts";
+import { Disclosure, Icon } from "./ui/index.ts";
 
 interface Folder {
   readonly name: string;
@@ -55,32 +58,31 @@ function FolderContents(props: { folder: Folder }): JSX.Element {
     <>
       <For each={props.folder.folders}>
         {(folder) => (
-          <details open>
-            <summary class="flex cursor-pointer list-none items-center gap-1.5 rounded px-1 py-0.5 hover:bg-zinc-100 dark:hover:bg-zinc-800">
-              <span class="w-3 text-zinc-400 transition-transform [[open]>summary>&]:rotate-90">
-                ▸
+          <Disclosure
+            headerClass="px-1 py-0.5"
+            title={
+              <span class="inline-flex items-center gap-1.5">
+                <Icon icon={FolderIcon} size={14} class="text-zinc-400" />
+                {folder.name}
               </span>
-              <span class="font-medium">{folder.name}/</span>
-              <span class="flex-1" />
-              <span class="text-zinc-500">
-                {plural(folder.count, "file")} · {formatBytes(folder.size)}
-              </span>
-            </summary>
-            <div class="ml-2.5 border-l border-zinc-200 pl-2 dark:border-zinc-800">
+            }
+            trailing={`${plural(folder.count, "file")} · ${formatBytes(folder.size)}`}
+          >
+            <div class="ml-[11px] border-l border-zinc-200 pl-2 dark:border-zinc-800">
               <FolderContents folder={folder} />
             </div>
-          </details>
+          </Disclosure>
         )}
       </For>
       <For each={props.folder.files}>
         {(file) => (
-          <div class="flex items-center gap-1.5 rounded px-1 py-0.5 hover:bg-zinc-100 dark:hover:bg-zinc-800">
-            <span class="w-3" />
+          <div class="flex items-center gap-1.5 rounded px-1 py-0.5 hover:bg-zinc-100 dark:hover:bg-zinc-800/60">
+            <span class="w-3.5 shrink-0" />
+            <Icon icon={assetIcon(file.name)} size={14} class="text-zinc-400" />
             <span class="min-w-0 truncate" title={file.name}>
               {file.name}
             </span>
-            <span class="flex-1" />
-            <span class="shrink-0 text-zinc-500">{formatBytes(file.size)}</span>
+            <span class="ml-auto shrink-0 text-zinc-500">{formatBytes(file.size)}</span>
           </div>
         )}
       </For>

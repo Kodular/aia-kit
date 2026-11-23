@@ -2,7 +2,28 @@ import type { JSX } from "@solidjs/web";
 import type { Component } from "aia-kit";
 import { For } from "solid-js";
 import { simpleName } from "../lib/format.ts";
+import { componentIcon } from "../lib/icons.ts";
 import { useApp } from "../state.ts";
+import { ListRow } from "./ui/index.ts";
+
+/** One row for a component in a list or tree. */
+export function ComponentRow(props: {
+  screen: string;
+  component: Component;
+  depth?: number;
+}): JSX.Element {
+  const app = useApp();
+  return (
+    <ListRow
+      icon={componentIcon(props.component.type)}
+      depth={props.depth ?? 0}
+      secondary={simpleName(props.component.type)}
+      onClick={() => app.selectComponent(props.screen, props.component.name)}
+    >
+      {props.component.name}
+    </ListRow>
+  );
+}
 
 /** A component and its descendants as an indented list. Non-visible components are left out. */
 export function ComponentTree(props: {
@@ -14,26 +35,11 @@ export function ComponentTree(props: {
   const depth = () => props.depth ?? 0;
 
   return (
-    <div>
-      <button
-        type="button"
-        onClick={() => app.selectComponent(props.screen, props.component.name)}
-        style={{ "padding-left": `${depth() * 14 + 8}px` }}
-        class={[
-          "flex w-full items-baseline gap-2 rounded-md py-0.5 pr-2 text-left text-sm",
-          app.component() === props.component
-            ? "bg-blue-100 text-blue-950 dark:bg-blue-900/50 dark:text-blue-100"
-            : "hover:bg-zinc-100 dark:hover:bg-zinc-800",
-        ]}
-      >
-        <span class="truncate">{props.component.name}</span>
-        <span class="truncate text-xs text-zinc-500 dark:text-zinc-400">
-          {simpleName(props.component.type)}
-        </span>
-      </button>
+    <>
+      <ComponentRow screen={props.screen} component={props.component} depth={depth()} />
       <For each={props.component.children.filter((child) => !app.isNonVisible(child))}>
         {(child) => <ComponentTree screen={props.screen} component={child} depth={depth() + 1} />}
       </For>
-    </div>
+    </>
   );
 }

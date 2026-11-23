@@ -1,11 +1,12 @@
 import type { JSX } from "@solidjs/web";
 import type { ComponentDescriptor, Extension } from "aia-kit";
 import { findExtensionUsage } from "aia-kit/analysis";
+import { Puzzle } from "lucide";
 import { For, Show, createMemo } from "solid-js";
 import { formatBytes, plainText } from "../lib/format.ts";
 import { useApp } from "../state.ts";
 import { FileTree } from "./FileTree.tsx";
-import { Badge, Card, Empty } from "./ui.tsx";
+import { Badge, Button, Card, Disclosure, Empty, PageHeader } from "./ui/index.ts";
 
 export function ExtensionView(): JSX.Element {
   const app = useApp();
@@ -35,14 +36,13 @@ function ExtensionDetails(props: { extension: Extension }): JSX.Element {
   const totalSize = () => props.extension.files.reduce((sum, file) => sum + file.blob.size, 0);
 
   return (
-    <div class="flex flex-col gap-4">
-      <div class="flex flex-wrap items-center gap-2">
-        <h2 class="text-base font-medium">{props.extension.packageName}</h2>
+    <>
+      <PageHeader icon={Puzzle} title={props.extension.packageName}>
         <Badge>{formatBytes(totalSize())}</Badge>
         <Show when={users().length === 0}>
           <Badge tone="warning">unused</Badge>
         </Show>
-      </div>
+      </PageHeader>
 
       <For each={props.extension.components}>
         {(descriptor) => <DescriptorCard descriptor={descriptor} />}
@@ -55,25 +55,21 @@ function ExtensionDetails(props: { extension: Extension }): JSX.Element {
             fallback={<Empty>No screen uses a component from this extension.</Empty>}
           >
             {(user) => (
-              <button
-                type="button"
-                class="text-sm text-blue-600 hover:underline dark:text-blue-400"
-                onClick={() => {
-                  app.selectComponent(user.screen, user.component);
-                  app.setTab("designer");
-                }}
+              <Button
+                variant="link"
+                onClick={() => app.selectComponent(user.screen, user.component, "designer")}
               >
                 {user.screen} · {user.component}
-              </button>
+              </Button>
             )}
           </For>
         </div>
       </Card>
 
-      <Card title={`Files · ${props.extension.files.length}`}>
+      <Card title="Files" actions={<Badge>{props.extension.files.length}</Badge>}>
         <FileTree files={props.extension.files} />
       </Card>
-    </div>
+    </>
   );
 }
 
@@ -129,7 +125,7 @@ function DescriptorCard(props: { descriptor: ComponentDescriptor }): JSX.Element
             <Member
               signature={
                 <>
-                  <span class="text-zinc-500">when </span>
+                  <Keyword>when </Keyword>
                   <span class="font-medium">{event.name}</span>
                   <Params params={event.params} />
                 </>
@@ -147,12 +143,12 @@ function DescriptorCard(props: { descriptor: ComponentDescriptor }): JSX.Element
             <Member
               signature={
                 <>
-                  <span class="text-zinc-500">call </span>
+                  <Keyword>call </Keyword>
                   <span class="font-medium">{method.name}</span>
                   <Params params={method.params} />
                   <Show when={method.returnType !== undefined}>
-                    <span class="text-zinc-500"> → </span>
-                    <span class="text-violet-700 dark:text-violet-300">{method.returnType}</span>
+                    <Keyword> → </Keyword>
+                    <TypeName>{method.returnType}</TypeName>
                   </Show>
                 </>
               }
@@ -170,8 +166,8 @@ function DescriptorCard(props: { descriptor: ComponentDescriptor }): JSX.Element
               signature={
                 <>
                   <span class="font-medium">{property.name}</span>
-                  <span class="text-zinc-500">: </span>
-                  <span class="text-violet-700 dark:text-violet-300">{property.type}</span>
+                  <Keyword>: </Keyword>
+                  <TypeName>{property.type}</TypeName>
                 </>
               }
               description={property.description}
@@ -196,17 +192,13 @@ function DescriptorCard(props: { descriptor: ComponentDescriptor }): JSX.Element
   );
 }
 
-/** A collapsible section of a descriptor card; open by default. */
+/** A collapsible section of a descriptor card. Hidden entirely when empty. */
 function Members(props: { title: string; count: number; children: JSX.Element }): JSX.Element {
   return (
     <Show when={props.count > 0}>
-      <details open class="mt-4">
-        <summary class="flex cursor-pointer list-none items-center gap-1.5 rounded py-0.5 text-xs font-medium text-zinc-500 select-none hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
-          <span class="w-3 transition-transform [[open]>summary>&]:rotate-90">▸</span>
-          {props.title} · {props.count}
-        </summary>
+      <Disclosure class="mt-4" title={props.title} meta={props.count}>
         <div class="mt-1 divide-y divide-zinc-100 dark:divide-zinc-800">{props.children}</div>
-      </details>
+      </Disclosure>
     </Show>
   );
 }
@@ -233,25 +225,33 @@ function Member(props: {
   );
 }
 
+function Keyword(props: { children: JSX.Element }): JSX.Element {
+  return <span class="text-zinc-500">{props.children}</span>;
+}
+
+function TypeName(props: { children: JSX.Element }): JSX.Element {
+  return <span class="text-violet-700 dark:text-violet-300">{props.children}</span>;
+}
+
 function Params(props: {
   params: readonly { readonly name: string; readonly type: string }[];
 }): JSX.Element {
   return (
     <>
-      <span class="text-zinc-500">(</span>
+      <Keyword>(</Keyword>
       <For each={props.params}>
         {(param, index) => (
           <>
             <Show when={index() > 0}>
-              <span class="text-zinc-500">, </span>
+              <Keyword>, </Keyword>
             </Show>
             {param.name}
-            <span class="text-zinc-500">: </span>
-            <span class="text-violet-700 dark:text-violet-300">{param.type}</span>
+            <Keyword>: </Keyword>
+            <TypeName>{param.type}</TypeName>
           </>
         )}
       </For>
-      <span class="text-zinc-500">)</span>
+      <Keyword>)</Keyword>
     </>
   );
 }

@@ -1,7 +1,9 @@
 import type { JSX } from "@solidjs/web";
+import { ChevronRight, ChevronsDownUp, ChevronsUpDown, Ellipsis } from "lucide";
 import { For, Show, createMemo, createSignal } from "solid-js";
-import { foldEnds, splitLines, tokenize, type Language, type TokenKind } from "../lib/highlight.ts";
 import { plural } from "../lib/format.ts";
+import { foldEnds, splitLines, tokenize, type Language, type TokenKind } from "../lib/highlight.ts";
+import { Button, Icon } from "./ui/index.ts";
 
 const TOKEN_CLASS: Readonly<Record<TokenKind, string>> = {
   plain: "",
@@ -44,47 +46,47 @@ export function Code(props: { text: string; language: Language }): JSX.Element {
     });
   };
   const foldAll = () =>
-    setFolded(new Set(ends().flatMap((end, line) => (end !== -1 && line > 0 ? [line] : []))));
+    void setFolded(new Set(ends().flatMap((end, line) => (end !== -1 && line > 0 ? [line] : []))));
 
   return (
     <div>
-      <div class="mb-2 flex items-center gap-3 text-xs text-zinc-500 dark:text-zinc-400">
-        <span>{plural(lines().length, "line")}</span>
-        <span class="flex-1" />
-        <button
-          type="button"
-          class="hover:text-zinc-900 dark:hover:text-zinc-100"
-          onClick={foldAll}
-        >
+      <div class="mb-2 flex items-center gap-1 text-xs text-zinc-500 dark:text-zinc-400">
+        <span class="flex-1">{plural(lines().length, "line")}</span>
+        <Button variant="ghost" size="sm" icon={ChevronsDownUp} onClick={foldAll}>
           Fold all
-        </button>
-        <button
-          type="button"
-          class="hover:text-zinc-900 dark:hover:text-zinc-100"
-          onClick={() => setFolded(new Set<number>())}
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          icon={ChevronsUpDown}
+          onClick={() => void setFolded(new Set<number>())}
         >
           Unfold all
-        </button>
+        </Button>
       </div>
-      <div class="max-h-[calc(100vh-18rem)] overflow-auto font-mono text-xs leading-relaxed">
+      <div class="max-h-[calc(100vh-20rem)] overflow-auto font-mono text-xs leading-relaxed">
         <div class="w-max min-w-full">
           <For each={visible()}>
             {(line) => (
-              <div class="flex hover:bg-zinc-100 dark:hover:bg-zinc-800/60">
+              <div class="flex items-center hover:bg-zinc-100 dark:hover:bg-zinc-800/60">
                 <span class="w-10 shrink-0 pr-2 text-right text-zinc-400 select-none dark:text-zinc-600">
                   {line + 1}
                 </span>
                 <Show when={(ends()[line] ?? -1) !== -1} fallback={<span class="w-4 shrink-0" />}>
                   <button
                     type="button"
-                    class="w-4 shrink-0 text-center text-zinc-400 select-none hover:text-zinc-900 dark:hover:text-zinc-100"
+                    class="flex w-4 shrink-0 justify-center text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
                     aria-label={
                       folded().has(line) ? `Unfold line ${line + 1}` : `Fold line ${line + 1}`
                     }
                     aria-expanded={folded().has(line) ? "false" : "true"}
                     onClick={() => toggle(line)}
                   >
-                    {folded().has(line) ? "▸" : "▾"}
+                    <Icon
+                      icon={ChevronRight}
+                      size={12}
+                      class={["transition-transform", { "rotate-90": !folded().has(line) }]}
+                    />
                   </button>
                 </Show>
                 <span class="whitespace-pre">
@@ -94,10 +96,11 @@ export function Code(props: { text: string; language: Language }): JSX.Element {
                   <Show when={folded().has(line)}>
                     <button
                       type="button"
-                      class="ml-2 rounded bg-zinc-200 px-1.5 text-zinc-600 hover:bg-zinc-300 dark:bg-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-600"
+                      class="ml-2 inline-flex items-center gap-1 rounded bg-zinc-200 px-1.5 align-middle text-zinc-600 hover:bg-zinc-300 dark:bg-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-600"
                       onClick={() => toggle(line)}
                     >
-                      ⋯ {plural((ends()[line] ?? line) - line, "line")}
+                      <Icon icon={Ellipsis} size={12} />
+                      {plural((ends()[line] ?? line) - line, "line")}
                     </button>
                   </Show>
                 </span>

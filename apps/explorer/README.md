@@ -10,3 +10,17 @@ pnpm --filter @aia-kit/explorer build      # static build in apps/explorer/dist
 ```
 
 Stack: Vite 8, Solid 2, Tailwind 4.
+
+## Structure
+
+```
+src/
+  App.tsx          layout: top bar, project sidebar, main view, inspector (screens only), problems pane
+  state.ts         app state and navigation (recorded in browser history, so Back and Forward work)
+  components/
+    ui/            primitives: Icon, Button, Tabs, Disclosure, ListRow, Card, PageHeader, Badge, KeyValue
+    *.tsx          views, built from the primitives
+  lib/             pure helpers: block labels, highlighting, formatting, icon choice
+```
+
+Build views from `components/ui` instead of writing buttons, rows or headings by hand. Icons come from the `lucide` package and render through `Icon`.

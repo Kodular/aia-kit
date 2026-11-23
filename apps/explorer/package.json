@@ -13,6 +13,7 @@
   "dependencies": {
     "@solidjs/web": "^2.0.3",
     "aia-kit": "workspace:*",
+    "lucide": "^1.77.0",
     "solid-js": "^2.0.3"
   },
   "devDependencies": {
