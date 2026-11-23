@@ -66,7 +66,7 @@ The set of built-in components of one App Inventor distribution (MIT App Invento
 The description of one component type: its properties, block properties, events and methods. Comes from a platform's `simple_components.json` or an extension's `components.json`.
 
 **Simple name / qualified type**
-Built-in components appear in files by simple name (`Button`); extension components by fully qualified class name (`com.example.MyExtension`). Blocks always use the simple name. `lookupComponent` resolves all three.
+A component type appears in screen files and blocks by simple name (`Button`, `Look`), including for extension components as MIT App Inventor writes them; descriptors identify types by fully qualified class name (`edu.mit.appinventor.ai.look.Look`). `lookupComponent` and the extension-usage functions accept both.
 
 ---
 

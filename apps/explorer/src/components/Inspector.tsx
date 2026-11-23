@@ -2,7 +2,7 @@ import type { JSX } from "@solidjs/web";
 import { componentReference, walkBlocks, type Component, type Problem } from "aia-kit";
 import { lookupComponent } from "aia-kit/platforms";
 import { For, Show, createMemo } from "solid-js";
-import { cssColor, plural, simpleName } from "../lib/format.ts";
+import { cssColor, plainText, plural, simpleName } from "../lib/format.ts";
 import { useApp } from "../state.ts";
 import { Badge, Empty } from "./ui.tsx";
 
@@ -31,10 +31,7 @@ function ComponentDetails(props: { component: Component }): JSX.Element {
     const platform = app.platform();
     return platform ? lookupComponent(props.component.type, platform, app.project()) : undefined;
   };
-  const help = () =>
-    descriptor()
-      ?.helpString.replace(/<[^>]+>/g, "")
-      .trim() ?? "";
+  const help = () => plainText(descriptor()?.helpString ?? "");
   const properties = () => Object.entries(props.component.properties);
 
   /** Blocks on the current screen that refer to this component, by kind. */

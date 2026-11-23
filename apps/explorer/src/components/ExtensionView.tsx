@@ -1,8 +1,10 @@
 import type { JSX } from "@solidjs/web";
-import { walkComponents, type ComponentDescriptor, type Extension } from "aia-kit";
+import type { ComponentDescriptor, Extension } from "aia-kit";
+import { findExtensionUsage } from "aia-kit/analysis";
 import { For, Show, createMemo } from "solid-js";
-import { formatBytes, plural } from "../lib/format.ts";
+import { formatBytes, plainText } from "../lib/format.ts";
 import { useApp } from "../state.ts";
+import { FileTree } from "./FileTree.tsx";
 import { Badge, Card, Empty } from "./ui.tsx";
 
 export function ExtensionView(): JSX.Element {
@@ -27,12 +29,8 @@ function ExtensionDetails(props: { extension: Extension }): JSX.Element {
   const app = useApp();
 
   const users = createMemo(() => {
-    const types = new Set(props.extension.components.map((descriptor) => descriptor.type));
-    return (app.project()?.screens ?? []).flatMap((screen) =>
-      Array.from(walkComponents(screen))
-        .filter((component) => types.has(component.type))
-        .map((component) => ({ screen: screen.name, component: component.name })),
-    );
+    const project = app.project();
+    return project ? findExtensionUsage(project, props.extension) : [];
   });
   const totalSize = () => props.extension.files.reduce((sum, file) => sum + file.blob.size, 0);
 
@@ -73,73 +71,185 @@ function ExtensionDetails(props: { extension: Extension }): JSX.Element {
       </Card>
 
       <Card title={`Files · ${props.extension.files.length}`}>
-        <For each={props.extension.files}>
-          {(file) => (
-            <div class="flex justify-between gap-4 border-b border-zinc-100 py-1 font-mono text-xs last:border-0 dark:border-zinc-800">
-              <span class="truncate">{file.path}</span>
-              <span class="shrink-0 text-zinc-500">{formatBytes(file.blob.size)}</span>
-            </div>
-          )}
-        </For>
+        <FileTree files={props.extension.files} />
       </Card>
     </div>
   );
 }
 
 function DescriptorCard(props: { descriptor: ComponentDescriptor }): JSX.Element {
-  const members = () =>
-    [
-      [
-        "Events",
-        props.descriptor.events.map((event) => ({
-          name: event.name,
-          description: event.description,
-        })),
-      ],
-      [
-        "Methods",
-        props.descriptor.methods.map((method) => ({
-          name: method.name,
-          description: method.description,
-        })),
-      ],
-      [
-        "Properties",
-        props.descriptor.blockProperties.map((property) => ({
-          name: property.name,
-          description: property.description,
-        })),
-      ],
-    ] as const;
+  const d = () => props.descriptor;
+
+  /** Block properties joined with their designer entry, plus designer-only properties. */
+  const properties = createMemo(() => {
+    const designer = new Map(d().properties.map((property) => [property.name, property]));
+    const rows = d().blockProperties.map((property) => ({
+      name: property.name,
+      type: property.type,
+      access: property.access,
+      description: plainText(property.description),
+      deprecated: property.deprecated,
+      designer: designer.get(property.name),
+    }));
+    const listed = new Set(rows.map((row) => row.name));
+    for (const property of d().properties) {
+      if (listed.has(property.name)) continue;
+      rows.push({
+        name: property.name,
+        type: property.editorType,
+        access: "invisible",
+        description: "",
+        deprecated: false,
+        designer: property,
+      });
+    }
+    return rows;
+  });
 
   return (
-    <Card title={`${props.descriptor.name} · v${props.descriptor.version}`}>
-      <p class="mb-3 text-sm text-zinc-600 dark:text-zinc-400">
-        {props.descriptor.helpString.replace(/<[^>]+>/g, "").trim() || props.descriptor.type}
-      </p>
-      <For each={members()}>
-        {([title, items]) => (
-          <Show when={items.length > 0}>
-            <div class="mb-2">
-              <div class="mb-1 text-xs text-zinc-500 dark:text-zinc-400">
-                {plural(items.length, title.slice(0, -1).toLowerCase())}
-              </div>
-              <div class="flex flex-wrap gap-1">
-                <For each={items}>
-                  {(item) => (
-                    <span
-                      title={item.description}
-                      class="rounded-md bg-zinc-100 px-1.5 py-0.5 font-mono text-xs dark:bg-zinc-800"
-                    >
-                      {item.name}
-                    </span>
-                  )}
-                </For>
-              </div>
-            </div>
-          </Show>
+    <Card>
+      <div class="flex flex-wrap items-baseline gap-2">
+        <h3 class="text-sm font-medium">{d().name}</h3>
+        <Badge>v{d().version}</Badge>
+        <Show when={d().nonVisible}>
+          <Badge>non-visible</Badge>
+        </Show>
+        <Show when={d().androidMinSdk !== undefined}>
+          <Badge>min SDK {d().androidMinSdk}</Badge>
+        </Show>
+      </div>
+      <p class="mt-1 font-mono text-xs break-all text-zinc-500 dark:text-zinc-400">{d().type}</p>
+      <Show when={plainText(d().helpString) !== ""}>
+        <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{plainText(d().helpString)}</p>
+      </Show>
+
+      <Members title="Events" count={d().events.length}>
+        <For each={d().events}>
+          {(event) => (
+            <Member
+              signature={
+                <>
+                  <span class="text-zinc-500">when </span>
+                  <span class="font-medium">{event.name}</span>
+                  <Params params={event.params} />
+                </>
+              }
+              description={plainText(event.description)}
+              deprecated={event.deprecated}
+            />
+          )}
+        </For>
+      </Members>
+
+      <Members title="Methods" count={d().methods.length}>
+        <For each={d().methods}>
+          {(method) => (
+            <Member
+              signature={
+                <>
+                  <span class="text-zinc-500">call </span>
+                  <span class="font-medium">{method.name}</span>
+                  <Params params={method.params} />
+                  <Show when={method.returnType !== undefined}>
+                    <span class="text-zinc-500"> → </span>
+                    <span class="text-violet-700 dark:text-violet-300">{method.returnType}</span>
+                  </Show>
+                </>
+              }
+              description={plainText(method.description)}
+              deprecated={method.deprecated}
+            />
+          )}
+        </For>
+      </Members>
+
+      <Members title="Properties" count={properties().length}>
+        <For each={properties()}>
+          {(property) => (
+            <Member
+              signature={
+                <>
+                  <span class="font-medium">{property.name}</span>
+                  <span class="text-zinc-500">: </span>
+                  <span class="text-violet-700 dark:text-violet-300">{property.type}</span>
+                </>
+              }
+              description={property.description}
+              deprecated={property.deprecated}
+            >
+              <Badge tone={property.access === "invisible" ? "neutral" : "accent"}>
+                {property.access === "invisible" ? "designer only" : property.access}
+              </Badge>
+              <Show when={property.designer}>
+                {(designer) => (
+                  <Badge>
+                    {designer().editorType}
+                    {designer().defaultValue !== "" ? ` · default ${designer().defaultValue}` : ""}
+                  </Badge>
+                )}
+              </Show>
+            </Member>
+          )}
+        </For>
+      </Members>
+    </Card>
+  );
+}
+
+function Members(props: { title: string; count: number; children: JSX.Element }): JSX.Element {
+  return (
+    <Show when={props.count > 0}>
+      <div class="mt-4">
+        <h4 class="mb-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+          {props.title} · {props.count}
+        </h4>
+        <div class="divide-y divide-zinc-100 dark:divide-zinc-800">{props.children}</div>
+      </div>
+    </Show>
+  );
+}
+
+function Member(props: {
+  signature: JSX.Element;
+  description: string;
+  deprecated: boolean;
+  children?: JSX.Element;
+}): JSX.Element {
+  return (
+    <div class={["py-2", { "opacity-60": props.deprecated }]}>
+      <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+        <code class="font-mono text-xs">{props.signature}</code>
+        {props.children}
+        <Show when={props.deprecated}>
+          <Badge tone="warning">deprecated</Badge>
+        </Show>
+      </div>
+      <Show when={props.description !== ""}>
+        <p class="mt-1 text-xs text-zinc-600 dark:text-zinc-400">{props.description}</p>
+      </Show>
+    </div>
+  );
+}
+
+function Params(props: {
+  params: readonly { readonly name: string; readonly type: string }[];
+}): JSX.Element {
+  return (
+    <>
+      <span class="text-zinc-500">(</span>
+      <For each={props.params}>
+        {(param, index) => (
+          <>
+            <Show when={index() > 0}>
+              <span class="text-zinc-500">, </span>
+            </Show>
+            {param.name}
+            <span class="text-zinc-500">: </span>
+            <span class="text-violet-700 dark:text-violet-300">{param.type}</span>
+          </>
         )}
       </For>
-    </Card>
+      <span class="text-zinc-500">)</span>
+    </>
   );
 }

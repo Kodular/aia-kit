@@ -21,3 +21,28 @@ export function plural(count: number, noun: string): string {
 export function simpleName(type: string): string {
   return type.slice(type.lastIndexOf(".") + 1);
 }
+
+const ENTITIES: Readonly<Record<string, string>> = {
+  amp: "&",
+  lt: "<",
+  gt: ">",
+  quot: '"',
+  apos: "'",
+  nbsp: " ",
+  mdash: "—",
+  ndash: "–",
+  hellip: "…",
+};
+
+/** Descriptor help text is HTML; reduce it to readable plain text. */
+export function plainText(html: string): string {
+  return html
+    .replace(/<[^>]+>/g, "")
+    .replace(/&(#\d+|\w+);/g, (whole, name: string) =>
+      name.startsWith("#")
+        ? String.fromCodePoint(Number(name.slice(1)))
+        : (ENTITIES[name] ?? whole),
+    )
+    .replace(/\s+/g, " ")
+    .trim();
+}

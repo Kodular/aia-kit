@@ -2,7 +2,7 @@
  * Read-only reports about a project.
  * @module
  */
-import { componentsUsing } from "../edit/extensions.ts";
+import { extensionUsage, type ExtensionUse } from "../edit/extensions.ts";
 import { serializeBky } from "../formats/bky.ts";
 import { serializeScm } from "../formats/scm.ts";
 import { walkBlocks, walkComponents } from "../query.ts";
@@ -147,9 +147,16 @@ export function findUnusedAssets(project: Project): Asset[] {
   return project.assets.filter((asset) => !used.has(asset.name));
 }
 
+/** The components on any screen that come from this extension. */
+export function findExtensionUsage(project: Project, extension: Extension): ExtensionUse[] {
+  return extensionUsage(project, extension);
+}
+
+export type { ExtensionUse };
+
 /** Extensions none of whose components are placed on a screen. */
 export function findUnusedExtensions(project: Project): Extension[] {
-  return project.extensions.filter((extension) => componentsUsing(project, extension).length === 0);
+  return project.extensions.filter((extension) => extensionUsage(project, extension).length === 0);
 }
 
 export interface BlockSummary {

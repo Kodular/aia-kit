@@ -32,7 +32,7 @@ interface Screen {
 
 interface Component {
   name: string;
-  type: string; // "Button", or a qualified name for extension components
+  type: string; // "Button"; usually the simple name, sometimes fully qualified
   version?: string;
   uuid: string;
   properties: Record<string, string>; // exactly as App Inventor encodes them

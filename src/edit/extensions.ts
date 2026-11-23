@@ -31,7 +31,7 @@ export function removeExtension(project: Project, packageName: string): Project 
   const extension = project.extensions.find((e) => e.packageName === packageName);
   if (!extension) throw new NotFoundError("extension", packageName);
 
-  const users = componentsUsing(project, extension);
+  const users = extensionUsage(project, extension).map((use) => `${use.screen}.${use.component}`);
   if (users.length > 0) {
     throw new InvalidOperationError(
       `Extension "${packageName}" is still used by ${users.slice(0, 3).join(", ")}${users.length > 3 ? ", …" : ""}`,
@@ -40,12 +40,23 @@ export function removeExtension(project: Project, packageName: string): Project 
   return { ...project, extensions: project.extensions.filter((e) => e !== extension) };
 }
 
-/** `Screen.Component` for every component whose type the extension provides. */
-export function componentsUsing(project: Project, extension: Extension): string[] {
-  const types = new Set(extension.components.map((descriptor) => descriptor.type));
+export interface ExtensionUse {
+  readonly screen: string;
+  readonly component: string;
+}
+
+/**
+ * Every component whose type the extension provides. Screens name extension
+ * components either by simple name (`Look`, as MIT App Inventor writes them)
+ * or by fully qualified type, so both are matched.
+ */
+export function extensionUsage(project: Project, extension: Extension): ExtensionUse[] {
+  const types = new Set(
+    extension.components.flatMap((descriptor) => [descriptor.type, descriptor.name]),
+  );
   return project.screens.flatMap((screen) =>
     Array.from(walkComponents(screen))
       .filter((component) => types.has(component.type))
-      .map((component) => `${screen.name}.${component.name}`),
+      .map((component) => ({ screen: screen.name, component: component.name })),
   );
 }

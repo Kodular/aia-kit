@@ -3,13 +3,14 @@ import { readAia } from "../archive/read.ts";
 import { writeAia } from "../archive/write.ts";
 import { addAsset, removeAsset } from "../edit/assets.ts";
 import { removeComponent, setProperty } from "../edit/components.ts";
-import { addExtension } from "../edit/extensions.ts";
+import { addExtension, removeExtension } from "../edit/extensions.ts";
 import { setProjectProperties } from "../edit/properties.ts";
 import { addScreen, removeScreen } from "../edit/screens.ts";
 import { demoProject, extension, fixture } from "../test-helpers.ts";
 import {
   diffProjects,
   findAssetReferences,
+  findExtensionUsage,
   findOrphanBlocks,
   findUnusedAssets,
   findUnusedExtensions,
@@ -72,6 +73,18 @@ describe("asset and extension usage", () => {
     expect(
       findUnusedExtensions(removeComponent(project, "Screen1", "Ext1")).map((e) => e.packageName),
     ).toEqual(["com.example.ext"]);
+  });
+});
+
+describe("extensions named by simple type", () => {
+  it("counts components that use the extension's simple name, as MIT App Inventor writes them", async () => {
+    const { project } = await readAia(await fixture("mit-extension-demos/LookTest_20181124.aia"));
+    const [look] = project.extensions;
+    expect(findExtensionUsage(project, look!)).toEqual([
+      { screen: "Screen1", component: "NeuralNet" },
+    ]);
+    expect(findUnusedExtensions(project)).toEqual([]);
+    expect(() => removeExtension(project, look!.packageName)).toThrow(/Screen1\.NeuralNet/);
   });
 });
 
