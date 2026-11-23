@@ -34,7 +34,8 @@ export type Selection =
   | { readonly kind: "asset"; readonly name: string }
   | { readonly kind: "extension"; readonly packageName: string }
   | { readonly kind: "properties" }
-  | { readonly kind: "navigation" };
+  | { readonly kind: "navigation" }
+  | { readonly kind: "insights" };
 
 export type Tab = "designer" | "blocks" | "raw";
 

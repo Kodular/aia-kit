@@ -1,6 +1,6 @@
 # AIA Explorer
 
-Browse an App Inventor / Kodular project in the browser: screens, component tree, a layout preview (table grids, alignment, pixel / percent / fill-parent sizes, fonts, colours, images, canvas sprites), blocks as an outline, assets, extensions, project properties, navigation between screens, and the problems `check` finds.
+Browse an App Inventor / Kodular project in the browser: screens, component tree, a layout preview (table grids, alignment, pixel / percent / fill-parent sizes, fonts, colours, images, canvas sprites), blocks as an outline, assets, extensions, project properties, navigation between screens, an insights page (sizes, counts, unused assets, loose blocks), and the problems `check` finds.
 
 It also opens a standalone `.aix` extension and shows its components, events, methods, properties and files.
 

@@ -3,6 +3,7 @@ import { Match, Show, Switch, createSignal } from "solid-js";
 import { AssetView } from "./components/AssetView.tsx";
 import { EmptyState } from "./components/EmptyState.tsx";
 import { ExtensionView } from "./components/ExtensionView.tsx";
+import { InsightsView } from "./components/InsightsView.tsx";
 import { Inspector } from "./components/Inspector.tsx";
 import { OpenFileDialog } from "./components/OpenFileDialog.tsx";
 import { ProblemsPane } from "./components/ProblemsPane.tsx";
@@ -70,6 +71,9 @@ export function App(): JSX.Element {
                   </Match>
                   <Match when={kind() === "navigation"}>
                     <ScreenFlowView />
+                  </Match>
+                  <Match when={kind() === "insights"}>
+                    <InsightsView />
                   </Match>
                 </Switch>
               </div>

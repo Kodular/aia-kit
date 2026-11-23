@@ -1,6 +1,6 @@
 import type { JSX } from "@solidjs/web";
 import { mainScreenName } from "aia-kit";
-import { Puzzle, Settings2, Smartphone, Workflow } from "lucide";
+import { ChartColumn, Puzzle, Settings2, Smartphone, Workflow } from "lucide";
 import { For, Show } from "solid-js";
 import { assetIcon } from "../lib/icons.ts";
 import { useApp } from "../state.ts";
@@ -101,6 +101,13 @@ export function Sidebar(): JSX.Element {
 
       <Show when={!app.standalone()}>
         <Group label="Project">
+          <ListRow
+            icon={ChartColumn}
+            selected={selection()?.kind === "insights"}
+            onClick={() => app.select({ kind: "insights" })}
+          >
+            Insights
+          </ListRow>
           <ListRow
             icon={Settings2}
             selected={selection()?.kind === "properties"}

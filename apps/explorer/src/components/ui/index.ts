@@ -13,4 +13,5 @@ export {
   SectionLabel,
 } from "./primitives.tsx";
 export { SegmentedControl } from "./SegmentedControl.tsx";
+export { BarList, Stat, type BarItem } from "./Stat.tsx";
 export { Tabs, type TabItem } from "./Tabs.tsx";
