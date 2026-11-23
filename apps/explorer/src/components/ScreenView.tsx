@@ -2,7 +2,7 @@ import type { JSX } from "@solidjs/web";
 import { walkBlocks, type Block, type Screen } from "aia-kit";
 import { serializeBky, serializeScm } from "aia-kit/formats";
 import { Blocks as BlocksIcon, Braces, LayoutPanelTop, Smartphone } from "lucide";
-import { For, Match, Show, Switch, createMemo, createSignal } from "solid-js";
+import { For, Match, Show, Switch, createEffect, createMemo, createSignal } from "solid-js";
 import { groupOf, type Group } from "../lib/blocks.ts";
 import { plural } from "../lib/format.ts";
 import { indentXml } from "../lib/highlight.ts";
@@ -90,6 +90,20 @@ function BlocksTab(props: { screen: Screen }): JSX.Element {
     for (const block of props.screen.blocks) groups[groupOf(block)].push(block);
     return groups;
   });
+
+  // Scroll to a block that search asked to reveal, once it is on screen.
+  const app = useApp();
+  createEffect(
+    () => app.revealedBlock(),
+    (id) => {
+      if (id === undefined) return;
+      requestAnimationFrame(() => {
+        document
+          .querySelector(`[data-block-id="${CSS.escape(id)}"]`)
+          ?.scrollIntoView({ block: "center" });
+      });
+    },
+  );
 
   return (
     <Show

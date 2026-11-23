@@ -2,6 +2,7 @@ import type { JSX } from "@solidjs/web";
 import type { BuiltinPlatformId } from "aia-kit/platforms";
 import { FolderOpen, Package } from "lucide";
 import { useApp } from "../state.ts";
+import { Search } from "./Search.tsx";
 import { Button, Icon } from "./ui/index.ts";
 
 export function TopBar(): JSX.Element {
@@ -10,7 +11,9 @@ export function TopBar(): JSX.Element {
     <header class="flex items-center gap-3 border-b border-zinc-200 bg-white px-4 py-2 dark:border-zinc-800 dark:bg-zinc-900">
       <Icon icon={Package} size={18} class="text-zinc-500 dark:text-zinc-400" />
       <span class="text-sm font-medium">{app.fileName()}</span>
-      <span class="flex-1" />
+      <div class="flex flex-1 justify-center px-4">
+        <Search />
+      </div>
       <label class="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
         Check against
         <select

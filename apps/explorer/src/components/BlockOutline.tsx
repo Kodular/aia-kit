@@ -1,6 +1,7 @@
 import type { JSX } from "@solidjs/web";
 import type { Block } from "aia-kit";
 import { For, Show } from "solid-js";
+import { useApp } from "../state.ts";
 import { CATEGORY_CLASS, categoryOf, labelOf, operatorOf, stackOf } from "../lib/blocks.ts";
 
 /** A stack of blocks (a block and everything attached below it), one per line. */
@@ -34,6 +35,7 @@ function operandsOf(block: Block): (Block | undefined)[] {
  * block, and statement inputs hang below it, indented.
  */
 function BlockNode(props: { block: Block; nested?: boolean }): JSX.Element {
+  const app = useApp();
   const values = () => Object.entries(props.block.values);
   const statements = () => Object.entries(props.block.statements);
   /** `a + b` reads better than `+ a b`. */
@@ -48,12 +50,16 @@ function BlockNode(props: { block: Block; nested?: boolean }): JSX.Element {
     >
       <div
         title={props.block.comment?.text ?? props.block.type}
+        data-block-id={props.block.id === "" ? undefined : props.block.id}
         class={[
           "inline-flex flex-wrap items-center gap-x-1.5 gap-y-1 rounded-md font-mono text-xs",
           props.nested
             ? "px-1.5 py-0.5 ring-1 ring-black/10 ring-inset dark:ring-white/15"
             : "px-2 py-1",
           CATEGORY_CLASS[categoryOf(props.block)],
+          app.revealedBlock() !== undefined && app.revealedBlock() === props.block.id
+            ? "outline-2 outline-offset-2 outline-blue-500"
+            : "",
         ]}
       >
         <Show
