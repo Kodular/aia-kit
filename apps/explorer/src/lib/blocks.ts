@@ -74,6 +74,25 @@ const OPERATORS: Readonly<Record<string, string>> = {
 };
 
 /**
+ * The label of a component block split around the component it names:
+ * `["when ", "Button1", ".Click"]`. `undefined` for other blocks. For generic
+ * ("any Button") blocks the middle part is not a component name.
+ */
+export function componentLabelParts(
+  block: Block,
+): readonly [before: string, target: string, after: string] | undefined {
+  const ref = componentReference(block);
+  if (!ref) return undefined;
+  const target = ref.instance ?? `any ${ref.componentType}`;
+  const member = `.${ref.member ?? "?"}`;
+  if (ref.kind === "event") return ["when ", target, member];
+  if (ref.kind === "method") return ["call ", target, member];
+  if (ref.kind === "property")
+    return ref.access === "set" ? ["set ", target, `${member} to`] : ["", target, member];
+  return ["", target, ""];
+}
+
+/**
  * The symbol of a block that reads best between its inputs (`a + b`,
  * `x = y`, `p and q`), or `undefined` for every other block.
  */
@@ -91,18 +110,8 @@ export function operatorOf(block: Block): string | undefined {
 /** A one-line, human-readable description of what a block does. */
 export function labelOf(block: Block): string {
   const f = block.fields;
-  const ref = componentReference(block);
-  if (ref) {
-    const target = ref.instance ?? `any ${ref.componentType}`;
-    if (ref.kind === "event") return `when ${target}.${ref.member ?? "?"}`;
-    if (ref.kind === "method") return `call ${target}.${ref.member ?? "?"}`;
-    if (ref.kind === "property") {
-      return ref.access === "set"
-        ? `set ${target}.${ref.member ?? "?"} to`
-        : `${target}.${ref.member ?? "?"}`;
-    }
-    return target;
-  }
+  const parts = componentLabelParts(block);
+  if (parts) return parts.join("");
 
   const vars = Object.entries(f)
     .filter(([name]) => /^VAR\d*$/.test(name))

@@ -5,6 +5,8 @@ import { Icon, type IconData } from "./Icon.tsx";
 /** One selectable row of a navigation list or tree. Trees nest rows in indented containers. */
 export function ListRow(props: {
   selected?: boolean;
+  /** Marked as the counterpart of something the pointer is over elsewhere. */
+  highlighted?: boolean;
   onClick: () => void;
   /** Called when the pointer or keyboard focus enters (`true`) or leaves (`false`) the row. */
   onHover?: (hovering: boolean) => void;
@@ -32,6 +34,7 @@ export function ListRow(props: {
         props.selected
           ? "bg-zinc-200 text-zinc-950 dark:bg-zinc-700 dark:text-white"
           : "text-zinc-700 hover:bg-zinc-200/60 dark:text-zinc-300 dark:hover:bg-zinc-800",
+        props.highlighted ? "outline-1 -outline-offset-1 outline-amber-500 outline-dashed" : "",
       ]}
     >
       <Show when={props.icon}>

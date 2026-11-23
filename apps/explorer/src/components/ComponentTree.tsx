@@ -15,6 +15,7 @@ export function ComponentRow(props: { screen: string; component: Component }): J
       secondary={simpleName(props.component.type)}
       onClick={() => app.selectComponent(props.screen, props.component.name)}
       onHover={(hovering) => app.hover(hovering ? props.component.name : undefined)}
+      highlighted={app.hovered() === props.component.name}
     >
       {props.component.name}
     </ListRow>

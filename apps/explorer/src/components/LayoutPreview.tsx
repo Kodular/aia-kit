@@ -16,7 +16,10 @@ export function LayoutPreview(props: { screen: Screen }): JSX.Element {
   const visible = () => form().children.filter((child) => !isNonVisible(child));
 
   return (
-    <div class="rounded-xl bg-zinc-200/60 p-3 dark:bg-zinc-800/60">
+    <div
+      class="rounded-xl bg-zinc-200/60 p-3 dark:bg-zinc-800/60"
+      onMouseLeave={() => app.hover(undefined)}
+    >
       <div
         class={[
           "mx-auto flex min-h-80 max-w-sm flex-col overflow-hidden rounded-lg border border-zinc-300 bg-white text-zinc-900",
@@ -24,6 +27,7 @@ export function LayoutPreview(props: { screen: Screen }): JSX.Element {
         ]}
         style={{ "background-color": cssColor(form().properties["BackgroundColor"] ?? "") }}
         onClick={() => app.selectComponent(props.screen.name, props.screen.name)}
+        onMouseOver={() => app.hover(props.screen.name)}
       >
         <Show when={form().properties["TitleVisible"] !== "False"}>
           <div class="border-b border-zinc-200 bg-zinc-100 px-3 py-2 text-sm font-medium">
@@ -78,6 +82,11 @@ function Node(props: {
       onClick={(event) => {
         event.stopPropagation();
         app.selectComponent(props.screen, props.component.name);
+      }}
+      // Stop at the innermost component, so a container does not claim its children's hover.
+      onMouseOver={(event) => {
+        event.stopPropagation();
+        app.hover(props.component.name);
       }}
       class={[
         "min-w-0 cursor-pointer rounded-md text-sm outline-offset-1",

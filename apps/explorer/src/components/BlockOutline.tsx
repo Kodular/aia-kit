@@ -1,8 +1,15 @@
 import type { JSX } from "@solidjs/web";
-import type { Block } from "aia-kit";
+import { componentReference, findComponent, type Block } from "aia-kit";
 import { For, Show } from "solid-js";
 import { useApp } from "../state.ts";
-import { CATEGORY_CLASS, categoryOf, labelOf, operatorOf, stackOf } from "../lib/blocks.ts";
+import {
+  CATEGORY_CLASS,
+  categoryOf,
+  componentLabelParts,
+  labelOf,
+  operatorOf,
+  stackOf,
+} from "../lib/blocks.ts";
 
 /** A stack of blocks (a block and everything attached below it), one per line. */
 export function BlockStack(props: { block: Block }): JSX.Element {
@@ -66,7 +73,7 @@ function BlockNode(props: { block: Block; nested?: boolean }): JSX.Element {
           when={infix()}
           fallback={
             <>
-              <span>{labelOf(props.block)}</span>
+              <Label block={props.block} />
               <For each={values()}>
                 {([name, block]) => (
                   <>
@@ -115,6 +122,51 @@ function BlockNode(props: { block: Block; nested?: boolean }): JSX.Element {
         </div>
       </Show>
     </div>
+  );
+}
+
+/**
+ * A block's label. In a component block, the component's name is a link that
+ * selects that component.
+ */
+function Label(props: { block: Block }): JSX.Element {
+  const app = useApp();
+  const parts = () => componentLabelParts(props.block);
+  /** The named component, if it exists on the screen being shown. */
+  const target = () => {
+    const name = componentReference(props.block)?.instance;
+    const screen = app.screen();
+    return name !== undefined && screen && findComponent(screen, name)
+      ? { screen: screen.name, name }
+      : undefined;
+  };
+
+  return (
+    <Show when={parts()} fallback={<span>{labelOf(props.block)}</span>}>
+      {(label) => (
+        <span>
+          {label()[0]}
+          <Show when={target()} fallback={label()[1]}>
+            {(component) => (
+              <button
+                type="button"
+                title={`Select ${component().name}`}
+                class="underline decoration-current/40 decoration-dotted underline-offset-2 hover:decoration-solid"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  app.selectComponent(component().screen, component().name);
+                }}
+                onMouseEnter={() => app.hover(component().name)}
+                onMouseLeave={() => app.hover(undefined)}
+              >
+                {label()[1]}
+              </button>
+            )}
+          </Show>
+          {label()[2]}
+        </span>
+      )}
+    </Show>
   );
 }
 
