@@ -1,0 +1,34 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "types": ["vite/client"],
+    "module": "Preserve",
+    "moduleResolution": "Bundler",
+    "moduleDetection": "force",
+    "jsx": "preserve",
+    "jsxImportSource": "@solidjs/web",
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "erasableSyntaxOnly": true,
+    "noEmit": true,
+
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "skipLibCheck": true,
+
+    "paths": {
+      "aia-kit": ["../../src/index.ts"],
+      "aia-kit/platforms": ["../../src/platforms/index.ts"],
+      "aia-kit/analysis": ["../../src/analysis/index.ts"],
+      "aia-kit/formats": ["../../src/formats/index.ts"]
+    }
+  },
+  "include": ["src", "vite.config.ts"]
+}

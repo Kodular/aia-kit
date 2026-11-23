@@ -38,7 +38,8 @@
     "lint:fix": "oxlint --fix",
     "fmt": "oxfmt .",
     "fmt:check": "oxfmt --check .",
-    "check": "pnpm run typecheck && pnpm run lint && pnpm run fmt:check && pnpm run test"
+    "check": "pnpm run typecheck && pnpm --filter @aia-kit/explorer typecheck && pnpm run lint && pnpm run fmt:check && pnpm run test",
+    "explorer": "pnpm --filter @aia-kit/explorer dev"
   },
   "dependencies": {
     "@xmldom/xmldom": "^0.9.12",

@@ -27,3 +27,7 @@ jobs:
       - run: pnpm test
 
       - run: pnpm run build
+
+      - run: pnpm --filter @aia-kit/explorer typecheck
+
+      - run: pnpm --filter @aia-kit/explorer build

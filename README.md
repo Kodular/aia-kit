@@ -62,6 +62,14 @@ A platform is only needed for checks that depend on which components exist. Read
 - [API reference](docs/api.md)
 - [File formats](docs/file-formats.md) · [Glossary](docs/ubiquitous-language.md)
 
+## Explorer
+
+`apps/explorer` is a web app for browsing a project: its screens, component tree, blocks, assets, extensions and problems. It runs entirely in the browser.
+
+```
+pnpm explorer
+```
+
 ## Not included
 
 YAIL generation. An existing `.yail` is preserved while its screen is unchanged; App Inventor regenerates YAIL when it opens or builds a project.
