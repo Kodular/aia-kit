@@ -1,75 +1,65 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
 ## Project Overview
 
-This is `aia-kit`, a TypeScript library for reading, parsing, editing, and writing AIA/AIX/AIS files (App Inventor project files). The library is designed to work with App Inventor-based platforms, particularly Kodular Creator.
+`aia-kit` — TypeScript library to read, inspect, edit, check and write App Inventor / Kodular projects (`.aia`) and extensions (`.aix`). Browser + Node, Blob-based.
 
-## Common Commands
+v2 is a ground-up redesign and is not published yet (latest published: 1.1.2). There is no backwards compatibility with v1.
 
-### Build and Development
-- `npm run build` - Compiles TypeScript to JavaScript in the `dist/` directory
-- `npm run test` - Runs the test suite using Vitest
-- `npm run test:w` - Runs tests in watch mode for development
+## Commands
 
-### Testing
-- Tests are located in `test/` directory
-- Test files use the `.test.ts` extension
-- Uses Vitest as the testing framework
-- Test fixtures are in `test/fixtures/`
+Tool versions come from `mise.toml` (`mise install`).
 
-## Architecture
-
-### Core Components
-
-The library is structured around several key concepts:
-
-1. **Environment** (`src/Environment.ts`): Represents the target App Inventor platform (e.g., Kodular Creator) and contains component descriptors that define what components are available.
-
-2. **Project** (`src/project.ts`): The main container representing an AIA project with screens, assets, and extensions.
-
-3. **Reader** (`src/reader.ts`): Contains the `parseAia()` function that extracts and parses AIA files using the ZIP format.
-
-4. **Writer** (`src/writer.ts`): Contains the `writeAia()` function that packages project data back into AIA format.
-
-5. **Core Data Types**:
-   - **Screen** (`src/screen.ts`): Represents a single screen with its components and blocks
-   - **Component** (`src/component.ts`): Represents UI components and their properties
-   - **Asset** (`src/asset.ts`): Represents media files and other assets
-   - **Extension** (`src/extension.ts`): Represents external extensions/components
-
-### Key Files
-
-- `src/index.ts` - Main entry point with public API exports
-- `src/types.ts` - TypeScript type definitions
-- `src/types.zod.ts` - Zod validation schemas
-- `src/file_structures.ts` - Defines AIA file structure constants
-- `src/property_processor.ts` - Handles component property processing
-- `src/utils/` - Utility functions for ZIP handling and general operations
-- `src/environments/kodular/simple_components.json` - Kodular component definitions
-
-### Environment System
-
-The library uses an Environment system to handle different App Inventor platforms:
-
-```typescript
-const environment = await Environment.kodularCreator();
-const project = await parseAia(aiaFileBlob, environment);
+```
+pnpm check       # typecheck + lint + fmt:check + test
+pnpm test        # Vitest
+pnpm typecheck   # tsc --noEmit (TypeScript 7)
+pnpm lint        # oxlint
+pnpm fmt         # oxfmt
+pnpm build       # tsdown → dist/
 ```
 
-This allows accurate parsing of components based on the target platform's capabilities.
+Tests are colocated with source (`src/**/*.test.ts`). Shared fixtures and builders: `src/test-helpers.ts`. Real archives: `test-fixtures/`.
 
-### File Processing Flow
+## Design rules
 
-1. **Reading**: AIA files are ZIP archives containing project metadata, screens, assets, and extensions
-2. **Parsing**: The reader extracts files and creates structured objects using the Environment for component validation
-3. **Writing**: The writer packages the structured data back into the AIA ZIP format
+1. **Model the domain, not the files.** The API speaks in projects, screens, components, blocks, assets, extensions. SCM/BKY/properties are codecs under `src/formats/`.
+2. **Plain immutable data + pure functions.** No classes except errors. Every type in `src/types.ts` is `readonly`. Edits return a new `Project` and share untouched parts; an edit that changes nothing returns the same object.
+3. **One model.** There is no separate "enriched" project. Anything that needs descriptors is a function of `(project, platform)`.
+4. **Edits keep cross-format invariants** (component names ↔ blocks, screen name ↔ form name ↔ `main`). Add new edits under `src/edit/`; do not make callers patch blocks themselves.
+5. **Lossless.** Parsers keep what they do not understand (`extra`, `meta`, `otherFiles`). Parsed values are frozen and their source text is remembered in a `WeakMap`, so unchanged parts serialize to their original bytes. The fixture test in `src/archive/archive.test.ts` enforces byte-exact round-trips.
+6. **Three failure channels, no others.** Unusable input → throw `ArchiveError` / `ParseError`. Impossible edit → throw `NotFoundError` / `ConflictError` / `InvalidOperationError`. Findings about data → return `Problem[]` (discriminated on `code`).
+7. **Async only at the ZIP boundary.**
 
-## Development Notes
+## Layout
 
-- Uses ES modules (`"type": "module"` in package.json)
-- TypeScript compiled output goes to `dist/`
-- Uses Biome for linting and formatting
-- Dependencies: `@zip.js/zip.js` for ZIP handling, `properties-file` for Java properties, `zod` for validation
-- The library works with Blob objects for file handling, supporting both local files and URLs
+```
+src/
+  index.ts            aia-kit            — archives, types, queries, edits, check, errors
+  platforms/          aia-kit/platforms  — loadPlatform, definePlatform, lookupComponent; data/*.json
+  analysis/           aia-kit/analysis   — diff, unused assets/extensions, block reports
+  formats/            aia-kit/formats    — scm, bky, properties, descriptors codecs
+  archive/            readAia, readAix, writeAia, writeAix (zip.js)
+  edit/               screens, components, blocks, assets, extensions, properties, merge
+  query.ts            find*/walk*/componentReference
+  check.ts            check(project, platform?) → Problem[]
+  types.ts  errors.ts  problems.ts
+  internal/           helpers not exported from any entry point
+```
+
+Not implemented: YAIL generation (v1 had a generator; see `git show main:src/generators/yail`). `writeAia` only preserves the original `.yail` of unchanged screens.
+
+## Documentation
+
+| Doc | Purpose |
+|-----|---------|
+| [docs/usage.md](docs/usage.md) | Guide with examples for every API area |
+| [docs/api.md](docs/api.md) | API reference |
+| [docs/file-formats.md](docs/file-formats.md) | Hub for the format pages |
+| [docs/ubiquitous-language.md](docs/ubiquitous-language.md) | Glossary |
+
+Format pages: [AIA](docs/aia.md) · [AIX](docs/aix.md) · [AIS](docs/ais.md) · [SCM](docs/scm.md) · [BKY](docs/bky.md) · [YAIL](docs/yail.md) · [project.properties](docs/project-properties.md) · [simple_components.json](docs/simple-components-json.md)
+
+## Stack
+
+ES modules · Node 26 + pnpm 12 via mise · TypeScript 7 (`isolatedDeclarations`, `erasableSyntaxOnly`, `exactOptionalPropertyTypes`, `noUncheckedIndexedAccess`) · tsdown · Vitest · oxlint · oxfmt · `@zip.js/zip.js` · `@xmldom/xmldom`

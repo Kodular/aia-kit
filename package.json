@@ -1,48 +1,60 @@
 {
   "name": "aia-kit",
-  "version": "1.1.2",
-  "description": "Read, Parse, Edit, Write, Analyze AIA/AIX/AIS files.",
+  "version": "2.0.0",
+  "description": "Read, inspect, edit, check and write App Inventor / Kodular projects (AIA) and extensions (AIX).",
   "keywords": [
-    "app-inventor",
-    "kodular",
     "aia",
     "aix",
-    "ais",
-    "extension"
+    "app-inventor",
+    "blockly",
+    "extension",
+    "kodular"
   ],
-  "author": "Kodular",
   "license": "ISC",
+  "author": "Kodular",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Kodular/aia-kit.git"
   },
-  "type": "module",
-  "module": "./dist/src/index.js",
-  "exports": {
-    ".": "./dist/src/index.js",
-    "./*.js": "./dist/src/*.js"
-  },
-  "types": "./dist/src/index.d.ts",
   "files": [
-    "dist/src"
+    "dist"
   ],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./dist/index.js",
+    "./platforms": "./dist/platforms.js",
+    "./analysis": "./dist/analysis.js",
+    "./formats": "./dist/formats.js",
+    "./package.json": "./package.json"
+  },
   "scripts": {
-    "build": "tsc",
+    "build": "tsdown",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "2.1.2",
-    "@types/node": "^24.1.0",
-    "@vitest/coverage-v8": "3.2.4",
-    "typescript": "^5.8.3",
-    "vitest": "^3.2.4"
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "fmt": "oxfmt .",
+    "fmt:check": "oxfmt --check .",
+    "check": "pnpm run typecheck && pnpm run lint && pnpm run fmt:check && pnpm run test"
   },
   "dependencies": {
-    "@xmldom/xmldom": "^0.9.8",
-    "@zip.js/zip.js": "^2.7.69",
-    "properties-file": "^3.5.13",
-    "zod": "^4.0.10"
+    "@xmldom/xmldom": "^0.9.12",
+    "@zip.js/zip.js": "^2.25.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@vitest/coverage-v8": "^5.1.1",
+    "oxfmt": "^0.79.0",
+    "oxlint": "^1.94.0",
+    "oxlint-tsgolint": "^7.0.2008",
+    "tsdown": "^0.23.7",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.1"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }

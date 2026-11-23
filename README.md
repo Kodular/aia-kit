@@ -1,73 +1,82 @@
 # aia-kit
 
-![npm](https://img.shields.io/npm/v/aia-kit)
+Read, inspect, edit, check and write App Inventor / Kodular projects (`.aia`) and extensions (`.aix`). Works in browsers and Node.
 
-Read, Parse, Edit, Write AIA/AIX/AIS files.
-
-## Installation
-
-```bash
-npm install aia-kit
+```
+pnpm add aia-kit
 ```
 
-## Usage
+## Quick start
 
 ```typescript
-import fs from "node:fs/promises";
-import { parseAia } from "./src/reader.js";
-import { Environment } from "./src/Environment.js";
+import { readAia, writeAia, renameComponent, setProperty, addAsset } from "aia-kit";
 
-async function main() {
-  try {
-    const aiaFile = await fs.readFile("test/fixtures/Test.aia");
-    const aiaFileBlob = new Blob([aiaFile]);
+const { project } = await readAia(aiaBlob);
 
-    // Get the Kodular environment
-    const kodularEnvironment = await Environment.kodularCreator();
+project.screens[0].form.children; // designer components
+project.screens[0].blocks;        // Blockly blocks
 
-    // Parse the AIA file
-    const project = await parseAia(aiaFileBlob, kodularEnvironment);
+let next = renameComponent(project, "Screen1", "Button1", "SubmitButton"); // blocks follow
+next = setProperty(next, "Screen1", "SubmitButton", "Text", "Send");
+next = addAsset(next, "logo.png", pngBlob);
 
-    // Pretty print the parsed information
-    console.log("Project Information:");
-    console.log("===================");
-    console.log(`Name: ${project.name}`);
+const out = await writeAia(next); // Blob
+```
 
-    // Print screens information
-    console.log("\nScreens:");
-    console.log("========");
-    project.screens.forEach((screen) => {
-      console.log(`\nScreen: ${screen.name}`);
-    });
+## How it works
 
-    // Print assets information
-    console.log("\nAssets:");
-    console.log("=======");
-    project.assets.forEach((asset) => {
-      console.log(`- ${asset.name}`);
-    });
-  } catch (error) {
-    console.error("Error parsing AIA file:", error);
-  }
+- **A project is plain immutable data.** `Project` → `Screen` → `Component` / `Block`. Log it, diff it, keep it in UI state.
+- **Edits are functions** that take a project and return a new one. The original is never changed, and untouched parts are shared.
+- **Edits keep the project consistent.** Renaming a component rewrites the blocks that use it; renaming a screen updates `main` and the blocks that open it.
+- **Nothing is lost.** Reading then writing reproduces every file byte-for-byte. After an edit, only the files you touched are re-serialized, and unknown fields survive.
+- **Failures are explicit.** An edit that cannot be done throws an `AiaKitError` subclass. Findings about the data are returned as `Problem[]`.
+
+## Checking a project
+
+```typescript
+import { check } from "aia-kit";
+import { loadPlatform } from "aia-kit/platforms";
+
+const kodular = await loadPlatform("kodular"); // or "app-inventor"
+
+for (const problem of check(project, kodular)) {
+  if (problem.code === "missing-asset") console.warn(problem.asset, "is missing");
+  else console.warn(problem.message);
 }
-
-main();
 ```
 
-## Environment
+A platform is only needed for checks that depend on which components exist. Reading, editing and writing never need one.
 
-The `Environment` class provides a way to specify the target App Inventor platform. This is important because different platforms may have different sets of built-in components. By providing an environment, `aia-kit` can accurately parse the project's components.
+## Entry points
 
-Currently, the only available environment is `Kodular`. You can get an instance of the Kodular environment by calling the static `kodularCreator` method:
+| Import | Contents |
+|--------|----------|
+| `aia-kit` | `readAia`, `writeAia`, `readAix`, `writeAix`, the data types, queries, edits, `check`, errors |
+| `aia-kit/platforms` | `loadPlatform`, `definePlatform`, `lookupComponent` |
+| `aia-kit/analysis` | `diffProjects`, unused assets / extensions, block summaries, navigation graph |
+| `aia-kit/formats` | `parseScm`, `parseBky`, `parseProperties` and their serializers, for loose files |
 
-```typescript
-import { Environment } from 'aia-kit';
+## Documentation
 
-const kodularEnvironment = await Environment.kodularCreator();
+- [Usage guide](docs/usage.md)
+- [API reference](docs/api.md)
+- [File formats](docs/file-formats.md) · [Glossary](docs/ubiquitous-language.md)
+
+## Not included
+
+YAIL generation. An existing `.yail` is preserved while its screen is unchanged; App Inventor regenerates YAIL when it opens or builds a project.
+
+## Development
+
+Tool versions are pinned in `mise.toml`.
+
+```
+mise install
+pnpm install
+pnpm check    # typecheck + lint + format check + tests
+pnpm build
 ```
 
+## License
 
-
----
-
-Copyright (c) 2023 Junnovate, LLC
+ISC
