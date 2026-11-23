@@ -3,7 +3,9 @@ import type { Asset } from "aia-kit";
 import { findAssetReferences, type AssetReference } from "aia-kit/analysis";
 import { For, Loading, Match, Show, Switch, createMemo } from "solid-js";
 import { formatBytes } from "../lib/format.ts";
+import { languageOf } from "../lib/highlight.ts";
 import { extensionOf, mimeOf, useApp } from "../state.ts";
+import { Code } from "./Code.tsx";
 import { Badge, Card, Empty } from "./ui.tsx";
 
 const TEXT_TYPES = new Set([
@@ -85,7 +87,7 @@ function AssetDetails(props: { asset: Asset }): JSX.Element {
           </Match>
           <Match when={isText()}>
             <Loading fallback={<Empty>Reading…</Empty>}>
-              <pre class="max-h-96 overflow-auto font-mono text-xs leading-relaxed">{text()}</pre>
+              <Code text={text()} language={languageOf(props.asset.name)} />
             </Loading>
           </Match>
         </Switch>

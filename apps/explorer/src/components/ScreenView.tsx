@@ -5,8 +5,10 @@ import { serializeBky, serializeScm } from "aia-kit/formats";
 import { For, Match, Show, Switch, createMemo } from "solid-js";
 import { groupOf, type Group } from "../lib/blocks.ts";
 import { plural } from "../lib/format.ts";
+import { indentXml } from "../lib/highlight.ts";
 import { useApp, type Tab } from "../state.ts";
 import { BlockStack } from "./BlockOutline.tsx";
+import { Code } from "./Code.tsx";
 import { ComponentTree } from "./ComponentTree.tsx";
 import { LayoutPreview } from "./LayoutPreview.tsx";
 import { Card, Empty } from "./ui.tsx";
@@ -153,12 +155,15 @@ function Raw(props: { screen: Screen }): JSX.Element {
   return (
     <div class="flex flex-col gap-4">
       <Card title={`${props.screen.name}.scm`}>
-        <pre class="max-h-96 overflow-auto font-mono text-xs leading-relaxed">{prettyScm()}</pre>
+        <Code text={prettyScm()} language="json" />
       </Card>
       <Card title={`${props.screen.name}.bky`}>
-        <pre class="max-h-96 overflow-auto font-mono text-xs leading-relaxed">
-          {bky() || "(empty file)"}
-        </pre>
+        <Show
+          when={bky() !== ""}
+          fallback={<Empty>The file is empty: this screen has no blocks.</Empty>}
+        >
+          <Code text={indentXml(bky())} language="xml" />
+        </Show>
       </Card>
     </div>
   );
