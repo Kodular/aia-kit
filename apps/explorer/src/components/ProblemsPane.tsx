@@ -48,17 +48,27 @@ export function ProblemsPane(): JSX.Element {
       .join(" · ");
   };
 
+  /** Opens the place a problem is about. */
   const go = (problem: Problem) => {
-    if (!("screen" in problem) || !app.project()?.screens.some((s) => s.name === problem.screen))
+    const screen = "screen" in problem ? problem.screen : undefined;
+    if (screen === undefined) {
+      // A secret in the project's own properties has no screen.
+      if (problem.code === "possible-secret") app.select({ kind: "properties" });
       return;
-    if (problem.code === "dangling-block-reference")
-      app.selectComponent(problem.screen, undefined, "blocks");
-    else
+    }
+    if (!app.project()?.screens.some((s) => s.name === screen)) return;
+
+    if (problem.code === "possible-secret" && problem.component === undefined) {
+      app.revealBlock(screen, problem.blockId);
+    } else if (problem.code === "dangling-block-reference") {
+      app.revealBlock(screen, problem.blockId === "" ? undefined : problem.blockId);
+    } else {
       app.selectComponent(
-        problem.screen,
+        screen,
         "component" in problem ? problem.component : undefined,
         "designer",
       );
+    }
   };
 
   return (

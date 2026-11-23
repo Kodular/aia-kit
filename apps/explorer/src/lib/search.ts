@@ -81,6 +81,16 @@ export function buildIndex(project: Project): SearchEntry[] {
     }
   }
 
+  const { extra, ...known } = project.properties;
+  for (const [property, value] of Object.entries({ ...known, ...extra })) {
+    entries.push({
+      kind: "property",
+      title: `${property} = ${String(value)}`,
+      context: "Project properties",
+      target: { kind: "properties" },
+    });
+  }
+
   for (const asset of project.assets) {
     entries.push({
       kind: "asset",
