@@ -92,8 +92,8 @@ describe("check with a platform", () => {
     const { project } = await readAia(await fixture("Test.aia"));
     expect(check(project, await loadPlatform("kodular"))).toEqual([]);
     expect(check(project, await loadPlatform("app-inventor")).map((p) => p.message)).toEqual([
-      'Form has no property "AppId" (Screen1.Screen1)',
-      'Form has no property "ReceiveSharedText" (Screen1.Screen1)',
+      'Form has no property "AppId" (Screen1)',
+      'Form has no property "ReceiveSharedText" (Screen1)',
     ]);
   });
 });
