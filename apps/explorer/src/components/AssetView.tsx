@@ -68,7 +68,11 @@ function AssetDetails(props: { asset: Asset }): JSX.Element {
   };
   const describe = (ref: AssetReference) => {
     if (ref.kind === "icon") return "App icon";
-    if (ref.kind === "property") return `${ref.screen} · ${ref.component}.${ref.property}`;
+    if (ref.kind === "property") {
+      // A screen's form shares the screen's name; do not say it twice.
+      const owner = ref.component === ref.screen ? "" : `${ref.component}.`;
+      return `${ref.screen} · ${owner}${ref.property}`;
+    }
     return `${ref.screen} · text block`;
   };
 
