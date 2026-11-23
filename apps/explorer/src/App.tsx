@@ -4,6 +4,7 @@ import { AssetView } from "./components/AssetView.tsx";
 import { EmptyState } from "./components/EmptyState.tsx";
 import { ExtensionView } from "./components/ExtensionView.tsx";
 import { Inspector } from "./components/Inspector.tsx";
+import { ProblemsPane } from "./components/ProblemsPane.tsx";
 import { NavigationView, PropertiesView } from "./components/ProjectViews.tsx";
 import { ScreenView } from "./components/ScreenView.tsx";
 import { Sidebar } from "./components/Sidebar.tsx";
@@ -60,6 +61,7 @@ export function App(): JSX.Element {
             </main>
             <Inspector />
           </div>
+          <ProblemsPane />
         </Show>
       </div>
     </AppContext>

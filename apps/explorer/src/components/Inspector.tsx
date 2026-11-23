@@ -1,11 +1,5 @@
 import type { JSX } from "@solidjs/web";
-import {
-  componentReference,
-  walkBlocks,
-  walkComponents,
-  type Component,
-  type Problem,
-} from "aia-kit";
+import { componentReference, walkBlocks, walkComponents, type Component } from "aia-kit";
 import { lookupComponent } from "aia-kit/platforms";
 import { For, Show, createMemo } from "solid-js";
 import { cssColor, plainText, plural, simpleName } from "../lib/format.ts";
@@ -22,8 +16,8 @@ export function Inspector(): JSX.Element {
   const app = useApp();
 
   return (
-    <aside class="flex min-h-0 flex-col overflow-auto border-l border-zinc-200 dark:border-zinc-800">
-      <div class="border-b border-zinc-200 p-4 dark:border-zinc-800">
+    <aside class="min-h-0 overflow-auto border-l border-zinc-200 dark:border-zinc-800">
+      <div class="p-4">
         <Show when={app.screen()} fallback={<Empty>Select a screen to see its components.</Empty>}>
           {(screen) => (
             <Show
@@ -55,7 +49,6 @@ export function Inspector(): JSX.Element {
           )}
         </Show>
       </div>
-      <Problems />
     </aside>
   );
 }
@@ -153,47 +146,5 @@ function PropertyValue(props: { value: string }): JSX.Element {
         </button>
       </Show>
     </span>
-  );
-}
-
-function Problems(): JSX.Element {
-  const app = useApp();
-
-  const open = (problem: Problem) => {
-    if (!("screen" in problem) || !app.project()?.screens.some((s) => s.name === problem.screen))
-      return;
-    if (problem.code === "dangling-block-reference") {
-      app.selectComponent(problem.screen);
-      app.setTab("blocks");
-    } else {
-      app.selectComponent(problem.screen, "component" in problem ? problem.component : undefined);
-      app.setTab("designer");
-    }
-  };
-
-  return (
-    <div class="p-4">
-      <h3 class="mb-2 text-xs font-medium text-zinc-500 dark:text-zinc-400">
-        Problems · {app.problems().length}
-      </h3>
-      <div class="flex flex-col gap-2">
-        <For each={app.problems()} fallback={<Empty>None found.</Empty>}>
-          {(problem) => (
-            <button
-              type="button"
-              onClick={() => open(problem)}
-              class={[
-                "rounded-md px-2.5 py-1.5 text-left text-xs",
-                problem.severity === "error"
-                  ? "bg-red-50 text-red-900 hover:bg-red-100 dark:bg-red-950/60 dark:text-red-200"
-                  : "bg-amber-50 text-amber-900 hover:bg-amber-100 dark:bg-amber-950/50 dark:text-amber-200",
-              ]}
-            >
-              {problem.message}
-            </button>
-          )}
-        </For>
-      </div>
-    </div>
   );
 }
