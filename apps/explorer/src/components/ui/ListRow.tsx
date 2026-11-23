@@ -6,6 +6,8 @@ import { Icon, type IconData } from "./Icon.tsx";
 export function ListRow(props: {
   selected?: boolean;
   onClick: () => void;
+  /** Called when the pointer or keyboard focus enters (`true`) or leaves (`false`) the row. */
+  onHover?: (hovering: boolean) => void;
   icon?: IconData;
   /** Tooltip, for labels that may be truncated. */
   title?: string;
@@ -21,6 +23,10 @@ export function ListRow(props: {
       title={props.title}
       aria-current={props.selected ? "true" : undefined}
       onClick={() => props.onClick()}
+      onMouseEnter={() => props.onHover?.(true)}
+      onMouseLeave={() => props.onHover?.(false)}
+      onFocus={() => props.onHover?.(true)}
+      onBlur={() => props.onHover?.(false)}
       class={[
         "flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-sm",
         props.selected

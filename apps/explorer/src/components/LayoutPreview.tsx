@@ -18,7 +18,10 @@ export function LayoutPreview(props: { screen: Screen }): JSX.Element {
   return (
     <div class="rounded-xl bg-zinc-200/60 p-3 dark:bg-zinc-800/60">
       <div
-        class="mx-auto flex min-h-80 max-w-sm flex-col overflow-hidden rounded-lg border border-zinc-300 bg-white text-zinc-900"
+        class={[
+          "mx-auto flex min-h-80 max-w-sm flex-col overflow-hidden rounded-lg border border-zinc-300 bg-white text-zinc-900",
+          app.hovered() === props.screen.name ? HOVERED : "",
+        ]}
         style={{ "background-color": cssColor(form().properties["BackgroundColor"] ?? "") }}
         onClick={() => app.selectComponent(props.screen.name, props.screen.name)}
       >
@@ -39,6 +42,9 @@ export function LayoutPreview(props: { screen: Screen }): JSX.Element {
     </div>
   );
 }
+
+/** How the preview marks the component under the pointer in the component tree. */
+const HOVERED = "outline-2 outline-dashed outline-amber-500";
 
 type Kind = "row" | "column" | "button" | "label" | "input" | "image" | "check" | "other";
 
@@ -79,7 +85,9 @@ function Node(props: {
         { "opacity-40": p()["Visible"] === "False" },
         app.component() === props.component
           ? "outline-2 outline-blue-500"
-          : "hover:outline-1 hover:outline-zinc-400",
+          : app.hovered() === props.component.name
+            ? HOVERED
+            : "hover:outline-1 hover:outline-zinc-400",
       ]}
     >
       <Switch>

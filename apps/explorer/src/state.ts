@@ -66,6 +66,9 @@ export interface AppState {
   /** The component being inspected; `undefined` while only a screen is selected. */
   readonly component: Accessor<Component | undefined>;
 
+  /** Name of the component the pointer is over in the component tree, to highlight it in the preview. */
+  readonly hovered: Accessor<string | undefined>;
+  hover(component: string | undefined): void;
   /** True for components with no on-screen presence (Clock, Sound, …). Needs the platform; false until it loads. */
   isNonVisible(component: Component): boolean;
 
@@ -90,6 +93,7 @@ export function createAppState(): AppState {
   const [platform, setPlatform] = createSignal<Platform | undefined>(undefined);
   const [selection, setSelection] = createSignal<Selection | undefined>(undefined);
   const [tab, setTab] = createSignal<Tab>("designer");
+  const [hovered, setHovered] = createSignal<string | undefined>(undefined);
 
   const project = () => loaded()?.project;
 
@@ -108,6 +112,8 @@ export function createAppState(): AppState {
     here = place;
     setSelection(next);
     setTab(nextTab);
+    // The hovered row is often removed by the navigation itself, so it never reports the pointer leaving.
+    setHovered(undefined);
     history[mode === "push" ? "pushState" : "replaceState"]({ [HISTORY_KEY]: place }, "");
   };
 
@@ -179,6 +185,8 @@ export function createAppState(): AppState {
     assetUrls,
     screen,
     component,
+    hovered,
+    hover: (name) => setHovered(name),
     isNonVisible(candidate) {
       const current = platform();
       return current
