@@ -45,6 +45,8 @@ for (const problem of check(project, kodular)) {
 }
 ```
 
+`check` also flags values that look like embedded API keys, tokens or passwords.
+
 A platform is only needed for checks that depend on which components exist. Reading, editing and writing never need one.
 
 ## Entry points

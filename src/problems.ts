@@ -51,6 +51,25 @@ export type Problem = ProblemBase &
         readonly property: string;
         readonly asset: string;
       }
+    | {
+        /**
+         * A value that looks like a credential (API key, token, password) is
+         * stored in the project, where anyone holding the file can read it.
+         * A heuristic: it can miss secrets and flag harmless values.
+         */
+        readonly code: "possible-secret";
+        /** What it looks like, e.g. `Google API key`, or just `secret`. */
+        readonly kind: string;
+        /** The value with its middle masked, e.g. `AIza…x9Q`. */
+        readonly preview: string;
+        /** Absent for project properties. */
+        readonly screen?: string;
+        readonly component?: string;
+        /** The project or component property holding the value. */
+        readonly property?: string;
+        /** The text block holding the value. */
+        readonly blockId?: string;
+      }
   );
 
 export type ProblemCode = Problem["code"];

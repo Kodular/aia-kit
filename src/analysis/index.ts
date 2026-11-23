@@ -8,6 +8,8 @@ import { serializeScm } from "../formats/scm.ts";
 import { walkBlocks, walkComponents } from "../query.ts";
 import type { Asset, Block, Extension, Project, Screen } from "../types.ts";
 
+export { findSecrets, type SecretProblem } from "../secrets.ts";
+
 export interface Changes {
   readonly added: readonly string[];
   readonly removed: readonly string[];

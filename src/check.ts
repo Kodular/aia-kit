@@ -1,12 +1,14 @@
 import { lookupComponent, type Platform } from "./platforms/platform.ts";
 import type { Problem } from "./problems.ts";
 import { componentReference, mainScreenName, walkBlocks, walkComponents } from "./query.ts";
+import { findSecrets } from "./secrets.ts";
 import type { Project } from "./types.ts";
 
 /**
- * Looks for problems in a project. Without a platform only structural checks
- * run; with one, component types, properties and asset references are checked
- * against the platform's (and the project's extensions') descriptors.
+ * Looks for problems in a project. Without a platform, structural checks and
+ * the search for embedded credentials run; with one, component types,
+ * properties and asset references are also checked against the platform's
+ * (and the project's extensions') descriptors.
  */
 export function check(project: Project, platform?: Platform): Problem[] {
   const problems: Problem[] = [];
@@ -118,6 +120,7 @@ export function check(project: Project, platform?: Platform): Problem[] {
     }
   }
 
+  problems.push(...findSecrets(project));
   return problems;
 }
 

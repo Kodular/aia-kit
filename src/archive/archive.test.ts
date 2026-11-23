@@ -145,7 +145,7 @@ describe("readAia", () => {
 
     expect(project.screens.map((s) => s.name)).toEqual(["Screen1"]);
     expect(project.extensions).toEqual([]);
-    expect(problems.map((p) => [p.code, "screen" in p ? p.screen : p.extension])).toEqual([
+    expect(problems.map((p) => [p.code, "extension" in p ? p.extension : p.screen])).toEqual([
       ["unreadable-screen", "Broken"],
       ["unreadable-screen", "Half"],
       ["unreadable-extension", "com.bad"],
