@@ -2,7 +2,7 @@ import type { JSX } from "@solidjs/web";
 import { walkBlocks, type Block, type Screen } from "aia-kit";
 import { summarizeBlocks } from "aia-kit/analysis";
 import { serializeBky, serializeScm } from "aia-kit/formats";
-import { For, Match, Show, Switch, createMemo } from "solid-js";
+import { For, Match, Show, Switch, createMemo, createSignal } from "solid-js";
 import { groupOf, type Group } from "../lib/blocks.ts";
 import { plural } from "../lib/format.ts";
 import { indentXml } from "../lib/highlight.ts";
@@ -152,19 +152,41 @@ function Raw(props: { screen: Screen }): JSX.Element {
     }
   };
 
+  const [file, setFile] = createSignal<"scm" | "bky">("scm");
+
   return (
-    <div class="flex flex-col gap-4">
-      <Card title={`${props.screen.name}.scm`}>
-        <Code text={prettyScm()} language="json" />
-      </Card>
-      <Card title={`${props.screen.name}.bky`}>
-        <Show
-          when={bky() !== ""}
-          fallback={<Empty>The file is empty: this screen has no blocks.</Empty>}
-        >
-          <Code text={indentXml(bky())} language="xml" />
-        </Show>
-      </Card>
-    </div>
+    <Card>
+      <div class="mb-3 flex items-center gap-1 border-b border-zinc-200 pb-3 dark:border-zinc-800">
+        <For each={["scm", "bky"] as const}>
+          {(extension) => (
+            <button
+              type="button"
+              onClick={() => setFile(extension)}
+              class={[
+                "rounded-md px-2.5 py-1 font-mono text-xs",
+                file() === extension
+                  ? "bg-zinc-200 font-medium dark:bg-zinc-700"
+                  : "text-zinc-600 hover:bg-zinc-200/60 dark:text-zinc-400 dark:hover:bg-zinc-800",
+              ]}
+            >
+              {props.screen.name}.{extension}
+            </button>
+          )}
+        </For>
+      </div>
+      <Switch>
+        <Match when={file() === "scm"}>
+          <Code text={prettyScm()} language="json" />
+        </Match>
+        <Match when={file() === "bky"}>
+          <Show
+            when={bky() !== ""}
+            fallback={<Empty>The file is empty: this screen has no blocks.</Empty>}
+          >
+            <Code text={indentXml(bky())} language="xml" />
+          </Show>
+        </Match>
+      </Switch>
+    </Card>
   );
 }

@@ -19,7 +19,7 @@ export function Code(props: { text: string; language: Language }): JSX.Element {
   const tokens = createMemo(() => tokenize(props.text, props.language));
 
   return (
-    <pre class="max-h-[32rem] overflow-auto font-mono text-xs leading-relaxed">
+    <pre class="max-h-[calc(100vh-16rem)] overflow-auto font-mono text-xs leading-relaxed">
       <For each={tokens()} keyed={false}>
         {(token) => <span class={TOKEN_CLASS[token().kind]}>{token().text}</span>}
       </For>
