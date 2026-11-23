@@ -73,6 +73,21 @@ const OPERATORS: Readonly<Record<string, string>> = {
   OR: "or",
 };
 
+/**
+ * The symbol of a block that reads best between its inputs (`a + b`,
+ * `x = y`, `p and q`), or `undefined` for every other block.
+ */
+export function operatorOf(block: Block): string | undefined {
+  if (
+    block.type === "math_compare" ||
+    block.type === "logic_compare" ||
+    block.type === "logic_operation"
+  ) {
+    return OPERATORS[block.fields["OP"] ?? ""];
+  }
+  return OPERATORS[block.type];
+}
+
 /** A one-line, human-readable description of what a block does. */
 export function labelOf(block: Block): string {
   const f = block.fields;
