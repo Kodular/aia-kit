@@ -1,7 +1,7 @@
 import type { JSX } from "@solidjs/web";
 import type { Asset } from "aia-kit";
 import { findAssetReferences, type AssetReference } from "aia-kit/analysis";
-import { For, Loading, Match, Show, Switch, createMemo } from "solid-js";
+import { For, Loading, Match, Show, Switch, createMemo, createSignal } from "solid-js";
 import { formatBytes } from "../lib/format.ts";
 import { languageOf } from "../lib/highlight.ts";
 import { extensionOf, mimeOf, useApp } from "../state.ts";
@@ -53,6 +53,26 @@ function AssetDetails(props: { asset: Asset }): JSX.Element {
       : [];
   });
 
+  // Facts the browser reports once the media has loaded. Re-derived (cleared) when the asset changes.
+  const [media, setMedia] = createSignal<{ width?: number; height?: number; duration?: number }>(
+    () => {
+      void props.asset;
+      return {};
+    },
+  );
+  const dimensions = () => {
+    const { width, height } = media();
+    return width && height ? `${width} × ${height} px` : undefined;
+  };
+  const duration = () => {
+    const seconds = media().duration;
+    if (seconds === undefined || !Number.isFinite(seconds)) return undefined;
+    const whole = Math.round(seconds);
+    return whole < 60
+      ? `${seconds.toFixed(1)} s`
+      : `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, "0")}`;
+  };
+
   const open = (ref: AssetReference) => {
     if (ref.kind === "icon") return app.select({ kind: "properties" });
     app.selectComponent(ref.screen, ref.kind === "property" ? ref.component : undefined);
@@ -69,6 +89,8 @@ function AssetDetails(props: { asset: Asset }): JSX.Element {
       <div class="flex items-center gap-2">
         <h2 class="text-base font-medium">{props.asset.name}</h2>
         <Badge>{formatBytes(props.asset.blob.size)}</Badge>
+        <Show when={dimensions()}>{(text) => <Badge>{text()}</Badge>}</Show>
+        <Show when={duration()}>{(text) => <Badge>{text()}</Badge>}</Show>
         <Show when={app.unusedAssets().has(props.asset.name)}>
           <Badge tone="warning">unused</Badge>
         </Show>
@@ -77,13 +99,39 @@ function AssetDetails(props: { asset: Asset }): JSX.Element {
       <Card title="Preview">
         <Switch fallback={<Empty>No preview for this file type.</Empty>}>
           <Match when={mime().startsWith("image/")}>
-            <img src={url()} alt={props.asset.name} class="max-h-96 rounded-md object-contain" />
+            <img
+              src={url()}
+              alt={props.asset.name}
+              class="max-h-96 rounded-md object-contain"
+              onLoad={(event) =>
+                setMedia({
+                  width: event.currentTarget.naturalWidth,
+                  height: event.currentTarget.naturalHeight,
+                })
+              }
+            />
           </Match>
           <Match when={mime().startsWith("audio/")}>
-            <audio controls src={url()} class="w-full" />
+            <audio
+              controls
+              src={url()}
+              class="w-full"
+              onLoadedMetadata={(event) => setMedia({ duration: event.currentTarget.duration })}
+            />
           </Match>
           <Match when={mime().startsWith("video/")}>
-            <video controls src={url()} class="max-h-96 rounded-md" />
+            <video
+              controls
+              src={url()}
+              class="max-h-96 rounded-md"
+              onLoadedMetadata={(event) =>
+                setMedia({
+                  width: event.currentTarget.videoWidth,
+                  height: event.currentTarget.videoHeight,
+                  duration: event.currentTarget.duration,
+                })
+              }
+            />
           </Match>
           <Match when={isText()}>
             <Loading fallback={<Empty>Reading…</Empty>}>
