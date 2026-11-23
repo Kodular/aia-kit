@@ -1,6 +1,7 @@
 import type { JSX } from "@solidjs/web";
 import type { BuiltinPlatformId } from "aia-kit/platforms";
 import { FolderOpen, Package } from "lucide";
+import { Show } from "solid-js";
 import { useApp } from "../state.ts";
 import { Search } from "./Search.tsx";
 import { Button, Icon, SegmentedControl } from "./ui/index.ts";
@@ -24,16 +25,18 @@ export function TopBar(): JSX.Element {
       </div>
       <Search />
       <div class="flex items-center justify-end gap-2">
-        <SegmentedControl
-          label="Platform to check the project against"
-          value={app.platformId()}
-          onChange={(id) => app.choosePlatform(id)}
-          items={PLATFORMS}
-        />
+        <Show when={!app.standalone()}>
+          <SegmentedControl
+            label="Platform to check the project against"
+            value={app.platformId()}
+            onChange={(id) => app.choosePlatform(id)}
+            items={PLATFORMS}
+          />
+        </Show>
         <Button
           variant="ghost"
           icon={FolderOpen}
-          title="Open another project"
+          title="Open another file"
           class="py-1.5!"
           onClick={() => app.close()}
         />

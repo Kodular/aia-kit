@@ -35,51 +35,56 @@ export function Sidebar(): JSX.Element {
 
   return (
     <nav class="flex min-h-0 flex-col gap-4 overflow-auto border-r border-zinc-200 p-2 dark:border-zinc-800">
-      <Group label="Screens" count={screens().length}>
-        <For each={screens()}>
-          {(screen) => (
-            <ListRow
-              icon={Smartphone}
-              selected={isScreen(screen.name)}
-              onClick={() => app.selectComponent(screen.name)}
-              trailing={
-                <>
-                  <Show when={screen.name === main()}>
-                    <Badge tone="accent">start</Badge>
-                  </Show>
-                  <Show when={problemCount(screen.name) > 0}>
-                    <Badge tone="warning">{problemCount(screen.name)}</Badge>
-                  </Show>
-                </>
-              }
-            >
-              {screen.name}
-            </ListRow>
-          )}
-        </For>
-      </Group>
+      <Show when={!app.standalone()}>
+        <Group label="Screens" count={screens().length}>
+          <For each={screens()}>
+            {(screen) => (
+              <ListRow
+                icon={Smartphone}
+                selected={isScreen(screen.name)}
+                onClick={() => app.selectComponent(screen.name)}
+                trailing={
+                  <>
+                    <Show when={screen.name === main()}>
+                      <Badge tone="accent">start</Badge>
+                    </Show>
+                    <Show when={problemCount(screen.name) > 0}>
+                      <Badge tone="warning">{problemCount(screen.name)}</Badge>
+                    </Show>
+                  </>
+                }
+              >
+                {screen.name}
+              </ListRow>
+            )}
+          </For>
+        </Group>
 
-      <Group label="Assets" count={assets().length}>
-        <For each={assets()}>
-          {(asset) => (
-            <ListRow
-              icon={assetIcon(asset.name)}
-              title={asset.name}
-              selected={isAsset(asset.name)}
-              onClick={() => app.select({ kind: "asset", name: asset.name })}
-              trailing={
-                <Show when={app.unusedAssets().has(asset.name)}>
-                  <Badge tone="warning">unused</Badge>
-                </Show>
-              }
-            >
-              {asset.name}
-            </ListRow>
-          )}
-        </For>
-      </Group>
+        <Group label="Assets" count={assets().length}>
+          <For each={assets()}>
+            {(asset) => (
+              <ListRow
+                icon={assetIcon(asset.name)}
+                title={asset.name}
+                selected={isAsset(asset.name)}
+                onClick={() => app.select({ kind: "asset", name: asset.name })}
+                trailing={
+                  <Show when={app.unusedAssets().has(asset.name)}>
+                    <Badge tone="warning">unused</Badge>
+                  </Show>
+                }
+              >
+                {asset.name}
+              </ListRow>
+            )}
+          </For>
+        </Group>
+      </Show>
 
-      <Group label="Extensions" count={extensions().length}>
+      <Group
+        label={app.standalone() ? "Extension" : "Extensions"}
+        count={app.standalone() ? undefined : extensions().length}
+      >
         <For each={extensions()}>
           {(extension) => (
             <ListRow
@@ -94,27 +99,33 @@ export function Sidebar(): JSX.Element {
         </For>
       </Group>
 
-      <Group label="Project">
-        <ListRow
-          icon={Settings2}
-          selected={selection()?.kind === "properties"}
-          onClick={() => app.select({ kind: "properties" })}
-        >
-          Properties
-        </ListRow>
-        <ListRow
-          icon={Workflow}
-          selected={selection()?.kind === "navigation"}
-          onClick={() => app.select({ kind: "navigation" })}
-        >
-          Screen flow
-        </ListRow>
-      </Group>
+      <Show when={!app.standalone()}>
+        <Group label="Project">
+          <ListRow
+            icon={Settings2}
+            selected={selection()?.kind === "properties"}
+            onClick={() => app.select({ kind: "properties" })}
+          >
+            Properties
+          </ListRow>
+          <ListRow
+            icon={Workflow}
+            selected={selection()?.kind === "navigation"}
+            onClick={() => app.select({ kind: "navigation" })}
+          >
+            Screen flow
+          </ListRow>
+        </Group>
+      </Show>
     </nav>
   );
 }
 
-function Group(props: { label: string; count?: number; children: JSX.Element }): JSX.Element {
+function Group(props: {
+  label: string;
+  count?: number | undefined;
+  children: JSX.Element;
+}): JSX.Element {
   return (
     <div>
       <SectionLabel count={props.count} class="px-2 pb-1">

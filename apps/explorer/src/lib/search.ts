@@ -107,6 +107,23 @@ export function buildIndex(project: Project): SearchEntry[] {
       context: extension.packageName,
       target: { kind: "extension", packageName: extension.packageName },
     });
+    // What the extension offers, so "which component has a Speak method?" has an answer.
+    const target = { kind: "extension", packageName: extension.packageName } as const;
+    for (const component of extension.components) {
+      const members = [
+        ...component.events.map((member) => [member.name, "event"] as const),
+        ...component.methods.map((member) => [member.name, "method"] as const),
+        ...component.blockProperties.map((member) => [member.name, "property"] as const),
+      ];
+      for (const [name, kind] of members) {
+        entries.push({
+          kind: "extension",
+          title: name,
+          context: `${component.name} ${kind}`,
+          target,
+        });
+      }
+    }
   }
   return entries;
 }

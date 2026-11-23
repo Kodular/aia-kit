@@ -4,7 +4,9 @@ import {
   findScreen,
   mainScreenName,
   readAia,
+  readAix,
   type Component,
+  type Extension,
   type Problem,
   type Project,
   type Screen,
@@ -46,10 +48,14 @@ interface Loaded {
   readonly fileName: string;
   readonly project: Project;
   readonly readProblems: readonly Problem[];
+  /** A lone extension, wrapped in an otherwise empty project. */
+  readonly standalone: boolean;
 }
 
 export interface AppState {
   readonly fileName: Accessor<string | undefined>;
+  /** True when a lone `.aix` extension is open instead of a project. */
+  readonly standalone: Accessor<boolean>;
   readonly project: Accessor<Project | undefined>;
   readonly error: Accessor<string | undefined>;
   readonly busy: Accessor<boolean>;
@@ -142,7 +148,9 @@ export function createAppState(): AppState {
 
   const problems = createMemo<readonly Problem[]>(() => {
     const current = loaded();
-    return current ? [...current.readProblems, ...check(current.project, platform())] : [];
+    // A lone extension is not a project: there is nothing to check it against.
+    if (!current || current.standalone) return [];
+    return [...current.readProblems, ...check(current.project, platform())];
   });
 
   const unusedAssets = createMemo<ReadonlySet<string>>(() => {
@@ -179,6 +187,7 @@ export function createAppState(): AppState {
 
   return {
     fileName: () => loaded()?.fileName,
+    standalone: () => loaded()?.standalone ?? false,
     project,
     error,
     busy,
@@ -208,11 +217,27 @@ export function createAppState(): AppState {
     async open(file, name) {
       setBusy(true);
       try {
-        const result = await readAia(file);
-        setLoaded({ fileName: name, project: result.project, readProblems: result.problems });
-        goTo({ kind: "screen", screen: mainScreenName(result.project) }, "designer", "replace");
+        const extension = await readExtension(file, name);
+        if (extension) {
+          setLoaded({
+            fileName: name,
+            project: projectAround(extension),
+            readProblems: [],
+            standalone: true,
+          });
+          goTo({ kind: "extension", packageName: extension.packageName }, "designer", "replace");
+        } else {
+          const result = await readAia(file);
+          setLoaded({
+            fileName: name,
+            project: result.project,
+            readProblems: result.problems,
+            standalone: false,
+          });
+          goTo({ kind: "screen", screen: mainScreenName(result.project) }, "designer", "replace");
+          choosePlatform(guessPlatform(result.project));
+        }
         setError(undefined);
-        choosePlatform(guessPlatform(result.project));
       } catch (cause) {
         setError(cause instanceof Error ? cause.message : String(cause));
       } finally {
@@ -239,6 +264,39 @@ export function createAppState(): AppState {
     setTab: (next) => {
       if (here?.selection) goTo(here.selection, next);
     },
+  };
+}
+
+/**
+ * Reads the file as a standalone extension if it is one: named `.aix`, or an
+ * archive that has no project in it but does hold an extension.
+ */
+async function readExtension(file: Blob, name: string): Promise<Extension | undefined> {
+  if (/\.aix$/i.test(name)) return readAix(file);
+  try {
+    await readAia(file);
+    return undefined;
+  } catch (notAProject) {
+    try {
+      return await readAix(file);
+    } catch {
+      throw notAProject;
+    }
+  }
+}
+
+/** An empty project holding just this extension, so the rest of the app can treat both alike. */
+function projectAround(extension: Extension): Project {
+  return {
+    properties: {
+      main: `${extension.packageName}.Extension`,
+      name: extension.packageName,
+      extra: {},
+    },
+    screens: [],
+    assets: [],
+    extensions: [extension],
+    otherFiles: [],
   };
 }
 

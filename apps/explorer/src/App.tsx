@@ -77,7 +77,9 @@ export function App(): JSX.Element {
               <Inspector />
             </Show>
           </div>
-          <ProblemsPane />
+          <Show when={!state.standalone()}>
+            <ProblemsPane />
+          </Show>
         </Show>
       </div>
     </AppContext>

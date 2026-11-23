@@ -18,9 +18,10 @@ export function EmptyState(): JSX.Element {
     <div class="flex h-full items-center justify-center p-6">
       <div class="w-full max-w-md rounded-xl border border-dashed border-zinc-300 bg-white p-8 text-center dark:border-zinc-700 dark:bg-zinc-900">
         <Icon icon={Upload} size={28} class="mx-auto mb-4 text-zinc-400" />
-        <h1 class="text-lg font-medium">Explore an App Inventor project</h1>
+        <h1 class="text-lg font-medium">Explore an App Inventor project or extension</h1>
         <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-          Drop an .aia file anywhere, or choose one. It is read in your browser and never uploaded.
+          Drop an .aia project or .aix extension anywhere, or choose one. It is read in your browser
+          and never uploaded.
         </p>
         <div class="mt-6 flex justify-center gap-2">
           <Button variant="primary" icon={FolderOpen} onClick={() => input?.click()}>
@@ -31,7 +32,7 @@ export function EmptyState(): JSX.Element {
         <input
           ref={(el) => (input = el)}
           type="file"
-          accept=".aia,.zip"
+          accept=".aia,.aix,.zip"
           class="hidden"
           onChange={(event) => {
             const file = event.currentTarget.files?.[0];

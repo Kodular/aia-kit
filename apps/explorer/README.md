@@ -2,6 +2,8 @@
 
 Browse an App Inventor / Kodular project in the browser: screens, component tree, a schematic layout preview, blocks as an outline, assets, extensions, project properties, navigation between screens, and the problems `check` finds.
 
+It also opens a standalone `.aix` extension and shows its components, events, methods, properties and files.
+
 Files are read locally with `aia-kit`; nothing is uploaded. The app is read-only.
 
 ```

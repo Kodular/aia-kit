@@ -45,23 +45,25 @@ function ExtensionDetails(props: { extension: Extension }): JSX.Element {
         {(descriptor) => <DescriptorCard descriptor={descriptor} />}
       </For>
 
-      <Card title="Used by">
-        <div class="flex flex-col items-start gap-1">
-          <For
-            each={users()}
-            fallback={<Empty>No screen uses a component from this extension.</Empty>}
-          >
-            {(user) => (
-              <Button
-                variant="link"
-                onClick={() => app.selectComponent(user.screen, user.component, "designer")}
-              >
-                {user.screen} · {user.component}
-              </Button>
-            )}
-          </For>
-        </div>
-      </Card>
+      <Show when={!app.standalone()}>
+        <Card title="Used by">
+          <div class="flex flex-col items-start gap-1">
+            <For
+              each={users()}
+              fallback={<Empty>No screen uses a component from this extension.</Empty>}
+            >
+              {(user) => (
+                <Button
+                  variant="link"
+                  onClick={() => app.selectComponent(user.screen, user.component, "designer")}
+                >
+                  {user.screen} · {user.component}
+                </Button>
+              )}
+            </For>
+          </div>
+        </Card>
+      </Show>
 
       <Card title="Files" actions={<Badge>{props.extension.files.length}</Badge>}>
         <FileTree files={props.extension.files} />
