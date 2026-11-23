@@ -26,7 +26,7 @@ SCM does **not** contain blocks logic — only structure and property bags for t
 
 The file looks like a **Scheme block comment** enclosing a **`$JSON`** payload. That mirrors **Young Android** history: designer data was embedded in a textual pipeline related to Scheme/YAIL tooling. Today it is effectively **JSON-in-comment**; creators ignore the Scheme angle for most practical edits.
 
-**aia-kit** extracts JSON with a regex matching the `$JSON` region (see [`parseScm`](../src/scm/parse.ts)).
+**aia-kit** extracts JSON with a regex matching the `$JSON` region (see [`parseScm`](../src/formats/scm.ts)).
 
 ---
 
@@ -41,7 +41,7 @@ Typical top-level keys (see [aia.md § SCM](aia.md#scm-files-scm)):
 | **`Properties`** | Root **RawComponent** — the Form node with nested **`$Components`**. |
 | **`authURL`** | Optional tag array (platform/creator). Preserved on round-trip even when not interpreted. |
 
-Additional keys may appear in real AIAs. **`serializeScm`** parses the full wrapper JSON, replaces only **`Properties`** with the updated tree, and re-stringifies — so **`YaVersion`**, **`Source`**, **`authURL`**, and other top-level keys round-trip together with the wrapper (property value fidelity inside components follows **`parseScm`** string rules; see comment in [`serialize.ts`](../src/scm/serialize.ts)).
+Additional keys may appear in real AIAs. Every key other than **`Properties`** is kept in **`Screen.meta.form`** and written back.
 
 ---
 
@@ -58,28 +58,24 @@ Recursive objects use MIT naming conventions:
 | **`$Components`** | Child array; **`[]`** if leaf. |
 | **Other keys** | Property values as JSON primitives or strings (e.g. **`"&HFFFFFFFF"`** for colors). |
 
-**aia-kit** maps this to **`AiaComponent`**: `name`, `type`, `uid`, `properties` (flat string map), `children`.
+**aia-kit** maps this to **`Component`**: `name`, `type`, `version`, `uuid`, `properties` (string map), `children`. Values that are not strings, and unrecognised `$` keys, are kept in `extra` so nothing is lost.
 
 ---
 
-## Resolution vs raw
+## Types and descriptors
 
-- **`parseScm`** → **`AiaComponent`** — unvalidated strings, no platform descriptors.
-- **`buildModel(project, environment)`** → **`ModelComponent`** — attaches **`ComponentDescriptor`**, typed **`ComponentProperty`**, and diagnostics for unknown types/properties.
-
-Full Java class names used in **YAIL** come from the **environment**, not from SCM **`$Type`** alone.
+A **`Component`** carries only what the file says. To learn what a type offers (properties, events, methods, its full Java class name), look it up in a platform: **`lookupComponent(component.type, platform, project)`** from `aia-kit/platforms`.
 
 ---
 
 ## aia-kit APIs
 
 | Piece | Location |
-|-------|-----------|
-| Public SCM editor | **`ScmDocument`** — [`src/scm/index.ts`](../src/scm/index.ts) |
-| Screen field | **`AiaScreen.scm`** (`string`) |
-| Project fold-back | **`replaceScreenScm`** — [`src/aia/screens.ts`](../src/aia/screens.ts) |
-
-`ScmDocument` parses SCM text, updates the local `AiaComponent` tree, then serialises back while preserving envelope metadata from the original string. Use `replaceScreenScm` to fold the edited SCM string back into an `AiaProject`.
+|-------|----------|
+| A screen's tree | **`Screen.form`** |
+| Find / walk | **`findComponent`**, **`findParent`**, **`walkComponents`** — [`src/query.ts`](../src/query.ts) |
+| Edit | **`addComponent`**, **`removeComponent`**, **`renameComponent`**, **`moveComponent`**, **`setProperty`** — [`src/edit/components.ts`](../src/edit/components.ts) |
+| Loose files | **`parseScm`**, **`serializeScm`** from `aia-kit/formats` — [`src/formats/scm.ts`](../src/formats/scm.ts) |
 
 ---
 

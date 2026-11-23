@@ -17,26 +17,33 @@ youngandroidproject/
 
 ## Field reference
 
-| Raw key | TypeScript field | Type | Example | Notes |
-|---------|-----------------|------|---------|-------|
-| `main` | `main` | `string` | `appinventor.ai_user.MyApp.Screen1` | Fully-qualified first screen class. The package path under `src/` is derived from this by dropping the last segment (e.g. `appinventor/ai_user/MyApp`). |
-| `name` | `name` | `string` | `MyApp` | Short project name. Falls back to `aname` if absent. |
-| `aname` | `appName` | `string` (optional) | `My App` | Display name shown on device. |
-| `versioncode` | `versionCode` | `integer` | `1` | Integer build number. Defaults to `1` if missing or non-numeric. |
-| `versionname` | `versionName` | `string` | `1.0` | Human-readable version string. |
-| `sizing` | `sizing` | `"Fixed" \| "Responsive"` (optional) | `Responsive` | Screen sizing mode. Omitted from `ProjectProperties` if value is not exactly `Fixed` or `Responsive`. |
-| `theme` | `theme` | `string` (optional) | `AppTheme.Light.DarkActionBar` | Android theme name. |
-| `color.primary` | `colorPrimary` | `string` (optional) | `&HFF6200EE` | App primary color in ARGB hex (`&H` prefix). |
-| `color.primary.dark` | `colorPrimaryDark` | `string` (optional) | `&HFF3700B3` | App primary dark color. |
-| `color.accent` | `colorAccent` | `string` (optional) | `&HFF03DAC5` | App accent color. |
-| `showlistsasjsonarray` | `showListsAsJsonArray` | `boolean` (optional) | `true` | Controls list serialization behavior. |
-| `actionbar` | `actionBar` | `boolean` (optional) | `true` | Whether to show the action bar. |
+| Raw key | `ProjectProperties` field | Type | Example |
+|---------|---------------------------|------|---------|
+| `main` | `main` | `string` | `appinventor.ai_user.MyApp.Screen1` |
+| `name` | `name` | `string` | `MyApp` |
+| `versioncode` | `versionCode` | `number` | `1` |
+| `versionname` | `versionName` | `string` | `1.0` |
+| `useslocation` | `usesLocation` | `boolean` | `False` |
+| `aname` | `appName` | `string` | `My App` |
+| `icon` | `icon` | `string` | `logo.png` |
+| `sizing` | `sizing` | `string` | `Responsive` |
+| `showlistsasjson` | `showListsAsJson` | `boolean` | `True` |
+| `actionbar` | `actionBar` | `boolean` | `True` |
+| `theme` | `theme` | `string` | `AppTheme.Light.DarkActionBar` |
+| `color.primary` | `primaryColor` | `string` | `&HFF6200EE` |
+| `color.primary.dark` | `primaryColorDark` | `string` | `&HFF3700B3` |
+| `color.accent` | `accentColor` | `string` | `&HFF03DAC5` |
+| `defaultfilescope` | `defaultFileScope` | `string` | `App` |
+
+`main` is required. The package path under `src/` is `main` without its last segment. `name` falls back to the project segment of `main`. Every field except `main` and `name` is optional and absent when the file has no such key.
+
+Booleans are read case-insensitively and written as `True` / `False`. A value that does not parse as its type (for example `versioncode=abc`) stays in `extra` instead of being dropped.
 
 ---
 
-## Unknown keys
+## Other keys
 
-Real AIA files may contain additional keys not listed above (e.g. `source`, `authURL`, `defaultfilescope`, `minSdk`, platform-specific theme variants). These are collected into `ProjectProperties.unknown: Record<string, string>` and **round-tripped faithfully** — they are not interpreted or validated, but will be preserved on write.
+Every other key — `assets`, `source`, `build`, and platform-specific ones — is kept verbatim in `ProjectProperties.extra` and written back.
 
 ---
 
@@ -45,53 +52,33 @@ Real AIA files may contain additional keys not listed above (e.g. `source`, `aut
 ```properties
 main=appinventor.ai_user.MyApp.Screen1
 name=MyApp
-aname=My App
+assets=../assets
+source=../src
+build=../build
 versioncode=1
 versionname=1.0
+useslocation=False
+aname=My App
 sizing=Responsive
+showlistsasjson=True
+actionbar=True
 theme=AppTheme.Light.DarkActionBar
 color.primary=&HFF6200EE
 color.primary.dark=&HFF3700B3
 color.accent=&HFF03DAC5
-showlistsasjsonarray=true
-actionbar=true
 ```
 
 ---
 
 ## aia-kit APIs
 
-| Operation | Function | Source |
-|-----------|----------|--------|
-| Parse raw key-value map → `ProjectProperties` | `parseProjectProperties()` | [`src/project-properties/index.ts`](../src/project-properties/index.ts) |
-| Serialize `ProjectProperties` → file text | `serializeProjectProperties()` | [`src/project-properties/index.ts`](../src/project-properties/index.ts) |
+| Operation | Function |
+|-----------|----------|
+| Read from a project | `project.properties` |
+| Change | `setProjectProperties(project, changes)` |
+| Loose file text ⇄ `ProjectProperties` | `parseProperties`, `serializeProperties` from `aia-kit/formats` — [`src/formats/properties.ts`](../src/formats/properties.ts) |
 
-The raw file text is parsed with the `properties-file` npm package before being passed to `parseProjectProperties`. On write, `serializeProjectProperties` emits known keys first (in a fixed order), then appends all `unknown` entries.
-
----
-
-## TypeScript type
-
-```typescript
-interface ProjectProperties {
-  main: string
-  name: string
-  versionCode: number
-  versionName: string
-  appName?: string
-  sizing?: 'Fixed' | 'Responsive'
-  theme?: string
-  colorPrimary?: string
-  colorPrimaryDark?: string
-  colorAccent?: string
-  showListsAsJsonArray?: boolean
-  actionBar?: boolean
-  /** All other key-value pairs not explicitly modelled above */
-  unknown: Record<string, string>
-}
-```
-
-Defined in [`src/project-properties/index.ts`](../src/project-properties/index.ts).
+The Java `.properties` syntax (escapes, `=` / `:` separators, continuations, comments) is handled by aia-kit itself. Unchanged properties are written back as their original text; changed ones are written in App Inventor's key order, followed by the remaining `extra` keys.
 
 ---
 

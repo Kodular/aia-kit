@@ -91,7 +91,8 @@ For **aia-kit**, parity with every fork-specific block is explicitly non-goals f
 
 ## aia-kit usage
 
-- **Parse:** `*.yail` is optional in the ZIP; when present it is stored on `AiaScreen.yail`.
-- **Write:** See [AIA write pipeline](../src/aia/write-archive.ts); optional regeneration when `yail` is missing is planned in [M2c](superpowers/plans/2026-05-02-aia-kit-v2-m2c-yail-generation.md).
+- **Read:** a `.yail` file in the ZIP is remembered alongside its screen.
+- **Write:** the original `.yail` is written back while the screen is unchanged, and dropped once the screen is edited. aia-kit does not generate YAIL; App Inventor regenerates it when the project is opened or built.
 
 Canonical glossary entry: [Ubiquitous language — YAIL](ubiquitous-language.md#file-formats).
+

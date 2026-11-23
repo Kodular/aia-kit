@@ -4,11 +4,10 @@
   "tabWidth": 2,
   "ignorePatterns": [
     "dist",
-    "node_modules",
     "coverage",
     "pnpm-lock.yaml",
-    "docs/**",
-    "*.md",
-    "**/*.md"
+    "src/platforms/data",
+    "test-fixtures",
+    "*.md"
   ]
 }

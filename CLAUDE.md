@@ -2,95 +2,64 @@
 
 ## Project Overview
 
-`aia-kit` — TypeScript toolkit for reading, inspecting, editing, analysing, and writing App Inventor-family formats: AIA, AIS, AIX, SCM, BKY, YAIL, project properties, and component descriptor registries.
+`aia-kit` — TypeScript library to read, inspect, edit, check and write App Inventor / Kodular projects (`.aia`) and extensions (`.aix`). Browser + Node, Blob-based.
 
-**Branch:** `v2-rewrite` — API contract is the [Composable API Design Spec](docs/superpowers/specs/2026-05-03-aia-kit-v2-composable-api-design.md) (Adopted). The older [v2 Design Spec](docs/superpowers/specs/2026-05-01-aia-kit-v2-design.md) is superseded/historical.
+v2 is a ground-up redesign and is not published yet (latest published: 1.1.2). There is no backwards compatibility with v1.
 
 ## Commands
 
+Tool versions come from `mise.toml` (`mise install`).
+
 ```
-pnpm build       # bundle with tsdown → dist/
+pnpm check       # typecheck + lint + fmt:check + test
 pnpm test        # Vitest
-pnpm typecheck   # tsc --noEmit only
+pnpm typecheck   # tsc --noEmit (TypeScript 7)
+pnpm lint        # oxlint
+pnpm fmt         # oxfmt
+pnpm build       # tsdown → dist/
 ```
 
-Tests are colocated with source in `src/` (e.g. `src/aia/aia.test.ts`). Shared test utilities: `src/test-helpers.ts` (exports `FIXTURES_DIR` path + factory helpers). Real AIA fixtures: `test-fixtures/`.
+Tests are colocated with source (`src/**/*.test.ts`). Shared fixtures and builders: `src/test-helpers.ts`. Real archives: `test-fixtures/`.
+
+## Design rules
+
+1. **Model the domain, not the files.** The API speaks in projects, screens, components, blocks, assets, extensions. SCM/BKY/properties are codecs under `src/formats/`.
+2. **Plain immutable data + pure functions.** No classes except errors. Every type in `src/types.ts` is `readonly`. Edits return a new `Project` and share untouched parts; an edit that changes nothing returns the same object.
+3. **One model.** There is no separate "enriched" project. Anything that needs descriptors is a function of `(project, platform)`.
+4. **Edits keep cross-format invariants** (component names ↔ blocks, screen name ↔ form name ↔ `main`). Add new edits under `src/edit/`; do not make callers patch blocks themselves.
+5. **Lossless.** Parsers keep what they do not understand (`extra`, `meta`, `otherFiles`). Parsed values are frozen and their source text is remembered in a `WeakMap`, so unchanged parts serialize to their original bytes. The fixture test in `src/archive/archive.test.ts` enforces byte-exact round-trips.
+6. **Three failure channels, no others.** Unusable input → throw `ArchiveError` / `ParseError`. Impossible edit → throw `NotFoundError` / `ConflictError` / `InvalidOperationError`. Findings about data → return `Problem[]` (discriminated on `code`).
+7. **Async only at the ZIP boundary.**
+
+## Layout
+
+```
+src/
+  index.ts            aia-kit            — archives, types, queries, edits, check, errors
+  platforms/          aia-kit/platforms  — loadPlatform, definePlatform, lookupComponent; data/*.json
+  analysis/           aia-kit/analysis   — diff, unused assets/extensions, block reports
+  formats/            aia-kit/formats    — scm, bky, properties, descriptors codecs
+  archive/            readAia, readAix, writeAia, writeAix (zip.js)
+  edit/               screens, components, blocks, assets, extensions, properties, merge
+  query.ts            find*/walk*/componentReference
+  check.ts            check(project, platform?) → Problem[]
+  types.ts  errors.ts  problems.ts
+  internal/           helpers not exported from any entry point
+```
+
+Not implemented: YAIL generation (v1 had a generator; see `git show main:src/generators/yail`). `writeAia` only preserves the original `.yail` of unchanged screens.
 
 ## Documentation
 
 | Doc | Purpose |
 |-----|---------|
-| [docs/usage.md](docs/usage.md) | Core pipeline, examples for every API area |
-| [docs/api.md](docs/api.md) | Full API reference |
-| [docs/superpowers/specs/2026-05-03-aia-kit-v2-composable-api-design.md](docs/superpowers/specs/2026-05-03-aia-kit-v2-composable-api-design.md) | Adopted v2 API contract |
-| [docs/file-formats.md](docs/file-formats.md) | Hub linking all format pages |
+| [docs/usage.md](docs/usage.md) | Guide with examples for every API area |
+| [docs/api.md](docs/api.md) | API reference |
+| [docs/file-formats.md](docs/file-formats.md) | Hub for the format pages |
+| [docs/ubiquitous-language.md](docs/ubiquitous-language.md) | Glossary |
 
-File format pages: [AIA](docs/aia.md) · [AIX](docs/aix.md) · [AIS](docs/ais.md) · [SCM](docs/scm.md) · [BKY](docs/bky.md) · [YAIL](docs/yail.md) · [project.properties](docs/project-properties.md) · [simple_components.json](docs/simple-components-json.md) · [Glossary](docs/ubiquitous-language.md)
-
-## Architecture
-
-### Design Principles
-
-1. **Domain subpaths over root barrels** — public API is `aia-kit/aia`, `aia-kit/scm`, etc. No broad root barrel.
-2. **Two-layer type system** — `AiaProject` = archive/data truth. `ModelProject` = semantic model (`AiaProject + Environment`).
-3. **No hidden state** — `Environment` is the base platform only. Extensions fold into `ModelProject.componentRegistry` during `buildModel`.
-4. **Small classes only** — `ScmDocument`, `YailEmitter`, `ComponentRegistry` are fine. No god `AiaProject` class, no `BkyDocument`.
-5. **First-class diagnostics** — data problems → `Diagnostic[]`. Throws reserved for hard IO/construction failures.
-
-### Modules
-
-**Raw data** (`src/types.ts`): `AiaProject`, `AiaScreen`, `AiaAsset`, `AiaComponent`, `AiaExtension`
-
-**Model** (`src/model/`): `buildModel(project, env)` → `ModelProject` with enriched `componentRegistry`, `ModelScreen`, `ModelComponent`
-
-**Infrastructure:**
-- `Environment` — base-platform value object; load with `getEnvironmentFor(Platform.KodularCreator | Platform.MitAppInventor)` or `createEnvironment`
-- `ComponentRegistry` — immutable; `ComponentRegistry.of(...)`; `MutableComponentRegistry` for assembly only
-- `Diagnostics` (`src/diagnostics.ts`) — exported from root `aia-kit` only (no dedicated subpath)
-- `Errors` (`src/errors.ts`) — `AiaKitError`, `AiaParseError`, `AiaZipError`, `AiaStructureError`, `AiaWriteError`
-
-**Subpath APIs:**
-- `aia-kit/aia` — `readAia`, `writeAia`, screen/asset/extension mutations
-- `aia-kit/aix` / `aia-kit/ais` — archive/package helpers
-- `aia-kit/scm` — `ScmDocument` (public SCM editing API)
-- `aia-kit/bky` — `parseBky`, `serializeBky`, AST transforms; no `BkyDocument`; no `queryBlocks`/`updateBlocks`
-- `aia-kit/yail` — `YailEmitter.for(model).emitScreen(...)`
-- `aia-kit/model` — `buildModel`
-- `aia-kit/environment` — `getEnvironmentFor`, `createEnvironment`, `Platform`
-- `aia-kit/component-descriptor` — descriptor normalisation, registry classes
-- `aia-kit/project-properties` — `ProjectProperties`, `parseProjectProperties`, `serializeProjectProperties`
-
-**Component JSON:** `environments/kodular-creator/simple_components.json` · `environments/mit-app-inventor/simple_components.json`
-
-### Pipeline
-
-```
-readAia(blob)                    → AiaProject   (no env needed)
-buildModel(project, env)         → ModelProject (extensions folded into registry)
-ScmDocument / parseBky / ...     → edit by domain
-writeAia(model, {withYail:true}) → Blob         (YAIL embedded)
-```
-
-### Example
-
-```typescript
-import { readAia, writeAia, replaceScreenScm } from 'aia-kit/aia'
-import { getEnvironmentFor, Platform } from 'aia-kit/environment'
-import { buildModel } from 'aia-kit/model'
-import { ScmDocument } from 'aia-kit/scm'
-
-const project = await readAia(aiaBlob)
-const env = await getEnvironmentFor(Platform.KodularCreator)
-
-const screen = project.screens.find(s => s.name === 'Screen1')!
-const scm = ScmDocument.parse(screen.scm)
-scm.addComponent(parentUid, component)
-
-const { project: updated } = replaceScreenScm(project, 'Screen1', scm.serialize())
-const model = buildModel(updated, env)
-const aiaOut = await writeAia(model, { withYail: true })
-```
+Format pages: [AIA](docs/aia.md) · [AIX](docs/aix.md) · [AIS](docs/ais.md) · [SCM](docs/scm.md) · [BKY](docs/bky.md) · [YAIL](docs/yail.md) · [project.properties](docs/project-properties.md) · [simple_components.json](docs/simple-components-json.md)
 
 ## Stack
 
-ES modules · TypeScript → bundled by tsdown (rolldown) · Biome · `@zip.js/zip.js` · `@xmldom/xmldom` · `properties-file` · `zod` · Blob-based (browser + Node)
+ES modules · Node 26 + pnpm 12 via mise · TypeScript 7 (`isolatedDeclarations`, `erasableSyntaxOnly`, `exactOptionalPropertyTypes`, `noUncheckedIndexedAccess`) · tsdown · Vitest · oxlint · oxfmt · `@zip.js/zip.js` · `@xmldom/xmldom`

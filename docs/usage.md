@@ -1,329 +1,225 @@
-# aia-kit usage guide
+# Usage guide
 
-A practical walkthrough of the v2 API. For format internals see [file-formats.md](file-formats.md); for the full exported surface see [api.md](api.md).
-
----
-
-## The core pipeline
-
-aia-kit has a two-stage pipeline: **read** (ZIP → raw data) then **build model** (raw → enriched model). Keeping them separate means you can inspect raw data without needing a platform environment, and you only pay for model construction when you need descriptors and diagnostics.
-
-```
-AIA blob  ──readAia──▶  AiaProject  ──buildModel──▶  ModelProject
-                         (raw)                       (enriched)
-```
-
-### Read and build a model
+## Reading
 
 ```typescript
-import { readAia } from 'aia-kit/aia'
-import { getEnvironmentFor, Platform } from 'aia-kit/environment'
-import { buildModel } from 'aia-kit/model'
+import { readAia } from "aia-kit";
 
-const env = await getEnvironmentFor(Platform.KodularCreator)
-const blob = /* Blob from file input, fetch, or fs.readFile */
-
-const raw = await readAia(blob)       // AiaProject — no env needed
-const model = buildModel(raw, env)    // ModelProject
-const { diagnostics } = model
+const { project, problems } = await readAia(input); // Blob | ArrayBuffer | Uint8Array
 ```
 
-Use `readAia` alone when you only need to inspect raw properties, screen names, or asset lists without building a semantic model.
+`readAia` throws `ArchiveError` only when the input is hopeless: not a ZIP, or no usable `project.properties`. Anything smaller — a screen with a corrupt `.scm`, an extension without `components.json` — is reported in `problems`, and the affected files are kept in `project.otherFiles` so they are still written back.
 
----
+In Node, pass the result of `fs.readFile` directly.
 
-## Environments
-
-An `Environment` bundles a component registry (from `simple_components.json`) and a built-in block registry (Blockly block types).
+## The data model
 
 ```typescript
-// Bundled platforms
-import { getEnvironmentFor, Platform } from 'aia-kit/environment'
+interface Project {
+  properties: ProjectProperties; // project.properties, typed
+  screens: Screen[];             // main screen first
+  assets: Asset[];               // { name, blob }
+  extensions: Extension[];       // { packageName, components, files }
+  otherFiles: ArchiveFile[];     // anything else in the archive
+}
 
-const kodular = await getEnvironmentFor(Platform.KodularCreator)
-const mit = await getEnvironmentFor(Platform.MitAppInventor)
+interface Screen {
+  name: string;
+  form: Component;  // designer tree
+  blocks: Block[];  // top-level blocks
+  meta: ScreenMeta; // file-format versions
+}
 
-// Read standalone AIX extensions
-import { readAix } from 'aia-kit/aix'
+interface Component {
+  name: string;
+  type: string; // "Button", or a qualified name for extension components
+  version?: string;
+  uuid: string;
+  properties: Record<string, string>; // exactly as App Inventor encodes them
+  children: Component[];
+}
 
-const aix = await readAix(aixBlob)
-```
-
-The `componentRegistry` and `builtinBlockRegistry` properties on `Environment` are typed and exported — you can accept them in your own functions:
-
-```typescript
-import type { Environment } from 'aia-kit/environment'
-
-function findByCategory(env: Environment, category: string) {
-  return env.componentRegistry.descriptors.filter(d => d.categoryString === category)
+interface Block {
+  type: string;
+  id: string;
+  fields: Record<string, string>;
+  mutation: Record<string, string>; // instance_name, event_name, …
+  values: Record<string, Block>;     // expression inputs
+  statements: Record<string, Block>; // first block of each nested stack
+  next?: Block;                      // block attached below
 }
 ```
 
----
+Everything is `readonly`. These are ordinary objects: you can build them by hand, spread them, and compare them with `===`.
 
-## Diagnostics
-
-All data-level problems surface as `Diagnostic[]` rather than throws. Throws are reserved for hard I/O failures (bad ZIP, unreadable file).
+## Looking around
 
 ```typescript
-for (const d of diagnostics) {
-  console.log(`[${d.severity}] ${d.code} at ${d.path.join('.')}: ${d.message}`)
+import { getScreen, findComponent, walkComponents, walkBlocks, componentReference } from "aia-kit";
+
+const screen = getScreen(project, "Screen1"); // throws NotFoundError; findScreen returns undefined
+const button = findComponent(screen, "Button1");
+
+for (const component of walkComponents(screen)) {
+  console.log(component.type, component.name);
+}
+
+// Every event handler on the screen
+for (const block of walkBlocks(screen)) {
+  const ref = componentReference(block);
+  if (ref?.kind === "event") console.log(`when ${ref.instance}.${ref.member}`);
 }
 ```
 
-Severity levels: `'error'` | `'warning'` | `'info'`
+## Editing
 
----
-
-## Working with blocks
-
-Blocks are stored as BKY (Blockly XML) per screen. The BKY helpers let you parse, transform, and serialise `BlockAst` objects.
-
-### Query blocks (read-only)
-
-```typescript
-import { parseBky } from 'aia-kit/bky'
-
-const ast = parseBky(project.screens[0].bky)
-const blockCount = ast.blocks.length
-
-const eventHandlers = ast.blocks.filter(b => b.type === 'component_event')
-```
-
-### Update blocks on one screen
-
-```typescript
-import { replaceScreenBky } from 'aia-kit/aia'
-import { parseBky, removeDisabledBlocks, serializeBky } from 'aia-kit/bky'
-
-const screen = raw.screens.find(s => s.name === 'Screen1')!
-const nextBky = serializeBky(removeDisabledBlocks(parseBky(screen.bky)))
-const { project: updated, diagnostics } = replaceScreenBky(raw, 'Screen1', nextBky)
-```
-
-### Parse and serialise BKY manually
-
-```typescript
-import { parseBky, serializeBky } from 'aia-kit/bky'
-
-const ast = parseBky(screen.bky)          // BKY XML string → BlockAst
-const xml = serializeBky(ast)             // BlockAst → BKY XML string
-```
-
----
-
-## Working with components
-
-Use `ScmDocument` for public SCM component-tree editing. Build a `ModelProject` when you need platform-enriched component descriptors.
-
-```typescript
-import { ScmDocument } from 'aia-kit/scm'
-
-const document = ScmDocument.parse(screen.scm)
-
-// Find by UID
-const btn = document.findComponentByUid('some-uid-string')
-
-// Find all components of a type
-const labels = document.getComponentsByType('com.google.appinventor.components.runtime.Label')
-```
-
----
-
-## Structural mutations
-
-All mutation functions return `MutationResult` — a new `AiaProject` plus any diagnostics. The input project is never mutated.
-
-### Screens
-
-```typescript
-import { addScreen, removeScreen } from 'aia-kit/aia'
-
-const settingsScreen = {
-  name: 'Settings',
-  scm: '{"Properties":{"$Name":"Settings","$Type":"Form","Uuid":"0","$Components":[]}}',
-  bky: '<xml xmlns="https://developers.google.com/blockly/xml"></xml>',
-  yail: null,
-}
-
-const { project: withNew } = addScreen(raw, settingsScreen)
-const { project: without } = removeScreen(raw, 'OldScreen')
-```
-
-### Components
-
-```typescript
-import { replaceScreenScm } from 'aia-kit/aia'
-import { ScmDocument } from 'aia-kit/scm'
-
-const newComponent = {
-  name: 'MyButton',
-  type: 'com.google.appinventor.components.runtime.Button',
-  uid: crypto.randomUUID(),
-  properties: { Text: 'Click me' },
-  children: [],
-}
-
-const screen = raw.screens.find(s => s.name === 'Screen1')!
-const document = ScmDocument.parse(screen.scm)
-const diagnostics = document.addComponent('parent-uid', newComponent)
-const { project: withBtn } = replaceScreenScm(raw, 'Screen1', document.serialize())
-```
-
-### Assets and extensions
-
-```typescript
-import { addAsset, addExtension, removeAsset, removeExtension } from 'aia-kit/aia'
-import { readAix } from 'aia-kit/aix'
-
-const asset = {
-  name: 'logo.png',
-  type: 'image/png',
-  sizeBytes: logoBytes.byteLength,
-  data: async () => logoBytes,
-}
-
-const { project: withAsset } = addAsset(raw, asset)
-const { project: withoutAsset } = removeAsset(raw, 'old-logo.png')
-
-const aix = await readAix(aixBlob)
-const { project: withExt } = addExtension(raw, aix)
-const { project: withoutExt } = removeExtension(raw, 'com.example.MyExtension')
-```
-
----
-
-## Analysis
-
-### Run the built-in diagnostic pass
-
-```typescript
-import { diagnose } from 'aia-kit/analysis'
-
-const diagnostics = diagnose(raw, env)
-```
-
-### Diff two projects
-
-```typescript
-import { diffProjects } from 'aia-kit/analysis'
-
-const diff = diffProjects(projectA, projectB)
-// diff.screensOnlyInA, diff.screensOnlyInB, diff.screensDiffering, ...
-```
-
-### Find unused assets and extensions
-
-```typescript
-import { findAssetReferences, findUnusedAssets, findUnusedExtensions } from 'aia-kit/analysis'
-
-const unusedAssets = findUnusedAssets(model)
-const unusedExts = findUnusedExtensions(model)
-
-const refs = findAssetReferences(model)
-// refs: AssetReference[] — where each asset is referenced (property or block_xml)
-```
-
-### Block analysis
+Every edit takes a project and returns a new one.
 
 ```typescript
 import {
-  analyzeComplexity,
-  analyzeVariables,
-  buildNavGraph,
-  exportBlockSummary,
-  findDeadBlocks,
-} from 'aia-kit/analysis'
-import { parseBky } from 'aia-kit/bky'
+  addComponent, createComponent, moveComponent, removeComponent, renameComponent,
+  setProperty, removeProperty, addScreen, copyScreen, renameScreen, removeScreen,
+  addAsset, renameAsset, removeAsset, addExtension, removeExtension, readAix,
+  setProjectProperties, mergeProjects,
+} from "aia-kit";
 
-const ast = parseBky(model.screens[0].source.bky)
+let p = project;
 
-const vars = analyzeVariables(ast)
-// vars.declared, vars.referenced
+// Components
+p = addComponent(p, "Screen1", createComponent("Label", "Status", { properties: { Text: "Ready" } }));
+p = addComponent(p, "Screen1", createComponent("Button", "Ok"), { parent: "Row1", index: 0 });
+p = setProperty(p, "Screen1", "Status", "FontSize", 18);   // stored as "18"
+p = setProperty(p, "Screen1", "Status", "Visible", false);  // stored as "False"
+p = renameComponent(p, "Screen1", "Status", "StatusLabel"); // blocks are updated
+p = moveComponent(p, "Screen1", "Ok", { parent: "Screen1" });
+p = removeComponent(p, "Screen1", "Ok");                    // its blocks are removed
 
-const summary = exportBlockSummary(ast)
-// summary.topLevelCount, summary.totalBlocks, summary.blocksByType
+// Screens
+p = addScreen(p, "Settings");                // empty; inherits versions from the main screen
+p = copyScreen(p, "Settings", "About");
+p = renameScreen(p, "About", "AboutApp");    // updates main and "open another screen" blocks
+p = removeScreen(p, "AboutApp");
 
-const complexity = analyzeComplexity(model)
-// complexity.screens[n].maxDepth, ...
+// Assets and extensions
+p = addAsset(p, "logo.png", pngBlob);        // Blob | ArrayBuffer | Uint8Array | string
+p = renameAsset(p, "logo.png", "brand.png"); // properties naming it are updated
+p = addExtension(p, await readAix(aixBlob));
 
-const dead = findDeadBlocks(model)
-// dead: DeadBlock[] — top-level blocks that are unreachable
+// Project settings
+p = setProjectProperties(p, { versionCode: 2, versionName: "1.1" });
 
-const nav = buildNavGraph(model)
-// nav.nodes (screen names), nav.edges (open_another_screen calls)
+// Combining projects
+p = mergeProjects(p, otherProject, { screens: "rename" });
 ```
 
----
+### When an edit fails
 
-## Generating YAIL
+Edits throw instead of returning a half-applied project:
 
-YAIL is the Scheme-like intermediate language App Inventor uses at runtime. Most consumers won't need this, but it's available:
+| Error | Meaning |
+|-------|---------|
+| `NotFoundError` | The screen, component, asset or extension does not exist (`error.kind`, `error.entity`) |
+| `ConflictError` | The name is already taken |
+| `InvalidOperationError` | The result could not be opened by App Inventor: removing the main screen, moving a component into itself, removing an extension that is still in use, … |
+
+All extend `AiaKitError`.
+
+### Anything else
+
+Two escape hatches cover edits without a dedicated function:
 
 ```typescript
-import { readAia, writeAia } from 'aia-kit/aia'
-import { YailEmitter } from 'aia-kit/yail'
-import { getEnvironmentFor, Platform } from 'aia-kit/environment'
-import { buildModel } from 'aia-kit/model'
+import { updateComponent, updateBlocks, mapBlocks } from "aia-kit";
 
-const env = await getEnvironmentFor(Platform.KodularCreator)
-const raw = await readAia(blob)
-const model = buildModel(raw, env)
-const yail = YailEmitter.for(model)
+p = updateComponent(p, "Screen1", "Button1", (c) => ({ ...c, version: "8" }));
 
-// Attach YAIL to each screen before writing
-const screensWithYail = model.source.screens.map(screen => ({
-  ...screen,
-  yail: yail.emitScreen(screen.name),
-}))
+// Delete every disabled block. Returning null removes a block and reconnects the stack around it.
+p = updateBlocks(p, "Screen1", (blocks) => mapBlocks(blocks, (b) => (b.disabled ? null : b)));
 ```
 
-`writeAia(model, { withYail: true })` uses `YailEmitter` internally, so manual generation is only needed if you want to inspect or override the output.
-
----
-
-## Writing back to AIA
+## Checking
 
 ```typescript
-import { writeAia } from 'aia-kit/aia'
+import { check } from "aia-kit";
+import { loadPlatform } from "aia-kit/platforms";
 
-// Pass the raw AiaProject (mutations return AiaProject, not ModelProject)
-const outputBlob = await writeAia(updatedRaw)
+check(project);                               // structural checks only
+check(project, await loadPlatform("kodular")); // plus component types, properties, assets
 ```
 
-If you want `writeAia` to emit missing YAIL from model-space semantics, pass a `ModelProject`:
+`check` returns `Problem[]`. Each problem has a `code` to switch on, a `severity` (`"error"` or `"warning"`), a `message`, and fields specific to its code:
+
+| Code | Fields |
+|------|--------|
+| `missing-main-screen`, `duplicate-screen` | `screen` |
+| `screen-name-mismatch` | `screen`, `formName` |
+| `duplicate-component` | `screen`, `component` |
+| `dangling-block-reference` | `screen`, `blockId`, `component` |
+| `unknown-component-type` | `screen`, `component`, `type` |
+| `unknown-property` | `screen`, `component`, `property` |
+| `missing-asset` | `screen`, `component`, `property`, `asset` |
+| `unreadable-screen` (from `readAia`) | `screen`, `reason` |
+| `unreadable-extension` (from `readAia`) | `extension` |
+
+## Platforms
 
 ```typescript
-const outputBlob = await writeAia(modelProject, { withYail: true })
+import { loadPlatform, lookupComponent, definePlatform, parseComponentDescriptors } from "aia-kit/platforms";
+
+const platform = await loadPlatform("app-inventor");
+const button = lookupComponent("Button", platform);
+button?.events.map((e) => e.name);
+
+// Extension components resolve when you pass the project.
+lookupComponent(component.type, platform, project);
+
+// Another distribution
+const mine = definePlatform({ id: "mine", name: "Mine", components: parseComponentDescriptors(json) });
 ```
 
-### Serialising `project.properties` standalone
+The descriptor data is large, so it lives in its own entry point and is loaded on first use.
+
+## Analysis
 
 ```typescript
-import { parseProjectProperties, serializeProjectProperties } from 'aia-kit/project-properties'
+import {
+  diffProjects, findUnusedAssets, findUnusedExtensions, findAssetReferences,
+  summarizeBlocks, listDeclarations, findOrphanBlocks, navigationGraph,
+} from "aia-kit/analysis";
 
-const text = serializeProjectProperties(raw.properties)   // → key=value string
-const props = parseProjectProperties({
-  main: 'appinventor.ai_user.MyApp.Screen1',
-  name: 'MyApp',
-  versioncode: '1',
-  versionname: '1.0',
-})
+await diffProjects(before, after); // { screens, assets, extensions: { added, removed, changed }, propertiesChanged }
+findUnusedAssets(project);         // Asset[]
+summarizeBlocks(screen);           // { topLevel, total, byType, maxDepth }
+navigationGraph(project);          // { screens, edges: [{ from, to }] }
 ```
 
----
-
-## Error handling
-
-Hard failures throw; data-level project problems are reported as diagnostics after model building.
+## Writing
 
 ```typescript
-try {
-  const raw = await readAia(blob)
-} catch (e) {
-  // Bad ZIPs, missing required archive entries, and malformed archive contents throw.
-  // Data-level project problems are reported as diagnostics after buildModel().
-}
+import { writeAia, writeAix } from "aia-kit";
+
+const blob = await writeAia(project);
+await fs.writeFile("out.aia", await blob.bytes()); // Node
 ```
 
-Data-level project problems are reported as diagnostics, so ordinary invalid components or properties do not need exception handling.
+Parts that were read and not changed are written back as their original bytes.
+
+## Extensions
+
+```typescript
+import { readAix, writeAix } from "aia-kit";
+
+const extension = await readAix(aixBlob);
+extension.packageName;                 // "com.example.myext"
+extension.components[0].methods;       // descriptors
+extension.files.map((f) => f.path);    // classes.jar, assets/…, files/AndroidRuntime.jar, …
+```
+
+## Loose files
+
+```typescript
+import { parseScm, serializeScm, parseBky, serializeBky, parseProperties, serializeProperties } from "aia-kit/formats";
+
+const { form, meta } = parseScm(scmText); // throws ParseError
+const { blocks } = parseBky(bkyText);
+```

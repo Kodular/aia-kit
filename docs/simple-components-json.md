@@ -8,27 +8,31 @@
 
 | Platform | Path |
 |----------|------|
-| Kodular Creator | [`environments/kodular-creator/simple_components.json`](../environments/kodular-creator/simple_components.json) |
-| MIT App Inventor | [`environments/mit-app-inventor/simple_components.json`](../environments/mit-app-inventor/simple_components.json) |
+| Kodular Creator | [`src/platforms/data/kodular.json`](../src/platforms/data/kodular.json) |
+| MIT App Inventor | [`src/platforms/data/app-inventor.json`](../src/platforms/data/app-inventor.json) |
 
-Extensions contribute their own descriptors using the same schema. An AIX package includes either a `component.json` (single object) or `components.json` (array). aia-kit normalises both to an array when loading — see [`src/parse.ts`](../src/parse.ts).
+Extensions contribute their own descriptors using the same schema. An AIX package includes either a `component.json` (single object) or `components.json` (array). aia-kit normalises both to an array when loading — see [`parseComponentDescriptors`](../src/formats/descriptors.ts).
 
 ---
 
 ## How aia-kit loads it
 
 ```typescript
-// Built-in platform registry
-import { getEnvironmentFor, Platform } from 'aia-kit/environment'
-import { readAix } from 'aia-kit/aix'
+import { readAix } from "aia-kit";
+import { definePlatform, loadPlatform, lookupComponent, parseComponentDescriptors } from "aia-kit/platforms";
 
-const env = await getEnvironmentFor(Platform.KodularCreator)
+const kodular = await loadPlatform("kodular"); // or "app-inventor"
+lookupComponent("Button", kodular)?.events;
 
-// Read a standalone AIX descriptor bundle
-const ext = await readAix(aixBlob)
+// A standalone extension carries its own descriptors.
+const extension = await readAix(aixBlob);
+extension.components;
+
+// Any other distribution: bring its simple_components.json.
+const custom = definePlatform({ id: "mine", name: "Mine", components: parseComponentDescriptors(json) });
 ```
 
-Internally the JSON array is consumed by `ComponentRegistry`, which is held on the `Environment` object. Project-bundled extension descriptors are folded into the effective `ModelProject.componentRegistry` by `buildModel`.
+A **`Platform`** holds only built-in components. `lookupComponent(type, platform, project)` additionally searches the extensions bundled in `project`.
 
 ---
 
@@ -171,33 +175,30 @@ An extension AIX may ship either:
 - **`component.json`** — a single JSON object (one component).
 - **`components.json`** — a JSON array (multiple components from the same extension package).
 
-aia-kit normalises both to an array in `readAix` and while reading bundled AIA extensions (see [`src/parse.ts`](../src/parse.ts)):
-
-```typescript
-const components: ComponentDescriptor[] = Array.isArray(parsed) ? parsed : [parsed]
-```
+aia-kit normalises both to an array in `readAix` and while reading bundled AIA extensions, preferring `components.json`.
 
 ---
 
-## TypeScript interfaces
+## TypeScript interface
 
-Defined in [`src/component-descriptor/descriptors.ts`](../src/component-descriptor/descriptors.ts):
+The raw JSON encodes booleans and numbers as strings (`"external": "false"`, `"version": "12"`). `parseComponentDescriptors` normalises them into [`ComponentDescriptor`](../src/types.ts):
 
 ```typescript
 interface ComponentDescriptor {
-  type: string
-  name: string
-  external: boolean
-  version: number
-  categoryString: string
-  helpString: string
-  showOnPalette: boolean
-  nonVisible: boolean
-  iconName: string
-  properties: ComponentPropertyDescriptor[]
-  blockProperties: ComponentBlockPropertyDescriptor[]
-  events: ComponentEventDescriptor[]
-  methods: ComponentMethodDescriptor[]
+  type: string;          // fully qualified class name
+  name: string;          // simple name, as used in blocks
+  external: boolean;
+  version: number;
+  category: string;      // categoryString
+  helpString: string;
+  showOnPalette: boolean;
+  nonVisible: boolean;
+  iconName: string;
+  androidMinSdk?: number;
+  properties: PropertyDescriptor[];           // name, editorType, defaultValue, editorArgs
+  blockProperties: BlockPropertyDescriptor[]; // name, description, type, access, deprecated
+  events: EventDescriptor[];                  // name, description, deprecated, params
+  methods: MethodDescriptor[];                // … plus returnType
 }
 ```
 

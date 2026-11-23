@@ -1,82 +1,82 @@
 # aia-kit
 
-TypeScript library for reading, parsing, editing, and writing AIA/AIX/AIS files — the project formats used by [App Inventor](https://appinventor.mit.edu)-based platforms such as [Kodular](https://kodular.io).
+Read, inspect, edit, check and write App Inventor / Kodular projects (`.aia`) and extensions (`.aix`). Works in browsers and Node.
 
-## Installation
-
-```sh
-npm install aia-kit
-# or
+```
 pnpm add aia-kit
 ```
 
 ## Quick start
 
 ```typescript
-import { readAia, replaceScreenBky, writeAia } from 'aia-kit/aia'
-import { removeDisabledBlocks, parseBky, serializeBky } from 'aia-kit/bky'
-import { getEnvironmentFor, Platform } from 'aia-kit/environment'
-import { buildModel } from 'aia-kit/model'
+import { readAia, writeAia, renameComponent, setProperty, addAsset } from "aia-kit";
 
-// 1. Load a platform environment (Kodular or MIT App Inventor)
-const env = await getEnvironmentFor(Platform.KodularCreator)
+const { project } = await readAia(aiaBlob);
 
-// 2. Read and model an AIA file
-const blob = /* Blob from file input, fetch, or fs.readFile */
-const raw = await readAia(blob)
-const project = buildModel(raw, env)
-const { diagnostics } = project
+project.screens[0].form.children; // designer components
+project.screens[0].blocks;        // Blockly blocks
 
-// 3. Inspect
-console.log(project.source.name)             // project name
-console.log(project.screens.map(s => s.name)) // screen names
+let next = renameComponent(project, "Screen1", "Button1", "SubmitButton"); // blocks follow
+next = setProperty(next, "Screen1", "SubmitButton", "Text", "Send");
+next = addAsset(next, "logo.png", pngBlob);
 
-// 4. Mutate (returns a new AiaProject — nothing is mutated in place)
-const screen = project.source.screens.find(s => s.name === 'Screen1')!
-const nextBky = serializeBky(removeDisabledBlocks(parseBky(screen.bky)))
-const { project: updated } = replaceScreenBky(project.source, 'Screen1', nextBky)
-
-// 5. Write back to AIA
-const output = await writeAia(updated)
+const out = await writeAia(next); // Blob
 ```
 
-## Core concepts
+## How it works
 
-**Two-stage pipeline** — `readAia` reads the ZIP and produces a raw `AiaProject`; `buildModel` enriches it into a `ModelProject` using a platform `Environment`. You can stop at the raw layer if you only need properties, screen names, or assets.
+- **A project is plain immutable data.** `Project` → `Screen` → `Component` / `Block`. Log it, diff it, keep it in UI state.
+- **Edits are functions** that take a project and return a new one. The original is never changed, and untouched parts are shared.
+- **Edits keep the project consistent.** Renaming a component rewrites the blocks that use it; renaming a screen updates `main` and the blocks that open it.
+- **Nothing is lost.** Reading then writing reproduces every file byte-for-byte. After an edit, only the files you touched are re-serialized, and unknown fields survive.
+- **Failures are explicit.** An edit that cannot be done throws an `AiaKitError` subclass. Findings about the data are returned as `Problem[]`.
 
-**Immutable data** — every mutation function returns a new object. The original is never modified.
+## Checking a project
 
-**Diagnostics over throws** — data-level problems (unknown components, invalid properties) surface as `Diagnostic[]`. Throws are reserved for hard I/O failures (bad ZIP, missing required entries).
+```typescript
+import { check } from "aia-kit";
+import { loadPlatform } from "aia-kit/platforms";
 
-## Supported platforms
+const kodular = await loadPlatform("kodular"); // or "app-inventor"
 
-| Platform | Factory |
-|----------|---------|
-| Kodular Creator | `getEnvironmentFor(Platform.KodularCreator)` |
-| MIT App Inventor | `getEnvironmentFor(Platform.MitAppInventor)` |
+for (const problem of check(project, kodular)) {
+  if (problem.code === "missing-asset") console.warn(problem.asset, "is missing");
+  else console.warn(problem.message);
+}
+```
 
-Extensions (`.aix`) can be loaded with `readAix`; project-bundled extension descriptors are folded into the effective model registry by `buildModel`.
+A platform is only needed for checks that depend on which components exist. Reading, editing and writing never need one.
 
-## What you can do
+## Entry points
 
-| Area | Functions |
-|------|-----------|
-| **AIA archives** | `readAia`, `writeAia`, `getScreen`, `addScreen`, `removeScreen`, `cloneScreen`, `replaceScreen`, `replaceScreenScm`, `replaceScreenBky`, `addAsset`, `removeAsset`, `addExtension`, `removeExtension`, `mergeProjects` |
-| **AIX archives** | `readAix` |
-| **Model building** | `buildModel` |
-| **Environments** | `getEnvironmentFor`, `createEnvironment`, `Platform` |
-| **Project properties** | `parseProjectProperties`, `serializeProjectProperties` |
-| **Blocks** | `parseBky`, `serializeBky`, `removeDisabledBlocks`, `renameComponentReferences` |
-| **SCM components** | `ScmDocument` |
-| **Analysis** | `diagnose`, `diffProjects`, `findUnusedAssets`, `findUnusedExtensions`, `analyzeVariables`, `analyzeComplexity`, `findDeadBlocks`, `buildNavGraph` |
-| **YAIL** | `YailEmitter` |
+| Import | Contents |
+|--------|----------|
+| `aia-kit` | `readAia`, `writeAia`, `readAix`, `writeAix`, the data types, queries, edits, `check`, errors |
+| `aia-kit/platforms` | `loadPlatform`, `definePlatform`, `lookupComponent` |
+| `aia-kit/analysis` | `diffProjects`, unused assets / extensions, block summaries, navigation graph |
+| `aia-kit/formats` | `parseScm`, `parseBky`, `parseProperties` and their serializers, for loose files |
 
 ## Documentation
 
-- [Usage guide](docs/usage.md) — walkthrough with examples for every API area
-- [API reference](docs/api.md) — full type signatures and function descriptions
-- [File format reference](docs/file-formats.md) — AIA, AIX, SCM, BKY, YAIL internals
+- [Usage guide](docs/usage.md)
+- [API reference](docs/api.md)
+- [File formats](docs/file-formats.md) · [Glossary](docs/ubiquitous-language.md)
 
----
+## Not included
 
-Copyright (c) 2023–2026 Junnovate, LLC
+YAIL generation. An existing `.yail` is preserved while its screen is unchanged; App Inventor regenerates YAIL when it opens or builds a project.
+
+## Development
+
+Tool versions are pinned in `mise.toml`.
+
+```
+mise install
+pnpm install
+pnpm check    # typecheck + lint + format check + tests
+pnpm build
+```
+
+## License
+
+ISC

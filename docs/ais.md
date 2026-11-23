@@ -31,9 +31,7 @@ A conforming AIS can often be **merged** into an AIA (for example by copying fil
 
 ## aia-kit
 
-The library’s **`readAia`** pipeline targets the **same ZIP conventions** as multi-screen AIAs. A minimal AIS that follows those conventions can be read as an **`AiaProject`** with a single screen entry.
-
-There is **no separate `parseAis` entry point** in the current API surface; treat AIS as **AIA-shaped** unless/until a dedicated helper is added.
+There is no dedicated AIS reader. An AIS that follows the AIA ZIP conventions (including `project.properties`) can be read with **`readAia`** as a one-screen **`Project`**. To move a screen between projects, use **`addScreen(target, screen)`** or **`mergeProjects`**.
 
 ---
 

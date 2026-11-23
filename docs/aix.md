@@ -114,7 +114,7 @@ Used by the App Inventor build server. Not required for descriptor resolution in
 | `AndroidRuntime.jar` | Runtime API stubs — compile-time |
 | `AndroidManifest.xml` | Permissions / components — merged into host manifest |
 
-**aia-kit** does not inspect these during **`buildModel()`**. Large payloads are exposed lazily via **`AiaExtension.loadClassesJar()`** and **`AiaExtension.loadAssets()`**.
+**aia-kit** does not inspect these. They are kept as `Blob`s in **`Extension.files`** and written back unchanged.
 
 ---
 
@@ -153,9 +153,13 @@ Array entries in **`components.json`** and **`component_build_infos.json`** are 
 
 | API | Role |
 |-----|------|
-| **`readAix`** | Standalone `.aix` blob → **`AiaExtension`** |
-| **`readAia`** | Reads each `assets/external_comps/<pkg>/` tree |
-| **`buildModel`** | Folds project extension descriptors into the effective component registry |
+| **`readAix`** | Standalone `.aix` → **`Extension`** |
+| **`writeAix`** | **`Extension`** → standalone `.aix` |
+| **`readAia`** | Reads each `assets/external_comps/<pkg>/` tree into **`Project.extensions`** |
+| **`addExtension`** / **`removeExtension`** | Install or uninstall an extension in a project |
+| **`lookupComponent(type, platform, project)`** | Resolves component types, including those of the project's extensions |
+
+`Extension.components` is parsed from `components.json`, falling back to `component.json`.
 
 ---
 

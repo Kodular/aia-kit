@@ -70,7 +70,7 @@ $JSON
 |#
 ```
 
-Extract JSON with `/#\|\s*\$JSON\s*(.*?)\s*\|#/s` (see [`parseScm`](../src/scm/parse.ts)).
+Extract JSON with `/#\|\s*\$JSON\s*(.*?)\s*\|#/s` (see [`parseScm`](../src/formats/scm.ts)).
 
 **Envelope fields:**
 
@@ -202,18 +202,23 @@ Binaries under `assets/` — **only top-level files** count as project assets; `
 ## aia-kit APIs
 
 | Stage | Entry |
-|-------|--------|
-| Read ZIP → raw model | **`readAia`** — [`src/aia/read-archive.ts`](../src/aia/read-archive.ts) |
-| Enrich with descriptors | **`buildModel`** — [`src/model/index.ts`](../src/model/index.ts) |
-| Write ZIP | **`writeAia`** — [`src/aia/write-archive.ts`](../src/aia/write-archive.ts) |
+|-------|-------|
+| Read ZIP → `Project` | **`readAia`** — [`src/archive/read.ts`](../src/archive/read.ts) |
+| Write `Project` → ZIP | **`writeAia`** — [`src/archive/write.ts`](../src/archive/write.ts) |
+| Check against a platform | **`check`** — [`src/check.ts`](../src/check.ts) |
 
-Extensions inside an AIA surface as **`AiaExtension`** (same shape as **`readAix`**).
+Extensions inside an AIA surface as **`Extension`** (the same shape **`readAix`** returns).
 
 ---
 
 ## Writer round-trip notes
 
-Older writer behaviour: only component descriptor JSON under `external_comps/` was guaranteed on write; **`classes.jar`**, **`AndroidRuntime.jar`**, **`AndroidManifest.xml`**, and extension assets had to remain from the source archive to survive round-trip. v2 models these via **`AiaExtension.loadClassesJar()`** and **`loadAssets()`** — see [AIX](aix.md).
+`writeAia(readAia(x).project)` reproduces every file of `x` byte-for-byte:
+
+- Unchanged `project.properties`, `.scm` and `.bky` files are written from their original text.
+- Every file of a bundled extension (`classes.jar`, `files/AndroidRuntime.jar`, assets, …) is kept in **`Extension.files`**.
+- Entries aia-kit does not model, and screens or extensions it could not read, are carried in **`Project.otherFiles`**.
+- A screen's `.yail` is kept while the screen is unchanged and dropped once it is edited (aia-kit does not generate YAIL).
 
 ---
 

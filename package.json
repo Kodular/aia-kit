@@ -1,12 +1,12 @@
 {
   "name": "aia-kit",
-  "version": "1.1.2",
-  "description": "Read, Parse, Edit, Write, Analyze AIA/AIX/AIS files.",
+  "version": "2.0.0",
+  "description": "Read, inspect, edit, check and write App Inventor / Kodular projects (AIA) and extensions (AIX).",
   "keywords": [
     "aia",
-    "ais",
     "aix",
     "app-inventor",
+    "blockly",
     "extension",
     "kodular"
   ],
@@ -20,53 +20,41 @@
     "dist"
   ],
   "type": "module",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.mts",
-  "imports": {
-    "#/*": {
-      "types": "./src/*",
-      "default": "./src/*"
-    }
-  },
+  "sideEffects": false,
   "exports": {
-    ".": "./dist/index.mjs",
-    "./aia": "./dist/aia/index.mjs",
-    "./ais": "./dist/ais/index.mjs",
-    "./aix": "./dist/aix/index.mjs",
-    "./analysis": "./dist/analysis/index.mjs",
-    "./bky": "./dist/bky/index.mjs",
-    "./component-descriptor": "./dist/component-descriptor/index.mjs",
-    "./environment": "./dist/environment/index.mjs",
-    "./model": "./dist/model/index.mjs",
-    "./project-properties": "./dist/project-properties/index.mjs",
-    "./scm": "./dist/scm/index.mjs",
-    "./yail": "./dist/yail/index.mjs"
+    ".": "./dist/index.js",
+    "./platforms": "./dist/platforms.js",
+    "./analysis": "./dist/analysis.js",
+    "./formats": "./dist/formats.js",
+    "./package.json": "./package.json"
   },
   "scripts": {
-    "lint:check": "oxlint",
-    "lint:fix": "oxlint --fix",
-    "fmt:apply": "oxfmt .",
-    "fmt:check": "oxfmt --check .",
-    "typecheck": "tsc --noEmit",
     "build": "tsdown",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "fmt": "oxfmt .",
+    "fmt:check": "oxfmt --check .",
+    "check": "pnpm run typecheck && pnpm run lint && pnpm run fmt:check && pnpm run test"
   },
   "dependencies": {
-    "@xmldom/xmldom": "^0.9.10",
-    "@zip.js/zip.js": "^2.8.26",
-    "properties-file": "^5.0.4",
-    "zod": "^4.4.1"
+    "@xmldom/xmldom": "^0.9.12",
+    "@zip.js/zip.js": "^2.25.0"
   },
   "devDependencies": {
-    "@types/node": "^25.6.0",
-    "@vitest/coverage-v8": "4.1.5",
-    "oxfmt": "^0.47.0",
-    "oxlint": "^1.62.0",
-    "oxlint-tsgolint": "^0.22.1",
-    "tsdown": "^0.21.10",
-    "typescript": "^6.0.3",
-    "vitest": "^4.1.5"
+    "@types/node": "^26.6.6",
+    "@vitest/coverage-v8": "^5.1.1",
+    "oxfmt": "^0.79.0",
+    "oxlint": "^1.94.0",
+    "oxlint-tsgolint": "^7.0.2008",
+    "tsdown": "^0.23.7",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.1"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }

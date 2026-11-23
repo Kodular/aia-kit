@@ -28,7 +28,7 @@ BKY is **XML** with a root **`<xml>`** element. Google Blockly expects a namespa
 </xml>
 ```
 
-Real exports may omit the xmlns or use slightly different casing; the parser accepts the standard Blockly shape (see [`parseBky`](../src/bky/parse.ts)).
+Real exports may omit the xmlns or use slightly different casing; the parser accepts the standard Blockly shape (see [`parseBky`](../src/formats/bky.ts)).
 
 ### Block elements
 
@@ -75,15 +75,18 @@ Block mutations and fields reference **component instance names** (`Button1`, `S
 ## aia-kit representation and APIs
 
 | Piece | Location |
-|-------|-----------|
-| In-memory AST | **`BlockAst`**, **`BlockNode`** — [`src/bky/ast.ts`](../src/bky/ast.ts) |
-| Parse XML → AST | **`parseBky`** — [`src/bky/parse.ts`](../src/bky/parse.ts) |
-| AST → XML | **`serializeBky`** — [`src/bky/serialize.ts`](../src/bky/serialize.ts) |
-| Project fold-back | **`replaceScreenBky`** — [`src/aia/screens.ts`](../src/aia/screens.ts) |
-| BKY helpers | **`removeDisabledBlocks`**, **`renameComponentReferences`** — [`src/bky/transforms.ts`](../src/bky/transforms.ts) |
-| Raw screen field | **`AiaScreen.bky`** (`string`) |
+|-------|----------|
+| In-memory block | **`Block`** — [`src/types.ts`](../src/types.ts) |
+| A screen's blocks | **`Screen.blocks`** (top-level blocks) |
+| Walk / decode | **`walkBlocks`**, **`componentReference`** — [`src/query.ts`](../src/query.ts) |
+| Transform | **`mapBlocks`**, **`updateBlocks`** — [`src/edit/blocks.ts`](../src/edit/blocks.ts) |
+| Loose files | **`parseBky`**, **`serializeBky`** from `aia-kit/formats` — [`src/formats/bky.ts`](../src/formats/bky.ts) |
 
-Parsing failures surface as **`MALFORMED_BKY`** when using **`diagnose()`** ([`src/analysis/diagnose.ts`](../src/analysis/diagnose.ts)); **`parseBky`** itself throws on invalid XML.
+The codec is lossless: mutation children (`<arg>`, `<eventparam>`, `<localname>`), comments, `inline` / `collapsed` / `disabled`, unknown attributes and elements, and the `<yacodeblocks>` version tag all survive. Legacy `<title>` elements are read as fields. An empty `.bky` file is an empty workspace.
+
+`renameComponent`, `removeComponent` and `renameScreen` keep blocks consistent with the designer tree. Pre-2014 blocks that encode the component in the block type (`Button1_Click`) are preserved but not rewritten.
+
+An unreadable `.bky` is reported by `readAia` as an **`unreadable-screen`** problem; **`parseBky`** itself throws **`ParseError`**.
 
 ---
 
