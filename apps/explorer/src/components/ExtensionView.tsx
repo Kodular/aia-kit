@@ -39,9 +39,6 @@ function ExtensionDetails(props: { extension: Extension }): JSX.Element {
     <>
       <PageHeader icon={Puzzle} title={props.extension.packageName}>
         <Badge>{formatBytes(totalSize())}</Badge>
-        <Show when={users().length === 0}>
-          <Badge tone="warning">unused</Badge>
-        </Show>
       </PageHeader>
 
       <For each={props.extension.components}>
@@ -75,6 +72,7 @@ function ExtensionDetails(props: { extension: Extension }): JSX.Element {
 
 function DescriptorCard(props: { descriptor: ComponentDescriptor }): JSX.Element {
   const d = () => props.descriptor;
+  const help = () => plainText(d().helpString);
 
   /** Block properties joined with their designer entry, plus designer-only properties. */
   const properties = createMemo(() => {
@@ -115,8 +113,8 @@ function DescriptorCard(props: { descriptor: ComponentDescriptor }): JSX.Element
         </Show>
       </div>
       <p class="mt-1 font-mono text-xs break-all text-zinc-500 dark:text-zinc-400">{d().type}</p>
-      <Show when={plainText(d().helpString) !== ""}>
-        <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{plainText(d().helpString)}</p>
+      <Show when={help() !== ""}>
+        <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{help()}</p>
       </Show>
 
       <Members title="Events" count={d().events.length}>

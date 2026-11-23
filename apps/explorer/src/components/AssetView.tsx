@@ -82,9 +82,6 @@ function AssetDetails(props: { asset: Asset }): JSX.Element {
         <Badge>{formatBytes(props.asset.blob.size)}</Badge>
         <Show when={dimensions()}>{(value) => <Badge>{value()}</Badge>}</Show>
         <Show when={duration()}>{(value) => <Badge>{value()}</Badge>}</Show>
-        <Show when={app.unusedAssets().has(props.asset.name)}>
-          <Badge tone="warning">unused</Badge>
-        </Show>
       </PageHeader>
 
       <Card title="Preview">

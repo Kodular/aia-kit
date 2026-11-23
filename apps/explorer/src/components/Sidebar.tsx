@@ -60,7 +60,7 @@ export function Sidebar(): JSX.Element {
       </Group>
 
       <Group label="Assets" count={assets().length}>
-        <For each={assets()} fallback={<None />}>
+        <For each={assets()}>
           {(asset) => (
             <ListRow
               icon={assetIcon(asset.name)}
@@ -80,7 +80,7 @@ export function Sidebar(): JSX.Element {
       </Group>
 
       <Group label="Extensions" count={extensions().length}>
-        <For each={extensions()} fallback={<None />}>
+        <For each={extensions()}>
           {(extension) => (
             <ListRow
               icon={Puzzle}
@@ -123,8 +123,4 @@ function Group(props: { label: string; count?: number; children: JSX.Element }):
       {props.children}
     </div>
   );
-}
-
-function None(): JSX.Element {
-  return <div class="px-2 text-sm text-zinc-500">None</div>;
 }

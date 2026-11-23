@@ -1,15 +1,9 @@
 import type { JSX } from "@solidjs/web";
-import {
-  componentReference,
-  walkBlocks,
-  walkComponents,
-  type Component,
-  type Screen,
-} from "aia-kit";
+import { walkComponents, type Component, type Screen } from "aia-kit";
 import { lookupComponent } from "aia-kit/platforms";
 import { ArrowLeft } from "lucide";
-import { For, Show, createMemo } from "solid-js";
-import { cssColor, plainText, plural, simpleName } from "../lib/format.ts";
+import { For, Show } from "solid-js";
+import { cssColor, plainText, simpleName } from "../lib/format.ts";
 import { componentIcon } from "../lib/icons.ts";
 import { useApp } from "../state.ts";
 import { ComponentRow, ComponentTree } from "./ComponentTree.tsx";
@@ -87,20 +81,6 @@ function ComponentDetails(props: { component: Component }): JSX.Element {
   const help = () => plainText(descriptor()?.helpString ?? "");
   const properties = () => Object.entries(props.component.properties);
 
-  /** Blocks on the current screen that refer to this component, by kind. */
-  const usage = createMemo(() => {
-    const screen = app.screen();
-    const events: string[] = [];
-    let others = 0;
-    for (const block of screen ? walkBlocks(screen) : []) {
-      const ref = componentReference(block);
-      if (ref?.instance !== props.component.name) continue;
-      if (ref.kind === "event" && ref.member !== undefined) events.push(ref.member);
-      else others += 1;
-    }
-    return { events, others };
-  });
-
   return (
     <div class="flex flex-col gap-4 px-2">
       <div>
@@ -144,21 +124,6 @@ function ComponentDetails(props: { component: Component }): JSX.Element {
               )}
             </For>
           </KeyValueList>
-        </Show>
-      </div>
-
-      <div>
-        <SectionLabel class="pb-1">Used in blocks</SectionLabel>
-        <Show
-          when={usage().events.length + usage().others > 0}
-          fallback={<Empty>No blocks refer to this component.</Empty>}
-        >
-          <div class="flex flex-wrap gap-1">
-            <For each={usage().events}>{(event) => <Badge tone="accent">when {event}</Badge>}</For>
-            <Show when={usage().others > 0}>
-              <Badge>{plural(usage().others, "other block")}</Badge>
-            </Show>
-          </div>
         </Show>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import type { JSX } from "@solidjs/web";
-import { mainScreenName, walkBlocks, walkComponents, type Block, type Screen } from "aia-kit";
+import { walkBlocks, type Block, type Screen } from "aia-kit";
 import { serializeBky, serializeScm } from "aia-kit/formats";
 import { Blocks as BlocksIcon, Braces, LayoutPanelTop, Smartphone } from "lucide";
 import { For, Match, Show, Switch, createMemo, createSignal } from "solid-js";
@@ -20,11 +20,6 @@ const TABS: readonly TabItem<Tab>[] = [
 
 export function ScreenView(): JSX.Element {
   const app = useApp();
-  const isMain = (screen: Screen) => {
-    const project = app.project();
-    return project !== undefined && mainScreenName(project) === screen.name;
-  };
-
   return (
     <Show when={app.screen()} fallback={<Empty>This screen no longer exists.</Empty>}>
       {(screen) => (
@@ -34,10 +29,6 @@ export function ScreenView(): JSX.Element {
             title={screen().name}
             actions={<Tabs value={app.tab()} onChange={(tab) => app.setTab(tab)} items={TABS} />}
           >
-            <Show when={isMain(screen())}>
-              <Badge tone="accent">start</Badge>
-            </Show>
-            <Badge>{plural(Array.from(walkComponents(screen())).length, "component")}</Badge>
             <Badge>{plural(Array.from(walkBlocks(screen())).length, "block")}</Badge>
           </PageHeader>
           <Switch>
@@ -124,9 +115,9 @@ type RawFile = "scm" | "bky";
 
 function Raw(props: { screen: Screen }): JSX.Element {
   const [file, setFile] = createSignal<RawFile>("scm");
-  const files = (): TabItem<RawFile>[] => [
-    { id: "scm", label: `${props.screen.name}.scm` },
-    { id: "bky", label: `${props.screen.name}.bky` },
+  const files: readonly TabItem<RawFile>[] = [
+    { id: "scm", label: ".scm" },
+    { id: "bky", label: ".bky" },
   ];
 
   const scm = () => serializeScm({ form: props.screen.form, meta: props.screen.meta.form });
@@ -148,7 +139,7 @@ function Raw(props: { screen: Screen }): JSX.Element {
   return (
     <Card>
       <div class="mb-3 border-b border-zinc-200 pb-3 dark:border-zinc-800">
-        <Tabs mono value={file()} onChange={setFile} items={files()} />
+        <Tabs mono value={file()} onChange={setFile} items={files} />
       </div>
       <Switch>
         <Match when={file() === "scm"}>

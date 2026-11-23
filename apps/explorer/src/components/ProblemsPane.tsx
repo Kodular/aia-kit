@@ -6,18 +6,6 @@ import { plural } from "../lib/format.ts";
 import { useApp } from "../state.ts";
 import { Disclosure, Icon } from "./ui/index.ts";
 
-/** Where a problem is, as far as it says: `Screen1 · Button1`, or `Screen1` for the screen itself. */
-function locationOf(problem: Problem): string {
-  const parts: string[] = [];
-  if ("screen" in problem) parts.push(problem.screen);
-  // A screen's form shares the screen's name; do not say it twice.
-  if ("component" in problem && !("screen" in problem && problem.component === problem.screen)) {
-    parts.push(problem.component);
-  }
-  if ("extension" in problem) parts.push(problem.extension);
-  return parts.join(" · ");
-}
-
 function SeverityIcon(props: { severity: Problem["severity"] | "none" }): JSX.Element {
   return (
     <Show
@@ -96,7 +84,6 @@ export function ProblemsPane(): JSX.Element {
               >
                 <SeverityIcon severity={problem.severity} />
                 <span class="min-w-0 flex-1">{problem.message}</span>
-                <span class="shrink-0 text-zinc-500 dark:text-zinc-400">{locationOf(problem)}</span>
               </button>
             )}
           </For>

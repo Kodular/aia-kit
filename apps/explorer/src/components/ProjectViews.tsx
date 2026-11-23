@@ -1,5 +1,5 @@
 import type { JSX } from "@solidjs/web";
-import { mainScreenName, packageName } from "aia-kit";
+import { mainScreenName } from "aia-kit";
 import { navigationGraph } from "aia-kit/analysis";
 import { ArrowRight, Settings2, Smartphone, Workflow } from "lucide";
 import { For, Show, createMemo } from "solid-js";
@@ -22,10 +22,7 @@ export function PropertiesView(): JSX.Element {
     const project = app.project();
     if (!project) return [];
     const { extra: _extra, ...known } = project.properties;
-    return [
-      ...Object.entries(known).map(([key, value]) => [key, String(value)] as const),
-      ["package", packageName(project)] as const,
-    ];
+    return Object.entries(known).map(([key, value]) => [key, String(value)] as const);
   });
   const extra = () => Object.entries(app.project()?.properties.extra ?? {});
   const otherFiles = () => app.project()?.otherFiles ?? [];
