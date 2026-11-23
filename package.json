@@ -10,7 +10,7 @@
     "extension",
     "kodular"
   ],
-  "license": "ISC",
+  "license": "Apache-2.0",
   "author": "Kodular",
   "repository": {
     "type": "git",
