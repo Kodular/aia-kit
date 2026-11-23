@@ -1,5 +1,11 @@
 import type { JSX } from "@solidjs/web";
-import { componentReference, walkBlocks, walkComponents, type Component } from "aia-kit";
+import {
+  componentReference,
+  walkBlocks,
+  walkComponents,
+  type Component,
+  type Screen,
+} from "aia-kit";
 import { lookupComponent } from "aia-kit/platforms";
 import { For, Show, createMemo } from "solid-js";
 import { cssColor, plainText, plural, simpleName } from "../lib/format.ts";
@@ -20,19 +26,7 @@ export function Inspector(): JSX.Element {
       <div class="p-4">
         <Show when={app.screen()} fallback={<Empty>Select a screen to see its components.</Empty>}>
           {(screen) => (
-            <Show
-              when={app.component()}
-              fallback={
-                <>
-                  <h2 class="mb-2 text-xs font-medium text-zinc-500 dark:text-zinc-400">
-                    Components · {Array.from(walkComponents(screen())).length}
-                  </h2>
-                  <div class="-mx-2">
-                    <ComponentTree screen={screen().name} component={screen().form} />
-                  </div>
-                </>
-              }
-            >
+            <Show when={app.component()} fallback={<ComponentList screen={screen()} />}>
               {(component) => (
                 <>
                   <button
@@ -50,6 +44,45 @@ export function Inspector(): JSX.Element {
         </Show>
       </div>
     </aside>
+  );
+}
+
+/** The tree of visible components, then the non-visible ones as a flat list. */
+function ComponentList(props: { screen: Screen }): JSX.Element {
+  const app = useApp();
+  const all = () => Array.from(walkComponents(props.screen));
+  const nonVisible = () => all().filter((component) => app.isNonVisible(component));
+
+  return (
+    <>
+      <h2 class="mb-2 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+        Components · {all().length - nonVisible().length}
+      </h2>
+      <div class="-mx-2">
+        <ComponentTree screen={props.screen.name} component={props.screen.form} />
+      </div>
+      <Show when={nonVisible().length > 0}>
+        <h2 class="mt-4 mb-2 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+          Non-visible · {nonVisible().length}
+        </h2>
+        <div class="-mx-2">
+          <For each={nonVisible()}>
+            {(component) => (
+              <button
+                type="button"
+                onClick={() => app.selectComponent(props.screen.name, component.name)}
+                class="flex w-full items-baseline gap-2 rounded-md px-2 py-0.5 text-left text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              >
+                <span class="truncate">{component.name}</span>
+                <span class="truncate text-xs text-zinc-500 dark:text-zinc-400">
+                  {simpleName(component.type)}
+                </span>
+              </button>
+            )}
+          </For>
+        </div>
+      </Show>
+    </>
   );
 }
 

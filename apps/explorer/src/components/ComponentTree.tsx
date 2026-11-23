@@ -4,6 +4,7 @@ import { For } from "solid-js";
 import { simpleName } from "../lib/format.ts";
 import { useApp } from "../state.ts";
 
+/** A component and its descendants as an indented list. Non-visible components are left out. */
 export function ComponentTree(props: {
   screen: string;
   component: Component;
@@ -30,7 +31,7 @@ export function ComponentTree(props: {
           {simpleName(props.component.type)}
         </span>
       </button>
-      <For each={props.component.children}>
+      <For each={props.component.children.filter((child) => !app.isNonVisible(child))}>
         {(child) => <ComponentTree screen={props.screen} component={child} depth={depth() + 1} />}
       </For>
     </div>

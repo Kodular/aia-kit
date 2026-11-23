@@ -10,7 +10,12 @@ import {
   type Screen,
 } from "aia-kit";
 import { findUnusedAssets } from "aia-kit/analysis";
-import { loadPlatform, type BuiltinPlatformId, type Platform } from "aia-kit/platforms";
+import {
+  loadPlatform,
+  lookupComponent,
+  type BuiltinPlatformId,
+  type Platform,
+} from "aia-kit/platforms";
 import {
   createContext,
   createMemo,
@@ -52,6 +57,9 @@ export interface AppState {
   readonly screen: Accessor<Screen | undefined>;
   /** The component being inspected; `undefined` while only a screen is selected. */
   readonly component: Accessor<Component | undefined>;
+
+  /** True for components with no on-screen presence (Clock, Sound, …). Needs the platform; false until it loads. */
+  isNonVisible(component: Component): boolean;
 
   open(file: Blob, name: string): Promise<void>;
   close(): void;
@@ -131,6 +139,12 @@ export function createAppState(): AppState {
     assetUrls,
     screen,
     component,
+    isNonVisible(candidate) {
+      const current = platform();
+      return current
+        ? (lookupComponent(candidate.type, current, project())?.nonVisible ?? false)
+        : false;
+    },
 
     async open(file, name) {
       setBusy(true);

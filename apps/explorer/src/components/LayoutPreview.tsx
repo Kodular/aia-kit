@@ -1,6 +1,5 @@
 import type { JSX } from "@solidjs/web";
-import { walkComponents, type Component, type Screen } from "aia-kit";
-import { lookupComponent } from "aia-kit/platforms";
+import type { Component, Screen } from "aia-kit";
 import { For, Match, Show, Switch } from "solid-js";
 import { cssColor, simpleName } from "../lib/format.ts";
 import { useApp } from "../state.ts";
@@ -12,16 +11,9 @@ import { useApp } from "../state.ts";
 export function LayoutPreview(props: { screen: Screen }): JSX.Element {
   const app = useApp();
 
-  const isNonVisible = (component: Component) => {
-    const platform = app.platform();
-    const project = app.project();
-    return platform
-      ? (lookupComponent(component.type, platform, project)?.nonVisible ?? false)
-      : false;
-  };
+  const isNonVisible = (component: Component) => app.isNonVisible(component);
   const form = () => props.screen.form;
   const visible = () => form().children.filter((child) => !isNonVisible(child));
-  const nonVisible = () => Array.from(walkComponents(props.screen)).filter(isNonVisible);
 
   return (
     <div class="rounded-xl bg-zinc-200/60 p-3 dark:bg-zinc-800/60">
@@ -44,27 +36,6 @@ export function LayoutPreview(props: { screen: Screen }): JSX.Element {
           </For>
         </div>
       </div>
-      <Show when={nonVisible().length > 0}>
-        <div class="mx-auto mt-3 flex max-w-sm flex-wrap items-center gap-1.5">
-          <span class="text-xs text-zinc-500 dark:text-zinc-400">Non-visible</span>
-          <For each={nonVisible()}>
-            {(component) => (
-              <button
-                type="button"
-                onClick={() => app.selectComponent(props.screen.name, component.name)}
-                class={[
-                  "rounded-full border px-2 py-0.5 text-xs",
-                  app.component() === component
-                    ? "border-blue-500 bg-blue-50 dark:bg-blue-950"
-                    : "border-zinc-300 bg-white hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900",
-                ]}
-              >
-                {component.name}
-              </button>
-            )}
-          </For>
-        </div>
-      </Show>
     </div>
   );
 }
