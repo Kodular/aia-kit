@@ -81,7 +81,9 @@ function AboutDialog(props: { onDismiss: () => void }): JSX.Element {
             </Show>
           </KeyValue>
           <KeyValue label="Built">{built()}</KeyValue>
-          <KeyValue label="License">ISC</KeyValue>
+          <KeyValue label="License">
+            <ExternalLink href={`${BUILD.repository}/blob/main/LICENSE`}>MIT</ExternalLink>
+          </KeyValue>
         </KeyValueList>
       </div>
     </Dialog>
