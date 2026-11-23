@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide";
 import { For, Show } from "solid-js";
 import { cssColor, plainText, simpleName } from "../lib/format.ts";
 import { componentIcon } from "../lib/icons.ts";
+import { describeProperty } from "../lib/properties.ts";
 import { useApp } from "../state.ts";
 import { ComponentRow, ComponentTree } from "./ComponentTree.tsx";
 import { Badge, Button, Empty, Icon, KeyValue, KeyValueList, SectionLabel } from "./ui/index.ts";
@@ -80,6 +81,8 @@ function ComponentDetails(props: { component: Component }): JSX.Element {
   };
   const help = () => plainText(descriptor()?.helpString ?? "");
   const properties = () => Object.entries(props.component.properties);
+  const editorOf = (name: string) =>
+    descriptor()?.properties.find((property) => property.name === name)?.editorType;
 
   return (
     <div class="flex flex-col gap-4 px-2">
@@ -119,7 +122,7 @@ function ComponentDetails(props: { component: Component }): JSX.Element {
             <For each={properties()}>
               {([name, value]) => (
                 <KeyValue label={name}>
-                  <PropertyValue value={value} />
+                  <PropertyValue name={name} value={value} editorType={editorOf(name)} />
                 </KeyValue>
               )}
             </For>
@@ -130,11 +133,21 @@ function ComponentDetails(props: { component: Component }): JSX.Element {
   );
 }
 
-/** A property value: colours get a swatch, and asset names link to the asset. */
-function PropertyValue(props: { value: string }): JSX.Element {
+/**
+ * A property value as the designer would show it: coded values are decoded
+ * (`-2` → "Fill parent"), colours get a swatch, and asset names link to the asset.
+ * The stored value stays available as a tooltip.
+ */
+function PropertyValue(props: {
+  name: string;
+  value: string;
+  editorType: string | undefined;
+}): JSX.Element {
   const app = useApp();
   const color = () => cssColor(props.value);
   const isAsset = () => app.project()?.assets.some((asset) => asset.name === props.value) ?? false;
+  const decoded = () => describeProperty(props.name, props.value, props.editorType);
+  const plain = () => (color() ? props.value.slice(2) : props.value);
 
   return (
     <>
@@ -144,7 +157,14 @@ function PropertyValue(props: { value: string }): JSX.Element {
           style={{ "background-color": color() }}
         />
       </Show>
-      <Show when={isAsset()} fallback={color() ? props.value.slice(2) : props.value}>
+      <Show
+        when={isAsset()}
+        fallback={
+          <Show when={decoded()} fallback={plain()}>
+            {(text) => <span title={`Stored as ${props.value}`}>{text()}</span>}
+          </Show>
+        }
+      >
         <Button variant="link" onClick={() => app.select({ kind: "asset", name: props.value })}>
           {props.value}
         </Button>
