@@ -55,9 +55,11 @@ function FolderContents(props: { folder: Folder }): JSX.Element {
     <>
       <For each={props.folder.folders}>
         {(folder) => (
-          <details open class="group">
+          <details open>
             <summary class="flex cursor-pointer list-none items-center gap-1.5 rounded px-1 py-0.5 hover:bg-zinc-100 dark:hover:bg-zinc-800">
-              <span class="w-3 text-zinc-400 transition-transform group-open:rotate-90">▸</span>
+              <span class="w-3 text-zinc-400 transition-transform [[open]>summary>&]:rotate-90">
+                ▸
+              </span>
               <span class="font-medium">{folder.name}/</span>
               <span class="flex-1" />
               <span class="text-zinc-500">

@@ -196,15 +196,17 @@ function DescriptorCard(props: { descriptor: ComponentDescriptor }): JSX.Element
   );
 }
 
+/** A collapsible section of a descriptor card; open by default. */
 function Members(props: { title: string; count: number; children: JSX.Element }): JSX.Element {
   return (
     <Show when={props.count > 0}>
-      <div class="mt-4">
-        <h4 class="mb-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+      <details open class="mt-4">
+        <summary class="flex cursor-pointer list-none items-center gap-1.5 rounded py-0.5 text-xs font-medium text-zinc-500 select-none hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
+          <span class="w-3 transition-transform [[open]>summary>&]:rotate-90">▸</span>
           {props.title} · {props.count}
-        </h4>
-        <div class="divide-y divide-zinc-100 dark:divide-zinc-800">{props.children}</div>
-      </div>
+        </summary>
+        <div class="mt-1 divide-y divide-zinc-100 dark:divide-zinc-800">{props.children}</div>
+      </details>
     </Show>
   );
 }
