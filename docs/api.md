@@ -95,6 +95,8 @@ AiaKitError
 | `findAssetReferences(project)` | `AssetReference[]` — `kind: "icon" \| "property" \| "block"` |
 | `findUnusedAssets(project)` | `Asset[]` |
 | `findUnusedExtensions(project)` | `Extension[]` |
+| `findSecrets(project)` | The `possible-secret` problems only; `check` includes them too |
+| `findExtensionUsage(project, extension)` | `{ screen, component }[]` — matches simple and qualified type names |
 | `summarizeBlocks(screenOrBlocks)` | `{ topLevel, total, byType, maxDepth }` |
 | `listDeclarations(screenOrBlocks)` | `{ globals: string[]; procedures: string[] }` |
 | `findOrphanBlocks(project)` | `{ screen, block }[]` — loose top-level blocks that never run |

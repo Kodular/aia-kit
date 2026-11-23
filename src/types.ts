@@ -74,7 +74,10 @@ export interface BlocksMeta {
 /** A designer component. Property values are stored exactly as App Inventor encodes them. */
 export interface Component {
   readonly name: string;
-  /** Simple name for built-ins (`Button`), fully qualified for extension components. */
+  /**
+   * Component type as the file writes it: a simple name (`Button`, and usually
+   * extension components too), or a fully qualified class name.
+   */
   readonly type: string;
   /** Component version (`$Version`), when the file records one. */
   readonly version?: string;

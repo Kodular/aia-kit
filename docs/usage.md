@@ -32,7 +32,7 @@ interface Screen {
 
 interface Component {
   name: string;
-  type: string; // "Button", or a qualified name for extension components
+  type: string; // "Button"; usually the simple name, sometimes fully qualified
   version?: string;
   uuid: string;
   properties: Record<string, string>; // exactly as App Inventor encodes them
@@ -147,6 +147,8 @@ check(project);                               // structural checks only
 check(project, await loadPlatform("kodular")); // plus component types, properties, assets
 ```
 
+Both forms also look for embedded credentials (API keys, tokens, passwords) in project properties, component properties and text blocks, and report them as `possible-secret` warnings with the value masked. This is a heuristic based on known key formats and telling names: it can miss secrets and flag harmless values.
+
 `check` returns `Problem[]`. Each problem has a `code` to switch on, a `severity` (`"error"` or `"warning"`), a `message`, and fields specific to its code:
 
 | Code | Fields |
@@ -158,6 +160,7 @@ check(project, await loadPlatform("kodular")); // plus component types, properti
 | `unknown-component-type` | `screen`, `component`, `type` |
 | `unknown-property` | `screen`, `component`, `property` |
 | `missing-asset` | `screen`, `component`, `property`, `asset` |
+| `possible-secret` | `kind`, `preview`, and where it is: `screen`, `component`, `property`, `blockId` |
 | `unreadable-screen` (from `readAia`) | `screen`, `reason` |
 | `unreadable-extension` (from `readAia`) | `extension` |
 

@@ -47,6 +47,8 @@ src/
   internal/           helpers not exported from any entry point
 ```
 
+`apps/explorer/` is a read-only web app for browsing projects (Vite 8 + Solid 2 + Tailwind 4), run with `pnpm explorer`. It imports the library's source through Vite aliases and tsconfig `paths`, so it needs no prior build. Solid 2 differs from 1.x in ways that matter here: read `apps/explorer/node_modules/solid-js/CHEATSHEET.md` before editing its components.
+
 Not implemented: YAIL generation (v1 had a generator; see `git show main:src/generators/yail`). `writeAia` only preserves the original `.yail` of unchanged screens.
 
 ## Documentation

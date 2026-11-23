@@ -16,7 +16,7 @@ export interface CreateComponentOptions {
 
 /**
  * Creates a component value to pass to `addComponent`.
- * @param type Simple name for built-ins (`Button`), fully qualified for extension components.
+ * @param type Component type as App Inventor writes it, normally the simple name (`Button`).
  */
 export function createComponent(
   type: string,

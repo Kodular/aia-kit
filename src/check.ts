@@ -1,12 +1,14 @@
 import { lookupComponent, type Platform } from "./platforms/platform.ts";
 import type { Problem } from "./problems.ts";
 import { componentReference, mainScreenName, walkBlocks, walkComponents } from "./query.ts";
+import { findSecrets } from "./secrets.ts";
 import type { Project } from "./types.ts";
 
 /**
- * Looks for problems in a project. Without a platform only structural checks
- * run; with one, component types, properties and asset references are checked
- * against the platform's (and the project's extensions') descriptors.
+ * Looks for problems in a project. Without a platform, structural checks and
+ * the search for embedded credentials run; with one, component types,
+ * properties and asset references are also checked against the platform's
+ * (and the project's extensions') descriptors.
  */
 export function check(project: Project, platform?: Platform): Problem[] {
   const problems: Problem[] = [];
@@ -67,7 +69,7 @@ export function check(project: Project, platform?: Platform): Problem[] {
           screen: name,
           component: component.name,
           type: component.type,
-          message: `${name}.${component.name} has type "${component.type}", which ${platform.name} does not provide`,
+          message: `${at(name, component.name)} has type "${component.type}", which ${platform.name} does not provide`,
         });
         continue;
       }
@@ -83,7 +85,7 @@ export function check(project: Project, platform?: Platform): Problem[] {
             screen: name,
             component: component.name,
             property,
-            message: `${descriptor.name} has no property "${property}" (${name}.${component.name})`,
+            message: `${descriptor.name} has no property "${property}" (${at(name, component.name)})`,
           });
         } else if (
           editor !== undefined &&
@@ -98,7 +100,7 @@ export function check(project: Project, platform?: Platform): Problem[] {
             component: component.name,
             property,
             asset: value,
-            message: `${name}.${component.name}.${property} refers to missing asset "${value}"`,
+            message: `${at(name, component.name)}.${property} refers to missing asset "${value}"`,
           });
         }
       }
@@ -118,7 +120,13 @@ export function check(project: Project, platform?: Platform): Problem[] {
     }
   }
 
+  problems.push(...findSecrets(project));
   return problems;
+}
+
+/** `Screen1.Button1`, or just `Screen1` for the screen's own form, which shares its name. */
+function at(screen: string, component: string): string {
+  return component === screen ? screen : `${screen}.${component}`;
 }
 
 function isAssetEditor(editorType: string): boolean {

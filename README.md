@@ -45,6 +45,8 @@ for (const problem of check(project, kodular)) {
 }
 ```
 
+`check` also flags values that look like embedded API keys, tokens or passwords.
+
 A platform is only needed for checks that depend on which components exist. Reading, editing and writing never need one.
 
 ## Entry points
@@ -61,6 +63,14 @@ A platform is only needed for checks that depend on which components exist. Read
 - [Usage guide](docs/usage.md)
 - [API reference](docs/api.md)
 - [File formats](docs/file-formats.md) · [Glossary](docs/ubiquitous-language.md)
+
+## Explorer
+
+`apps/explorer` is a web app for browsing a project: its screens, component tree, blocks, assets, extensions and problems. It runs entirely in the browser.
+
+```
+pnpm explorer
+```
 
 ## Not included
 
