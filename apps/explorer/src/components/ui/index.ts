@@ -3,7 +3,9 @@ export { Dialog } from "./Dialog.tsx";
 export { Disclosure } from "./Disclosure.tsx";
 export { Icon, type ClassValue, type IconData } from "./Icon.tsx";
 export { ListRow } from "./ListRow.tsx";
+export { Menu, type MenuItem } from "./Menu.tsx";
 export {
+  ExternalLink,
   Badge,
   Card,
   Empty,

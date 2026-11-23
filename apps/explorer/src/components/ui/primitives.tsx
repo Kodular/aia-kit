@@ -118,3 +118,21 @@ export function KeyValue(props: {
     </div>
   );
 }
+
+/** A link to somewhere outside the app; opens in a new tab. */
+export function ExternalLink(props: {
+  href: string;
+  class?: ClassValue;
+  children: JSX.Element;
+}): JSX.Element {
+  return (
+    <a
+      href={props.href}
+      target="_blank"
+      rel="noreferrer"
+      class={["text-blue-600 hover:underline dark:text-blue-400", props.class]}
+    >
+      {props.children}
+    </a>
+  );
+}

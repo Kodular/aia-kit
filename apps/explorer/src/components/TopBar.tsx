@@ -3,6 +3,7 @@ import type { BuiltinPlatformId } from "aia-kit/platforms";
 import { FolderOpen, Package } from "lucide";
 import { Show } from "solid-js";
 import { useApp } from "../state.ts";
+import { AppMenu } from "./AppMenu.tsx";
 import { Search } from "./Search.tsx";
 import { Button, Icon, SegmentedControl } from "./ui/index.ts";
 
@@ -54,6 +55,7 @@ export function TopBar(): JSX.Element {
             if (file) app.requestOpen(file, file.name);
           }}
         />
+        <AppMenu />
       </div>
     </header>
   );
