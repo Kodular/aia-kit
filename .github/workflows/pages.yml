@@ -1,0 +1,51 @@
+name: Deploy explorer
+
+# Publishes apps/explorer to GitHub Pages. Requires Pages to be enabled for
+# the repository with "GitHub Actions" as the source.
+on:
+  push:
+    branches: [main]
+    paths:
+      - apps/explorer/**
+      - src/**
+      - test-fixtures/MoodRing.aia
+      - package.json
+      - pnpm-lock.yaml
+      - .github/workflows/pages.yml
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: jdx/mise-action@v5
+
+      - run: pnpm install --frozen-lockfile
+
+      # Project pages are served from /<repository>/.
+      - run: pnpm --filter @aia-kit/explorer build --base="/${{ github.event.repository.name }}/"
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: apps/explorer/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

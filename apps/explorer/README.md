@@ -11,6 +11,10 @@ pnpm --filter @aia-kit/explorer build      # static build in apps/explorer/dist
 
 Stack: Vite 8, Solid 2, Tailwind 4.
 
+## Deployment
+
+`.github/workflows/pages.yml` builds the app and publishes it to GitHub Pages on every push to `main` that touches the app or the library. Pages must be enabled for the repository with "GitHub Actions" as the source. The build is fully static.
+
 ## Structure
 
 ```
