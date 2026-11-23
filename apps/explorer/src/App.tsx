@@ -4,6 +4,7 @@ import { AssetView } from "./components/AssetView.tsx";
 import { EmptyState } from "./components/EmptyState.tsx";
 import { ExtensionView } from "./components/ExtensionView.tsx";
 import { Inspector } from "./components/Inspector.tsx";
+import { OpenFileDialog } from "./components/OpenFileDialog.tsx";
 import { ProblemsPane } from "./components/ProblemsPane.tsx";
 import { PropertiesView, ScreenFlowView } from "./components/ProjectViews.tsx";
 import { ScreenView } from "./components/ScreenView.tsx";
@@ -24,7 +25,7 @@ export function App(): JSX.Element {
     event.preventDefault();
     setDragging(false);
     const file = event.dataTransfer?.files[0];
-    if (file) void state.open(file, file.name);
+    if (file) state.requestOpen(file, file.name);
   };
 
   return (
@@ -80,6 +81,7 @@ export function App(): JSX.Element {
           <Show when={!state.standalone()}>
             <ProblemsPane />
           </Show>
+          <OpenFileDialog />
         </Show>
       </div>
     </AppContext>

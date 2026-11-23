@@ -13,6 +13,7 @@ const PLATFORMS: readonly { readonly id: BuiltinPlatformId; readonly label: stri
 
 export function TopBar(): JSX.Element {
   const app = useApp();
+  let picker: HTMLInputElement | undefined;
   return (
     // Equal side columns keep the search box centred in the window. When the window is too
     // narrow for that, the search box shrinks first and the sides keep their content.
@@ -38,7 +39,20 @@ export function TopBar(): JSX.Element {
           icon={FolderOpen}
           title="Open another file"
           class="py-1.5!"
-          onClick={() => app.close()}
+          onClick={() => picker?.click()}
+        />
+        {/* The current file stays open until a new one is chosen and confirmed. */}
+        <input
+          ref={(el) => (picker = el)}
+          type="file"
+          accept=".aia,.aix,.zip"
+          class="hidden"
+          onChange={(event) => {
+            const file = event.currentTarget.files?.[0];
+            // Reset so choosing the same file again still fires a change.
+            event.currentTarget.value = "";
+            if (file) app.requestOpen(file, file.name);
+          }}
         />
       </div>
     </header>

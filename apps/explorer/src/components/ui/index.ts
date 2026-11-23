@@ -1,4 +1,5 @@
 export { Button } from "./Button.tsx";
+export { Dialog } from "./Dialog.tsx";
 export { Disclosure } from "./Disclosure.tsx";
 export { Icon, type ClassValue, type IconData } from "./Icon.tsx";
 export { ListRow } from "./ListRow.tsx";

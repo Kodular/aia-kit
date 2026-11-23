@@ -12,6 +12,7 @@ import {
   type Screen,
 } from "aia-kit";
 import { findUnusedAssets } from "aia-kit/analysis";
+import { collectHandedFile, openInNewTab } from "./lib/handoff.ts";
 import {
   loadPlatform,
   lookupComponent,
@@ -36,6 +37,11 @@ export type Selection =
   | { readonly kind: "navigation" };
 
 export type Tab = "designer" | "blocks" | "raw";
+
+export interface PendingFile {
+  readonly file: Blob;
+  readonly name: string;
+}
 
 interface Place {
   readonly selection: Selection;
@@ -82,8 +88,17 @@ export interface AppState {
   /** True for components with no on-screen presence (Clock, Sound, …). Needs the platform; false until it loads. */
   isNonVisible(component: Component): boolean;
 
-  open(file: Blob, name: string): Promise<void>;
-  close(): void;
+  /** Reads a file and shows it. Resolves to whether it worked; on failure the current file stays open. */
+  open(file: Blob, name: string): Promise<boolean>;
+  /**
+   * A file the user chose while another is open. Nothing changes until they
+   * decide: replace the current file, open it in a new tab, or cancel.
+   */
+  readonly pendingFile: Accessor<PendingFile | undefined>;
+  /** Opens the file at once if nothing is open; otherwise asks first. */
+  requestOpen(file: Blob, name: string): void;
+  /** Resolves a pending file. `replace` resolves to whether the file could be read. */
+  resolvePending(choice: "replace" | "new-tab" | "cancel"): Promise<boolean>;
   choosePlatform(id: BuiltinPlatformId): void;
   /** Goes to a place in the project, optionally switching the screen tab. Recorded in browser history. */
   select(selection: Selection, tab?: Tab): void;
@@ -105,6 +120,7 @@ export function createAppState(): AppState {
   const [tab, setTab] = createSignal<Tab>("designer");
   const [hovered, setHovered] = createSignal<string | undefined>(undefined);
   const [revealedBlock, setRevealedBlock] = createSignal<string | undefined>(undefined);
+  const [pendingFile, setPendingFile] = createSignal<PendingFile | undefined>(undefined);
 
   const project = () => loaded()?.project;
 
@@ -185,7 +201,14 @@ export function createAppState(): AppState {
     return findComponent(current, s.component);
   });
 
-  return {
+  // A tab opened by "Open in new tab" finds its file waiting in browser storage.
+  onSettled(() => {
+    void collectHandedFile().then((handed) => {
+      if (handed) void state.open(handed.file, handed.name);
+    });
+  });
+
+  const state: AppState = {
     fileName: () => loaded()?.fileName,
     standalone: () => loaded()?.standalone ?? false,
     project,
@@ -238,17 +261,42 @@ export function createAppState(): AppState {
           choosePlatform(guessPlatform(result.project));
         }
         setError(undefined);
+        return true;
       } catch (cause) {
         setError(cause instanceof Error ? cause.message : String(cause));
+        return false;
       } finally {
         setBusy(false);
       }
     },
-    close() {
-      here = undefined;
-      setLoaded(undefined);
-      setSelection(undefined);
-      setError(undefined);
+    pendingFile,
+    requestOpen(file, name) {
+      if (loaded()) {
+        setError(undefined);
+        setPendingFile({ file, name });
+      } else void state.open(file, name);
+    },
+    async resolvePending(choice) {
+      const pending = pendingFile();
+      if (!pending || choice === "cancel") {
+        setPendingFile(undefined);
+        setError(undefined);
+        return true;
+      }
+      if (choice === "new-tab") {
+        try {
+          await openInNewTab(pending);
+          setPendingFile(undefined);
+          return true;
+        } catch (cause) {
+          setError(cause instanceof Error ? cause.message : String(cause));
+          return false;
+        }
+      }
+      // Keep the question up if the file turns out to be unreadable, so the error has somewhere to show.
+      const opened = await state.open(pending.file, pending.name);
+      if (opened) setPendingFile(undefined);
+      return opened;
     },
     choosePlatform,
     select: (next, nextTab) => goTo(next, nextTab),
@@ -265,6 +313,7 @@ export function createAppState(): AppState {
       if (here?.selection) goTo(here.selection, next);
     },
   };
+  return state;
 }
 
 /**
