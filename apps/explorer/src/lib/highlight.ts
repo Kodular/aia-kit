@@ -116,3 +116,39 @@ export function indentXml(text: string): string {
     })
     .join("\n");
 }
+
+/** Splits a token stream into lines; a token that spans a newline is cut in two. */
+export function splitLines(tokens: readonly Token[]): Token[][] {
+  const lines: Token[][] = [[]];
+  for (const token of tokens) {
+    const parts = token.text.split("\n");
+    parts.forEach((part, index) => {
+      if (index > 0) lines.push([]);
+      if (part !== "") lines.at(-1)?.push({ text: part, kind: token.kind });
+    });
+  }
+  return lines;
+}
+
+/**
+ * Fold ranges by indentation. `ends[i]` is the last line hidden when line `i`
+ * is folded (every following line indented deeper than `i`), or -1 if line `i`
+ * has nothing to fold.
+ */
+export function foldEnds(lines: readonly (readonly Token[])[]): number[] {
+  const indents = lines.map((line) => {
+    const text = line.map((token) => token.text).join("");
+    return text.trim() === "" ? -1 : text.length - text.trimStart().length;
+  });
+  return indents.map((indent, i) => {
+    if (indent === -1) return -1;
+    let end = i;
+    for (let j = i + 1; j < indents.length; j++) {
+      const next = indents[j] ?? -1;
+      if (next === -1) continue; // blank lines belong to whichever block surrounds them
+      if (next <= indent) break;
+      end = j;
+    }
+    return end > i ? end : -1;
+  });
+}
