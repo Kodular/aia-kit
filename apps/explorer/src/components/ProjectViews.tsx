@@ -4,6 +4,7 @@ import { navigationGraph } from "aia-kit/analysis";
 import { ArrowRight, Settings2, Smartphone, Workflow } from "lucide";
 import { For, Show, createMemo } from "solid-js";
 import { useApp } from "../state.ts";
+import { PropertyValue } from "./PropertyValue.tsx";
 import {
   Badge,
   Button,
@@ -55,7 +56,7 @@ function Fields(props: { rows: readonly (readonly [string, string])[] }): JSX.El
       <For each={props.rows}>
         {([key, value]) => (
           <KeyValue label={key} mono>
-            {value}
+            <PropertyValue name={key} value={value} />
           </KeyValue>
         )}
       </For>
