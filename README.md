@@ -87,6 +87,22 @@ pnpm check    # typecheck + lint + format check + tests
 pnpm build
 ```
 
+## Releasing
+
+Releases are published by `.github/workflows/release.yml` when a version tag is pushed.
+
+1. Set the new `version` in `package.json` and merge that to `main`.
+2. Tag that commit and push the tag:
+
+   ```
+   git tag v2.0.1
+   git push origin v2.0.1
+   ```
+
+The workflow checks that the tag matches `package.json` and is on `main`, runs `pnpm check`, publishes to npm with provenance, and creates the GitHub release with generated notes. A version with a hyphen, such as `2.1.0-beta.1`, is published under the `next` tag and marked as a pre-release.
+
+It signs in to npm through trusted publishing, so no token is stored. That is configured once on npmjs.com, in the package's settings, by adding this repository and `release.yml` as a trusted publisher.
+
 ## License
 
 ISC
